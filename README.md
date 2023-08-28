@@ -2,7 +2,7 @@
 
 ## Podstawowe informacje
 
-Autopay to moduł płatności umożliwiający realizację transakcji bezgotówkowych w sklepie opartym na platformie WordPress (WooCommerce). Jeżeli jeszcze nie masz wtyczki, możesz ją pobrać [tutaj.](https://github.com/bluepayment-plugin/bluemedia-payment-gateway-for-woocommerce/releases)
+Autopay to moduł płatności umożliwiający realizację transakcji bezgotówkowych w sklepie opartym na platformie WordPress (WooCommerce). Jeżeli jeszcze nie masz wtyczki, możesz ją pobrać [tutaj.](https://github.com/bluepayment-plugin/autopay-payments/releases)
 
 Należy zawsze pobierać najnowsze wydanie oznaczone etykietą "latest" (plik z ikonką paczki, zobacz poniższy screen).
 
