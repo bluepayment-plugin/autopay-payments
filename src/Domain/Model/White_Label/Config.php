@@ -21,20 +21,20 @@ class Config {
 			],
 
 			/*[
-				'name'       => 'Płatność Kartą',
+				'name'       => __( 'Card Payment', 'bm-woocommerce' ),
 				'position'   => 1,
 				'ids'        => [ 1500 ],
 				'extra_html' => $this->get_card_html_info()
 			],*/
 			[
-				'name'       => 'Płatność Kartą',
+				'name'       => __( 'Card Payment', 'bm-woocommerce' ),
 				'position'   => 1,
 				'ids'        => [ 1500 ],
 				'extra_html' => $this->get_desc_html_info( __( 'Przekierujemy Cie na stronę naszego partnera Autopay, gdzie podasz dane swojej karty',
 					'bm-woocommerce' ) ),
 			],
 			[
-				'name'       => 'Przelew Internetowy',
+				'name'       => __( 'Online bank transfer', 'bm-woocommerce' ),
 				'position'   => 2,
 				'extra_html' => $this->get_desc_html_info( __( 'You will be redirected to the page of the selected bank.',
 					'bm-woocommerce' ) ),
@@ -42,26 +42,26 @@ class Config {
 			],
 			//[ 'name' => 'Płatność Kartą One Clik', 'position' => 1, 'ids' => [ 1503 ], ],
 			[
-				'name'       => 'Visa Mobile',
+				'name'       => __( 'VisaMobile', 'bm-woocommerce' ),
 				'position'   => 3,
 				'ids'        => [ 1523 ],
-				'extra_html' => $this->get_desc_html_info( __( 'Podaj numer telefonu i potwierdź płatność w aplikacji',
+				'extra_html' => $this->get_desc_html_info( __( 'Enter your phone number and confirm the payment in the application',
 					'bm-woocommerce' ) ),
 			],
 			[
-				'name'       => 'Google Pay',
+				'name'       => __( 'Google Pay', 'bm-woocommerce' ),
 				'position'   => 4,
 				'ids'        => [ 1512 ],
-				'extra_html' => $this->get_desc_html_info( __( 'Zapłać bez konieczności logowania się do bankowości internetowej',
+				'extra_html' => $this->get_desc_html_info( __( 'Pay without having to log in to online banking',
 					'bm-woocommerce' ) ),
 			],
 			[
-				'name'         => 'Apple Pay',
+				'name'         => __( 'Apple Pay', 'bm-woocommerce' ),
 				'position'     => 5,
 				'ids'          => [ 1513 ],
 				'extra_class'  => 'bm-apple-pay',
 				'extra_script' => $this->get_applepay_check_script(),
-				'extra_html'   => $this->get_desc_html_info( __( 'Zapłać bez konieczności logowania się do bankowości internetowej',
+				'extra_html'   => $this->get_desc_html_info( __( 'Pay without having to log in to online banking',
 					'bm-woocommerce' ) ),
 			],
 
@@ -69,28 +69,35 @@ class Config {
 
 
 			[
-				'name'       => 'Smartney',
+				'name'       => __( 'Smartney', 'bm-woocommerce' ),
 				'position'   => 6,
 				'ids'        => [ 700 ],
 				'extra_html' => $this->get_smartney_html_info(),
 			],
 			[
-				'name'       => 'Alior raty',
+				'name'       => __( 'Alior installments', 'bm-woocommerce' ),
 				'position'   => 7,
 				'ids'        => [ 1506 ],
 				'extra_html' => $this->get_alior_html_info(),
 			],
 			[
-				'name'       => 'PayPo',
+				'name'       => __( 'PayPo', 'bm-woocommerce' ),
 				'position'   => 8,
 				'ids'        => [ 705 ],
 				'extra_html' => $this->get_paypo_html_info(),
 			],
 			[
-				'name'       => 'Spingo',
+				'name'       => __( 'Spingo', 'bm-woocommerce' ),
 				'position'   => 9,
 				'ids'        => [ 706 ],
-				'extra_html' => $this->get_desc_html_info( __( 'Płatność odroczona dla firm',
+				'extra_html' => $this->get_desc_html_info( __( 'Deferred payment for companies',
+					'bm-woocommerce' ) ),
+			],
+			[
+				'name'       => __( 'Blik Pay Later', 'bm-woocommerce' ),
+				'position'   => 10,
+				'ids'        => [ 523 ],
+				'extra_html' => $this->get_desc_html_info( __( 'Buy now and pay within 30 days',
 					'bm-woocommerce' ) ),
 			],
 			//[ 'name' => 'Hub ratalny', 'position' => 10, 'ids' => [ 702 ], ],
@@ -112,11 +119,11 @@ class Config {
 	private function get_paypo_html_info(): string {
 		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
                             <span class="payment-method-help-text">%s</span><a href="https://start.paypo.pl/" target="_blank"><span style=""><br>%s</a></span>',
-			__( 'Odbierz zakupy, sprawdź je i zapłać później — za 30 dni lub w wygodnych ratach.',
-				'bm-woocommerc' ),
-			__( 'Przekierujemy Cię na stronę partnera PayPo.',
-				'bm-woocommerc' ),
-			__( 'Poznaj szczegóły.', 'bm-woocommerc' )
+			__( 'Pick up your purchases, check them out and pay later - in 30 days or in convenient installments.',
+				'bm-woocommerce' ),
+			__( 'We will redirect you to the PayPo partner website.',
+				'bm-woocommerce' ),
+			__( 'Get the details.', 'bm-woocommerce' )
 		);
 	}
 
@@ -141,16 +148,17 @@ class Config {
 	private function get_smartney_html_info(): string {
 		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
                             <a href="https://pomoc.bluemedia.pl/platnosci-online-w-e-commerce/pay-smartney" target="_blank"><span style="">%s</a></span>',
-			__( 'Kup teraz i zapłać w ciągu 30 dni', 'bm-woocommerc' ),
-			__( 'Dowiedz się więcej', 'bm-woocommerc' )
+			__( 'Buy now and pay within 30 days', 'bm-woocommerce' ),
+			__( 'Find out more', 'bm-woocommerce' )
 		);
 	}
 
 	private function get_alior_html_info(): string {
 		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
                             <a href="https://kalkulator.raty.aliorbank.pl/init?supervisor=B776&promotionList=B" target="_blank"><span style="">%s</a></span>',
-			__( 'Raty 0% lub nawet 48 rat.', 'bm-woocommerc' ),
-			__( 'Dowiedz się więcej', 'bm-woocommerc' )
+			__( 'Spread the payment into convenient installments and buy without any problems.',
+				'bm-woocommerce' ),
+			__( 'Find out more', 'bm-woocommerce' )
 		);
 	}
 

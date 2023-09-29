@@ -1,7 +1,8 @@
 function addCurrentClass(el) {
-    const current_payment_block = el.closest('#payment');
+    var canContinue = false;
 
-    const elements = current_payment_block.querySelectorAll(".bm-payment-channel-item > input[type='radio']");
+    const current_payment_block = el.closest('#payment');
+    const elements = current_payment_block.querySelectorAll(".bm-payment-channel-item > label > input[type='radio']");
 
     const bank_group_wrap = current_payment_block.querySelector(".bm-group-expandable-wrapper");
     const bank_group_radio = current_payment_block.querySelector("#bm-gateway-bank-group");
@@ -9,21 +10,40 @@ function addCurrentClass(el) {
         elements.forEach((element) => {
             if (element.checked) {
                 element.closest(".bm-payment-channel-item").classList.toggle("selected");
+
+                canContinue = element.closest(".bm-payment-channel-item").classList.contains("selected");
+
+                if (!canContinue) {
+                    element.checked = false
+                }
+
                 // hide list of "PRZELEW INTERNETOWY"
                 if (!isChild(element, current_payment_block.querySelector("div.bm-group-expandable-wrapper"))) {
                     bank_group_wrap.classList.remove('active');
                     if (bank_group_radio.checked) {
                         bank_group_radio.checked = !bank_group_radio.checked;
+
                     }
                 }
             }
-            current_payment_block.querySelectorAll(".bm-payment-channel-item > input[type='radio']").forEach((element) => {
+            current_payment_block.querySelectorAll(".bm-payment-channel-item > label > input[type='radio']").forEach((element) => {
                 if (element.checked === false) {
                     element.closest(".bm-payment-channel-item").classList.remove("selected");
                 }
             })
         });
     }
+
+    // console.log(canContinue)
+
+    //console.log(canContinue ? 'Aktywny' : 'Nieaktywny')
+
+    if (canContinue) {
+        BmActivateNewOrderButton()
+    } else {
+        BmDeactivateNewOrderButton()
+    }
+
 }
 
 
@@ -40,7 +60,7 @@ jQuery(document).ready(function () {
             gtag('js', new Date());
             gtag('config', blueMedia.ga4TrackingId);
             let events = JSON.parse(blue_media_ga4_tasks)[0].events;
-            console.log(events);
+            //console.log(events);
 
             events.forEach((event) => {
                 gtag('event', event.name,
@@ -55,14 +75,15 @@ jQuery(document).ready(function () {
 
 function blueMediaRadioShow() {
     jQuery('.payment_box.payment_method_bluemedia .payment_box.payment_method_bacs').css('display', 'block');
-};
+
+}
 
 function blueMediaRadioHide() {
     jQuery('.payment_box.payment_method_bluemedia .payment_box.payment_method_bacs').css('display', 'none');
 };
 
 function blueMediaRadioTest() {
-    if ( jQuery('#payment_method_bluemedia').is(':checked') ) {
+    if (jQuery('#payment_method_bluemedia').is(':checked')) {
         blueMediaRadioShow();
     }
 };
@@ -76,16 +97,26 @@ document.addEventListener('click', function (e) {
     if (target.hasAttribute('id') && target.getAttribute('id') == 'bm-gateway-bank-group') {
         if (target.checked) {
 
+            BmSelectGroupedLi()
+
             document.querySelectorAll(".bm-group-expandable-wrapper").forEach((element) => {
                 element.classList.add('active');
+
             });
 
-            document.querySelectorAll(".bm-payment-channel-item > input[type='radio']").forEach((element) => {
+            document.querySelectorAll(".bm-payment-channel-item > label > input[type='radio']").forEach((element) => {
                 if (element.checked) {
                     element.closest(".bm-payment-channel-item").classList.remove("selected");
                     element.checked = !element.checked;
+                    BmDeactivateNewOrderButton()
                 }
             })
+        }
+    } else {
+        //console.log(target.getAttribute('class'));
+        if (target.hasAttribute('class') && target.getAttribute('class') !== 'bm-payment-channel-group-in-group') {
+            //console.log(target.getAttribute('class'));
+            BmDeselectGroupedLi()
         }
     }
 });
@@ -98,4 +129,20 @@ function isChild(obj, parentObj) {
         obj = obj.parentNode;
     }
     return false;
+}
+
+function BmDeactivateNewOrderButton() {
+    jQuery("#place_order").prop("disabled", true); // Deaktywuj przycisk
+}
+
+function BmActivateNewOrderButton() {
+    jQuery("#place_order").prop("disabled", false); // Deaktywuj przycisk
+}
+
+function BmSelectGroupedLi() {
+    jQuery('.bm-payment-channel-group-item').addClass('bm-selected-group')
+}
+
+function BmDeselectGroupedLi() {
+    jQuery('.bm-payment-channel-group-item').removeClass('bm-selected-group')
 }

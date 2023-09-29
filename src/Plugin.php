@@ -20,7 +20,9 @@ use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Event\Wc_Remove_Cart_Item;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Interfaces\Wc_Cart_Aware_Interface;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Interfaces\Wc_Order_Aware_Interface;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Interfaces\Wc_Product_Aware_Interface;
+use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Woocommerce_Logger;
 use WC_Order;
+use WC_Session;
 use WC_Session_Handler;
 use Ilabs\BM_Woocommerce\Controller\Payment_Status_Controller;
 
@@ -40,6 +42,25 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	public function get_logger(
 	): \Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Logger\Logger_Interface {
 		return new \Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Logger\Wp_Debug_Logger();
+	}
+
+	public function get_woocommerce_logger(): Woocommerce_Logger {
+		$settings = get_option( 'woocommerce_bluemedia_settings' );
+
+		$debug_mode = 'no';
+		if ( is_array( $settings ) && isset( $settings['debug_mode'] ) ) {
+			$debug_mode = $settings['debug_mode'];
+		}
+
+		$logger = parent::get_woocommerce_logger();
+
+		if ( 'yes' === $debug_mode ) {
+			$logger->set_null_logger( false );
+		} else {
+			$logger->set_null_logger( true );
+		}
+
+		return $logger;
 	}
 
 	/**
@@ -214,6 +235,10 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 */
 	private function implement_ga4() {
 
+		if ( ! function_exists( 'WC' ) || false === WC()->session instanceof WC_Session ) {
+			return;
+		}
+
 		$ga4_Service_Client = new Ga4_Service_Client();
 
 		if ( ! $ga4_Service_Client->get_tracking_id()
@@ -352,6 +377,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		require_once ABSPATH
 		             . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
+
 		add_action( 'template_redirect', [ $this, 'return_redirect_handler' ] );
 
 		add_filter( 'woocommerce_cancel_unpaid_order',
@@ -366,14 +392,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				$this->update_payment_cache( 'bm_payment_start', null );
 			}
 		}
-
-		$alerts       = new Alerts();
-		$last_api_err = get_option( 'bm_api_last_error' );
-		if ( ! empty( $last_api_err ) && defined( 'BLUE_MEDIA_DEBUG' ) ) {
-			$alerts->add_error( 'Autopay: ' . $last_api_err );
-		}
-
-
 
 		if ( get_option( 'bluemedia_activated' ) === '1' ) {
 			$this->reposition_on_activate();
@@ -400,6 +418,11 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	public function return_redirect_handler() {
 		if ( isset( $_GET['bm_gateway_return'] ) ) {
 
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[return_redirect_handler] [received get params: %s]',
+					serialize( $_GET )
+				) );
+
 			$order = null;
 
 			if ( isset( $_GET['OrderID'] ) ) {
@@ -413,6 +436,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 			if ( $order ) {
 				$finish_url = $order->get_checkout_order_received_url();
+
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[return_redirect_handler] [doing redirect] [url: %s]',
+						$finish_url
+					) );
+
 				wp_redirect( $finish_url );
 				exit;
 			}

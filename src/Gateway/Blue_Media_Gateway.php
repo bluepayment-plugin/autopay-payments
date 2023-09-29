@@ -134,15 +134,17 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$params['PlatformPluginVersion'],
 						$params['Hash'] );
 				}
+
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[payment_start] [Params: %s]',
+						serialize( $params )
+					) );
+
 				update_post_meta( $params['OrderID'],
 					'bm_transaction_init_params', $params );
 				blue_media()->update_payment_cache( 'bm_payment_start', '1' );
 			}
-
-
 		}
-
-
 		$this->webhook();
 	}
 
@@ -202,8 +204,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'bm-woocommerce' ),
 				'desc_tip'    => true,
 			],
-
-			'testmode_info' => [
+			'testmode_info'   => [
 				'title'       => __( '',
 					'bm-woocommerce' ),
 				'description' => "<span class='p-info'>" . __( 'The service ID and shared key for the test environment are different from production data.',
@@ -319,10 +320,26 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'options'     => wc_get_order_statuses(),
 				'default'     => 'wc-failed',
 			],
-
+			'advanced_opts_title'             => [
+				'title'       => __( 'Advanced settings',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'title',
+			],
+			'debug_mode'                      => [
+				'title'   => __( 'Debug mode',
+					'bm-woocommerce' ),
+				'label'   => __( 'Enable debug mode',
+					'bm-woocommerce' ),
+				'type'    => 'select',
+				'default' => 'no',
+				'options' => [
+					'no'  => __( 'No', 'bm-woocommerce' ),
+					'yes' => __( 'Yes', 'bm-woocommerce' ),
+				],
+			],
 		];
-
-
 	}
 
 	public function render_gateway_channels_test() {
@@ -359,45 +376,45 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		ob_start();
 		?>
-		<tr valign="top">
-			<th scope="row" class="titledesc">
-				<label
-					for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?><?php echo $this->get_tooltip_html( $data ); // WPCS: XSS ok. ?></label>
-			</th>
-			<td class="forminp">
-				<fieldset>
-					<legend class="screen-reader-text">
-						<span><?php echo wp_kses_post( $data['title'] ); ?></span>
-					</legend>
+        <tr valign="top">
+            <th scope="row" class="titledesc">
+                <label
+                        for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?><?php echo $this->get_tooltip_html( $data ); // WPCS: XSS ok. ?></label>
+            </th>
+            <td class="forminp">
+                <fieldset>
+                    <legend class="screen-reader-text">
+                        <span><?php echo wp_kses_post( $data['title'] ); ?></span>
+                    </legend>
 					<?php foreach ( (array) $data['options'] as $option_key => $option_value ) : ?>
 				<?php if ( is_array( $option_value ) ) : ?>
 
-					<optgroup label="<?php echo esc_attr( $option_key ); ?>">
+                    <optgroup label="<?php echo esc_attr( $option_key ); ?>">
 						<?php foreach ( $option_value as $option_key_inner => $option_value_inner ) : ?>
-							<label
-								for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value_inner ); ?></label>
-							<input id="<?php echo esc_attr( $option_key ); ?>"
-							       type="radio"
-							       name="<?php echo esc_attr( $field_key ); ?>"
-							       value="<?php echo esc_attr( $option_key_inner ); ?>" <?php checked( (string) $option_key_inner,
+                            <label
+                                    for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value_inner ); ?></label>
+                            <input id="<?php echo esc_attr( $option_key ); ?>"
+                                   type="radio"
+                                   name="<?php echo esc_attr( $field_key ); ?>"
+                                   value="<?php echo esc_attr( $option_key_inner ); ?>" <?php checked( (string) $option_key_inner,
 								esc_attr( $value ) ); ?>>
 						<?php endforeach; ?>
-					</optgroup>
+                    </optgroup>
 				<?php else : ?>
-					<label
-						for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value ); ?></label>
-					<input id="<?php echo esc_attr( $option_key ); ?>"
-					       type="radio"
-					       name="<?php echo esc_attr( $field_key ); ?>"
-					       value="<?php echo esc_attr( $option_key ); ?>" <?php checked( (string) $option_key,
+                    <label
+                            for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value ); ?></label>
+                    <input id="<?php echo esc_attr( $option_key ); ?>"
+                           type="radio"
+                           name="<?php echo esc_attr( $field_key ); ?>"
+                           value="<?php echo esc_attr( $option_key ); ?>" <?php checked( (string) $option_key,
 						esc_attr( $value ) ); ?>>
 						<?php endif; ?>
 						<?php endforeach; ?>
-					</input>
+                    </input>
 					<?php echo $this->get_description_html( $data ); // WPCS: XSS ok. ?>
-				</fieldset>
-			</td>
-		</tr>
+                </fieldset>
+            </td>
+        </tr>
 		<?php
 
 		return ob_get_clean();
@@ -433,7 +450,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$blik0_type      = $this->get_option( 'blik_type', 'with_redirect' );
 
 		if ( self::BLIK_0_CHANNEL === $payment_channel && 'blik_0_without_redirect' === $blik0_type ) {
-			$blik_code = (int) $_POST['bluemedia_blik_code'];
+			$blik_code = (string) $_POST['bluemedia_blik_code'];
 
 			if ( $this->is_blik_0_code_valid( $blik_code ) ) {
 				$this->process_blik_0_payment( $order, $blik_code );
@@ -467,10 +484,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 	}
 
-	private function is_blik_0_code_valid( int $code ): bool {
-		$numString = (string) $code;
+	private function is_blik_0_code_valid( string $code ): bool {
 
-		return strlen( $numString ) === 6;
+		return strlen( $code ) === 6 && ctype_digit( $code );
 	}
 
 	private function process_card_payment(
@@ -496,7 +512,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			'GatewayID'     => self::CARD_CHANNEL,
 			'Currency'      => 'PLN',
 			'CustomerEmail' => $order->get_billing_email(),
-			'CustomerIP'    => '127.0.0.1',
+			'CustomerIP'    => blue_media()
+				->get_core_helpers()
+				->get_visitor_ip(),
 			'Title'         => (string) $order->get_id(),
 			'ScreenType'    => 'IFRAME',
 		];
@@ -580,7 +598,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 	private function process_blik_0_payment(
 		WC_Order $order,
-		int $blik_authorization_code
+		string $blik_authorization_code
 	) {
 		add_filter( 'woocommerce_get_checkout_order_received_url',
 			function ( $redirect_url, $order ) {
@@ -592,13 +610,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				return '#';
 			}, 10, 2 );
 
-		if ( 0 === $blik_authorization_code ) {
-			WC()->session->set( 'bm_continue_transaction_start_error',
-				'Incorrect transaction code!' );
-
-			return;
-		}
-
 		$client = new Client();
 		$params = [
 			'ServiceID'         => $this->service_id,
@@ -608,9 +619,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			'GatewayID'         => self::BLIK_0_CHANNEL,
 			'Currency'          => 'PLN',
 			'CustomerEmail'     => $order->get_billing_email(),
-			'CustomerIP'        => '127.0.0.1',
+			'CustomerIP'        => blue_media()
+				->get_core_helpers()
+				->get_visitor_ip(),
 			'Title'             => (string) $order->get_id(),
-			'AuthorizationCode' => (string) $blik_authorization_code,
+			'AuthorizationCode' => $blik_authorization_code,
 		];
 
 		$params = array_merge( $params, [
@@ -704,10 +717,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					$order_failure_to_update = [];
 					$order_pending_to_update = [];
 
-					blue_media()
-						->get_logger()
-						->log( base64_decode( $posted['transactions'] ) );
-
+					blue_media()->get_woocommerce_logger()->log_debug(
+						'Transactions from ITN: ' . print_r( base64_decode( $posted['transactions'] ),
+							true )
+					);
 
 					$xw = xmlwriter_open_memory();
 					xmlwriter_set_indent( $xw, 1 );
@@ -747,13 +760,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							}
 						}
 
-						/*update_option( 'bm_api_last_error',
-							sprintf( '[%s server time] [BlueMedia ITN debug] [Transaction from ITN: %s] [Init params meta: %s]',
-								date( "Y-m-d H:i:s", time() ),
-								'test'
-							)
-						);*/
-
 
 						$wc_order_id     = (int) (string) $transaction->orderID;
 						$bm_order_status = (string) $transaction->paymentStatus;
@@ -762,14 +768,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 						$init_params = get_post_meta( $wc_order_id,
 							'bm_transaction_init_params', true );
-
-						/*update_option( 'bm_api_last_error',
-							sprintf( '[%s server time] [BlueMedia ITN debug] [Transaction from ITN: %s] [Init params meta: %s]',
-								date( "Y-m-d H:i:s", time() ),
-								json_encode( $transaction ),
-								json_encode( $init_params )
-							)
-						);*/
 
 
 						if ( ! is_array( $init_params ) ) {
@@ -790,14 +788,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							echo __( 'validate_itn_params - not valid',
 								esc_attr( blue_media()->get_from_config( 'slug' ) ) );
 
-
-							update_option( 'bm_api_last_error',
-								sprintf( '[%s server time] [BlueMedia ITN validate_itn_params 401 debug] [Transaction from ITN: %s] [Init params meta: %s]',
-									date( "Y-m-d H:i:s", time() ),
+							blue_media()->get_woocommerce_logger()->log_error(
+								sprintf( '[Validate_itn_params 401] [Transaction from ITN: %s] [Init params meta: %s]',
 									json_encode( $transaction ),
 									json_encode( $init_params )
-								)
-							);
+								) );
+
 							exit;
 						}
 
@@ -886,15 +882,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					exit;//exit with 200
 				}
 			} catch ( Exception $e ) {
-				error_log( print_r( $e->getMessage(), true ) );
-
-				update_option( 'bm_api_last_error',
-					sprintf( '[%s server time] [BlueMedia webhook exception debug] [mesage: %s] [Post data: %s]',
-						date( "Y-m-d H:i:s", time() ),
+				blue_media()->get_woocommerce_logger()->log_error(
+					sprintf( '[Webhook exception debug] [message: %s] [Post data: %s]',
 						json_encode( $e->getMessage() ),
 						json_encode( $_POST )
-					)
-				);
+					) );
 
 				die( 'Message: ' . $e->getMessage() . ' Code: ' . $e->getCode() );
 			}
@@ -1026,8 +1018,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			$gateway_list_cache = $this->api_get_gateway_list();
 			update_option( 'bm_gateway_list_cache', $gateway_list_cache );
 			update_option( 'bm_gateway_list_cache_time', time() );
-			/*update_option( 'bm_api_last_error',
-				'api_get_gateway_list: ' . serialize( $gateway_list_cache ) );*/
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				'Gateway list from API: ' . print_r( $gateway_list_cache, true )
+			);
+
 		} else {
 			$gateway_list_cache = get_option( 'bm_gateway_list_cache' );
 			if ( empty( $gateway_list_cache ) ) {
@@ -1079,12 +1074,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 
 		if ( is_wp_error( $result ) ) {
-			update_option( 'bm_api_last_error',
-				sprintf( '[%s] [BlueMedia debug] [URL: %s] [Message: %s]',
-					date( "Y-m-d H:i:s", time() ), $url,
+			blue_media()->get_woocommerce_logger()->log_error(
+				sprintf( '[gatewayList/v2] [error message: %s]',
 					$result->get_error_message()
-				)
-			);
+				) );
+
+
 		}
 
 		$result_decoded = json_decode( wp_remote_retrieve_body( $result ) );
@@ -1093,12 +1088,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		     && property_exists( $result_decoded,
 				'result' )
 		     && $result_decoded->result === 'ERROR' ) {
-			/*update_option( 'bm_api_last_error',
-				sprintf( '[%s server time] [BlueMedia debug] [URL: %s] [Message: %s]',
-					date( "Y-m-d H:i:s", time() ), $url,
-					$result_decoded->description
-				)
-			);*/
 
 			return [];
 		}
@@ -1107,25 +1096,30 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'gatewayList' ) ) {
 
 			if ( empty( $result_decoded->gatewayList ) ) {
-				update_option( 'bm_api_last_error',
-					sprintf( '[%s server time] [BlueMedia debug] [URL: %s] [Empty results: %s]',
-						date( "Y-m-d H:i:s", time() ), $url,
+				blue_media()->get_woocommerce_logger()->log_error(
+					sprintf( '[gatewayList/v2] [URL: %s] [Empty results: %s]',
+						$url,
 						serialize( $result_decoded )
-					)
-				);
+					) );
 
 				return [];
 			}
 
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[gatewayList/v2] [URL: %s] [Results: %s]',
+					$url,
+					serialize( $result_decoded )
+				) );
+
+
 			return $result_decoded->gatewayList;
 		}
 
-		update_option( 'bm_api_last_error',
-			sprintf( '[%s server time] [BlueMedia debug] [URL: %s] [Failed decode results: %s]',
-				date( "Y-m-d H:i:s", time() ), $url,
+		blue_media()->get_woocommerce_logger()->log_error(
+			sprintf( '[gatewayList/v2] [URL: %s] [Failed decode results: %s]',
+				$url,
 				serialize( $result )
-			)
-		);
+			) );
 
 		return [];
 	}
@@ -1169,36 +1163,36 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			if ( $expandable_Group ) {
 				// add radio before "PRZELEW INTERNETOWY" logo to add possibility
 				// show-hide list of banks
-				printf( "<li class='bm-payment-channel-group-item'>
-                                <input type='radio' name='bm-payment-channel-group' id='bm-gateway-bank-group'>
-                                <span class='bm-payment-channel-group-method-logo'>
-                                <img src='%s'></span>
-								<label for='bm-gateway-bank-group'>%s</label>
-								</li>
-                                ",
-					$group->get_icon(), $group->get_name() );
+				printf( '<li class="bm-payment-channel-group-item">
+							<label for="bm-gateway-bank-group">
+								<input type="radio" name="bm-payment-channel-group" id="bm-gateway-bank-group" >
+                                <img src="%s" class="bm-payment-channel-group-method-logo">
+								<p class="bm-payment-channel-group-method-name">%s</p>
+							</label>
+						</li>',
+					$group->get_icon(),
+					$group->get_name()
+				);
 
-				echo "<div class='bm-group-expandable-wrapper'>";
+				echo '<div class="bm-group-expandable-wrapper">';
 			}
 
 
 			foreach ( $group->get_items() as $item ) {
-				printf( '
-                    <li class="bm-payment-channel-item %s">
-                    <input
-                    type="radio"
-                    name="bm-payment-channel"
-                    onclick="addCurrentClass(this)"
-                    data-index="0" id="bm-gateway-id-%s" class="shipping_method" value="%s">                    
-                    <img style="" src="%s" class="bm-payment-channel-method-logo">
-                    <label class="bm-payment-channel-label" for="bm-gateway-id-%s">%s</label>
-                    <span class="bm-payment-channel-method-desc">%s</span>
-                            </li>',
+				printf( '<li class="bm-payment-channel-item %s">
+							<label class="bm-payment-channel-label" for="bm-gateway-id-%s">
+								<input type="radio" name="bm-payment-channel" onclick="addCurrentClass(this)" data-index="0" id="bm-gateway-id-%s" value="%s" class="%s">
+								<img src="%s" class="bm-payment-channel-method-logo">
+								<p class="bm-payment-channel-method-name">%s</p>
+							</label>
+							<span class="bm-payment-channel-method-desc">%s</span>
+                        </li>',
 					(string) $item->get_class(),
 					$item->get_id(),
 					$item->get_id(),
-					$item->get_icon(),
 					$item->get_id(),
+					$expandable_Group ? 'bm-payment-channel-group-in-group' : '',
+					$item->get_icon(),
 					$item->get_name(),
 					$item->get_description()
 				);
@@ -1219,21 +1213,45 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		echo '</div>';
 
-		echo "<script>
+		?>
 
-		jQuery(document).ready(function () {
-			blueMediaRadioTest();
+        <script>
+            jQuery(document).ready(function () {
+                var isBlueMediaSelected = jQuery('#payment_method_bluemedia').is(':checked');
 
-			jQuery( '#payment_method_bluemedia' ).on( 'click', function() {
-				blueMediaRadioShow();
-			} );
+                if (isBlueMediaSelected) {
+                    BmDeactivateNewOrderButton()
+                }
+            });
 
-			jQuery( 'ul.wc_payment_methods > li.wc_payment_method:not(.payment_method_bluemedia)' ).on( 'click', function() {
-				blueMediaRadioHide();
-			} );
-		});
+            jQuery("input[name='payment_method']").on("click touchstart", function () {
+                var radioButtons = jQuery("input[name='payment_method']");
+                for (var i = 0; i < radioButtons.length; i++) {
+                    if (radioButtons[i].checked && radioButtons[i].id !== "payment_method_bluemedia") {
+                        BmActivateNewOrderButton()
+                        BmDeselectGroupedLi()
+                    }
+                }
 
-		</script>";
+                jQuery("input[id='payment_method_bluemedia']").on("click", function () {
+                    jQuery(".payment_box").find("input[type='radio']").prop("checked", false);
+                    jQuery(".payment_box").find("li").removeClass("selected");
+                    BmDeactivateNewOrderButton()
+                });
+
+
+                blueMediaRadioTest();
+
+                jQuery('#payment_method_bluemedia').on('click', function () {
+                    blueMediaRadioShow();
+                });
+
+                jQuery('ul.wc_payment_methods > li.wc_payment_method:not(.payment_method_bluemedia)').on('click', function () {
+                    blueMediaRadioHide();
+                });
+            });
+
+        </script><?php
 	}
 
 

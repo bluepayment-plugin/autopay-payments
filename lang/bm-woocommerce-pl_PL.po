@@ -193,3 +193,72 @@ msgstr "Lista kanałów płatności"
 
 msgid "Settings"
 msgstr "Ustawienia"
+
+msgid "Enable debug mode"
+msgstr "Włącz tryb debugowania"
+
+msgid "Debug mode"
+msgstr "Tryb debugowania"
+
+msgid "Advanced settings"
+msgstr "Ustawienia zaawansowane"
+
+msgid "Card Payment"
+msgstr "Płatność Kartą"
+
+msgid "We will redirect you to the website of our partner Autopay, where you will provide your card details"
+msgstr "Przekierujemy Cię na stronę naszego partnera Autopay, gdzie podasz dane swojej karty"
+
+msgid "Online bank transfer"
+msgstr "Przelew Internetowy"
+
+msgid "VisaMobile"
+msgstr "Visa Mobile"
+
+msgid "Enter your phone number and confirm the payment in the application"
+msgstr "Podaj numer telefonu i potwierdź płatność w aplikacji"
+
+msgid "Google Pay"
+msgstr "Google Pay"
+
+msgid "Pay without having to log in to online banking"
+msgstr "Zapłać bez konieczności logowania się do bankowości internetowej"
+
+msgid "Apple Pay"
+msgstr "Apple Pay"
+
+msgid "Smartney"
+msgstr "Smartney"
+
+msgid "Find out more"
+msgstr "Dowiedz się więcej"
+
+msgid "Alior installments"
+msgstr "Alior raty"
+
+msgid "Spread the payment into convenient installments and buy without any problems."
+msgstr "Rozłóż płatność na wygodne raty i kupuj bez problemów."
+
+msgid "PayPo"
+msgstr "PayPo"
+
+msgid "Pick up your purchases, check them out and pay later - in 30 days or in convenient installments."
+msgstr "Odbierz zakupy, sprawdź je i zapłać później — za 30 dni lub w wygodnych ratach."
+
+msgid "We will redirect you to the PayPo partner website."
+msgstr "Przekierujemy Cię na stronę partnera PayPo."
+
+msgid "Get the details."
+msgstr "Poznaj szczegóły."
+
+msgid "Spingo"
+msgstr "Spingo"
+
+msgid "Deferred payment for companies"
+msgstr "Płatność odroczona dla firm"
+
+msgid "Blik Pay Later"
+msgstr "Blik Płacę Później"
+
+msgid "Buy now and pay within 30 days"
+msgstr "Kup teraz i płać w ciągu 30 dni"
