@@ -17,7 +17,9 @@ class Config {
 				'name'       => 'Blik',
 				'position'   => 0,
 				'ids'        => [ 509 ],
-				'extra_html' => $blik0_type === 'blik_0_without_redirect' ? $this->get_blik0_html_info() : null,
+				'extra_html' => $blik0_type === 'blik_0_without_redirect' ? $this->get_blik0_html_info()
+					: $this->get_desc_html_info( __( 'Pay comfortably using Blik payments',
+						'bm-woocommerce' ) ),
 			],
 
 			/*[
@@ -30,14 +32,12 @@ class Config {
 				'name'       => __( 'Card Payment', 'bm-woocommerce' ),
 				'position'   => 1,
 				'ids'        => [ 1500 ],
-				'extra_html' => $this->get_desc_html_info( __( 'Przekierujemy Cie na stronę naszego partnera Autopay, gdzie podasz dane swojej karty',
+				'extra_html' => $this->get_desc_html_info( __( 'We will redirect you to the website of our partner Autopay, where you will provide your card details',
 					'bm-woocommerce' ) ),
 			],
 			[
 				'name'       => __( 'Online bank transfer', 'bm-woocommerce' ),
 				'position'   => 2,
-				'extra_html' => $this->get_desc_html_info( __( 'You will be redirected to the page of the selected bank.',
-					'bm-woocommerce' ) ),
 				'ids'        => self::UNSPECIFIED_IDS,
 			],
 			//[ 'name' => 'Płatność Kartą One Clik', 'position' => 1, 'ids' => [ 1503 ], ],

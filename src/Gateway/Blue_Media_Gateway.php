@@ -1138,7 +1138,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$group_arr = ( new Group_Mapper( $channels ) )->map();
 
 		echo '<div class="payment_box payment_method_bacs">';
-		echo '<p>' . __( 'Instant payment. BLIK, credit card, Google Pay, Apple Pay',
+		echo '<p>' . __( 'Instant payment. BLIK, credit card, Google Pay, Apple Pay.',
+				'bm-woocommerce' ) . '</p>';
+        echo '<p>' . __( 'Select the payment method you want to use.',
 				'bm-woocommerce' ) . '</p>';
 		echo '</div>';
 		echo '<div class="payment_box payment_method_bacs">';
@@ -1169,9 +1171,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
                                 <img src="%s" class="bm-payment-channel-group-method-logo">
 								<p class="bm-payment-channel-group-method-name">%s</p>
 							</label>
+							<span class="bm-payment-channel-method-desc"> 
+							<span style="text-align: justify">
+							<span class="payment-method-description">%s</span>
+							</span>
+                        </span>
 						</li>',
 					$group->get_icon(),
-					$group->get_name()
+					$group->get_name(),
+					$group->get_subtitle()
 				);
 
 				echo '<div class="bm-group-expandable-wrapper">';

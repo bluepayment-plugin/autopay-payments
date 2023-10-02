@@ -143,8 +143,8 @@ msgstr "Żeby uzyskać dane dla środowiska testowego,"
 msgid "Autopay gateway"
 msgstr "Szybka płatność"
 
-msgid "Instant payment. BLIK, credit card, Google Pay, Apple Pay"
-msgstr "Przelew internetowy. BLIK, karta płatnicza, Google Pay, Apple Pay"
+msgid "Instant payment. BLIK, credit card, Google Pay, Apple Pay."
+msgstr "Przelew internetowy. BLIK, karta płatnicza, Google Pay, Apple Pay."
 
 msgid "PHP version is older than 7.2 so this plugin will not work. Please contact your host and ask them to upgrade."
 msgstr "Wersja PHP jest starsza niż 7.2 więc ta wtyczka się nie uruchomi. Skontaktuj się ze wsparciem technicznym Twojej witryny i poproś o aktualizację PHP."
@@ -206,9 +206,6 @@ msgstr "Ustawienia zaawansowane"
 msgid "Card Payment"
 msgstr "Płatność Kartą"
 
-msgid "We will redirect you to the website of our partner Autopay, where you will provide your card details"
-msgstr "Przekierujemy Cię na stronę naszego partnera Autopay, gdzie podasz dane swojej karty"
-
 msgid "Online bank transfer"
 msgstr "Przelew Internetowy"
 
@@ -262,3 +259,18 @@ msgstr "Blik Płacę Później"
 
 msgid "Buy now and pay within 30 days"
 msgstr "Kup teraz i płać w ciągu 30 dni"
+
+msgid "We will redirect you to the website of our partner Autopay, where you will provide your card details"
+msgstr "Przekierujemy Cie na stronę naszego partnera Autopay, gdzie podasz dane swojej karty"
+
+msgid "Płać wygodnie za pomocą płatności Blik"
+msgstr "Przekierujemy Cie na stronę naszego partnera Autopay, gdzie podasz dane swojej karty"
+
+msgid "You will be redirected to the page of the selected bank. Select the bank in order to make the payment."
+msgstr "Przekierujemy Cię na stronę wybranego banku. Wybierz bank, z którego chcesz zlecić płatność."
+
+msgid "Select the payment method you want to use."
+msgstr "Wybierz metodę płatności, z której chcesz skorzystać."
+
+msgid "Pay comfortably using Blik payments"
+msgstr "Płać wygodnie za pomocą płatności Blik"

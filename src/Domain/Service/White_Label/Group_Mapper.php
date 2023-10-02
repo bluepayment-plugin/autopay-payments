@@ -44,9 +44,8 @@ class Group_Mapper {
 					$config_item['name'],
 					sanitize_title( $config_item['name'] ),
 					blue_media()->get_plugin_images_url() . '/logo-group.svg',
-					__( 'You will be redirected to the page of the selected bank.',
-						'bm-woocommerce'
-					)
+					__( 'You will be redirected to the page of the selected bank. Select the bank in order to make the payment.',
+						'bm-woocommerce' )
 				);
 
 				$result[]                  = $group;

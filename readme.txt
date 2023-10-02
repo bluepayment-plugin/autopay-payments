@@ -3,7 +3,7 @@ Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 5.0
 Tested up to: 6.3.1
-Stable tag: 4.2.1
+Stable tag: 4.2.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -227,11 +227,12 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 - Rebranding
 
 ## [4.2.1] - 2023-09-29
-### Added
-- new payment method "Blik 0 Płace później"
-
 ### Fixed
 - Translations
 - Blik: problem with code starting with "0"
 - Improved payment method selection UI
 - Fatal error during a page update in a specific scenario
+
+## [4.2.2] - 2023-10-02
+### Fixed
+- Translations
