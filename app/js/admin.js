@@ -12,7 +12,7 @@ jQuery(document).ready(function () {
         }
     }
 
-    api_fields_logic(jQuery('input[type=radio][name=woocommerce_bluemedia_testmode]:checked').val());
+    //api_fields_logic(jQuery('input[type=radio][name=woocommerce_bluemedia_testmode]:checked').val());
 
     jQuery('input[type=radio][name=woocommerce_bluemedia_testmode]').on('change', function () {
         api_fields_logic(jQuery(this).val());

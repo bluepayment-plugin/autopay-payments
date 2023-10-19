@@ -8,6 +8,7 @@ use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group_Interface;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Group;
 use Ilabs\BM_Woocommerce\Domain\Service\White_Label\Group_Mapper;
+use Ilabs\BM_Woocommerce\Domain\Woocommerce\Autopay_Order_Factory;
 use Ilabs\BM_Woocommerce\Plugin;
 use SimpleXMLElement;
 use WC_Order;
@@ -76,7 +77,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$this->description = '';
 		$this->enabled     = $this->get_option( 'enabled' );
-		$this->testmode    = 'yes' === $this->get_option( 'testmode', 'no' );
+		$this->testmode    = $this->resolve_is_test_mode();
 
 		$this->gateway_url     = $this->testmode
 			? self::GATEWAY_SANDBOX
@@ -149,6 +150,24 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 
+	private function resolve_is_test_mode(): bool {
+		if ( 'yes' === $this->get_option( 'testmode', 'no' ) ) {
+			return true;
+		} else {
+			if ( 'yes' === $this->get_option( 'sandbox_for_admins', 'no' ) ) {
+				$current_user = wp_get_current_user();
+				if ( user_can( $current_user, 'administrator' ) ) {
+					blue_media()->get_woocommerce_logger()->log_debug(
+						'[resolve_is_test_mode] Test mode forced by sandbox_for_admins option' );
+
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * @return void
 	 * @throws Exception
@@ -216,21 +235,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'type'        => 'title',
 			],
 
-
-			'test_service_id'  => [
-				'title'       => __( 'Test Service ID',
-					'bm-woocommerce' ),
-				'description' => __( 'It contains only numbers. It is different for each shop.',
-					'bm-woocommerce' ),
-				'type'        => 'text',
-			],
-			'test_private_key' => [
-				'title'       => __( 'Test Private Key',
-					'bm-woocommerce' ),
-				'description' => __( 'Contains numbers and lowercase letters. It is used to verify communication with the payment gateway. It should not be made available to the public',
-					'bm-woocommerce' ),
-				'type'        => 'password',
-			],
 			'service_id'       => [
 				'title'       => __( 'Service ID',
 					'bm-woocommerce' ),
@@ -247,7 +251,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			],
 
 
-			'ga4_tracking_id'                 => [
+			'ga4_tracking_id'                         => [
 				'title'       => __( 'Google Analytics Tracking ID',
 					'bm-woocommerce' ),
 				'description' => ( function () {
@@ -260,7 +264,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				} )(),
 				'type'        => 'text',
 			],
-			'ga4_api_secret'                  => [
+			'ga4_api_secret'                          => [
 				'title'       => __( 'Google Analytics Api secret',
 					'bm-woocommerce' ),
 				'description' => ( function () {
@@ -273,7 +277,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				} )(),
 				'type'        => 'password',
 			],
-			'ga4_client_id'                   => [
+			'ga4_client_id'                           => [
 				'title'       => __( 'Google Analytics Client ID',
 					'bm-woocommerce' ),
 				'description' => ( function () {
@@ -286,14 +290,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				} )(),
 				'type'        => 'text',
 			],
-			'wc_payment_statuses'             => [
+			'wc_payment_statuses'                     => [
 				'title'       => __( 'Payment statuses',
 					'bm-woocommerce' ),
 				'description' => __( '',
 					'bm-woocommerce' ),
 				'type'        => 'title',
 			],
-			'wc_payment_status_on_bm_pending' => [
+			'wc_payment_status_on_bm_pending'         => [
 				'title'       => __( 'Payment pending',
 					'bm-woocommerce' ),
 				'description' => __( '',
@@ -302,7 +306,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'options'     => wc_get_order_statuses(),
 				'default'     => 'wc-pending',
 			],
-			'wc_payment_status_on_bm_success' => [
+			'wc_payment_status_on_bm_success'         => [
 				'title'       => __( 'Payment success',
 					'bm-woocommerce' ),
 				'description' => __( '',
@@ -311,7 +315,16 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'options'     => wc_get_order_statuses(),
 				'default'     => 'wc-completed',
 			],
-			'wc_payment_status_on_bm_failure' => [
+			'wc_payment_status_on_bm_success_virtual' => [
+				'title'       => __( 'Payment success for a cart containing only virtual products',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-completed',
+			],
+			'wc_payment_status_on_bm_failure'         => [
 				'title'       => __( 'Payment failure',
 					'bm-woocommerce' ),
 				'description' => __( '',
@@ -320,17 +333,55 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'options'     => wc_get_order_statuses(),
 				'default'     => 'wc-failed',
 			],
-			'advanced_opts_title'             => [
+			'advanced_opts_title'                     => [
 				'title'       => __( 'Advanced settings',
 					'bm-woocommerce' ),
 				'description' => __( '',
 					'bm-woocommerce' ),
 				'type'        => 'title',
 			],
-			'debug_mode'                      => [
+			'test_service_id'  => [
+				'title'       => __( 'Test Service ID',
+					'bm-woocommerce' ),
+				'description' => __( 'It contains only numbers. It is different for each shop',
+					'bm-woocommerce' ),
+				'type'        => 'text',
+			],
+			'test_private_key' => [
+				'title'       => __( 'Test Private Key',
+					'bm-woocommerce' ),
+				'description' => __( 'Contains numbers and lowercase letters. It is used to verify communication with the payment gateway. It should not be made available to the public',
+					'bm-woocommerce' ),
+				'type'        => 'password',
+			],
+			'debug_mode'                              => [
 				'title'   => __( 'Debug mode',
 					'bm-woocommerce' ),
 				'label'   => __( 'Enable debug mode',
+					'bm-woocommerce' ),
+				'type'    => 'select',
+				'default' => 'no',
+				'options' => [
+					'no'  => __( 'No', 'bm-woocommerce' ),
+					'yes' => __( 'Yes', 'bm-woocommerce' ),
+				],
+			],
+			'sandbox_for_admins'                      => [
+				'title'   => __( 'Sandbox mode for logged-in administrator',
+					'bm-woocommerce' ),
+				'label'   => __( '',
+					'bm-woocommerce' ),
+				'type'    => 'select',
+				'default' => 'no',
+				'options' => [
+					'no'  => __( 'No', 'bm-woocommerce' ),
+					'yes' => __( 'Yes', 'bm-woocommerce' ),
+				],
+			],
+			'autopay_only_for_admins'                 => [
+				'title'   => __( 'Show Autopay payment gateway in Checkout only to logged-in administrators',
+					'bm-woocommerce' ),
+				'label'   => __( '',
 					'bm-woocommerce' ),
 				'type'    => 'select',
 				'default' => 'no',
@@ -809,6 +860,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						xmlwriter_end_element( $xw ); // transactionConfirmed
 						$wc_order = wc_get_order( $wc_order_id );
 
+
 						if ( self::ITN_SUCCESS_STATUS_ID === $bm_order_status ) {
 							$order_success_to_update[ $bm_remote_id ] = $wc_order;
 						}
@@ -829,6 +881,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$hash_from_itn );
 
 					if ( ! $is_hash_valid ) {
+
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[webhook] [validate_itn_hash - not valid] [fields_itn: %s] [Hash: %s]',
+								print_r( $all_fields_itn, true ),
+								$hash_from_itn
+							) );
+
+
 						ob_start();
 						header( 'HTTP/1.0 401 Unauthorized' );
 						echo __( 'validate_itn_hash - not valid',
@@ -837,9 +897,28 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					}
 
 					foreach ( $order_success_to_update as $k => $wc_order ) {
-						$new_status = $this->get_option( 'wc_payment_status_on_bm_success',
-							'completed' );
+						$autopay_order = ( new Autopay_Order_Factory() )->create_by_wc_order( $wc_order );
+						if ( $autopay_order->is_order_only_virtual() ) {
+							blue_media()->get_woocommerce_logger()->log_debug(
+								sprintf( '[webhook] [is_order_only_virtual] returns true [Order_Id: %s]',
+									$wc_order->get_id()
+								) );
+
+							$new_status = $this->get_option( 'wc_payment_status_on_bm_success_virtual',
+								'completed' );
+						} else {
+							$new_status = $this->get_option( 'wc_payment_status_on_bm_success',
+								'completed' );
+						}
+
 						$wc_order->payment_complete( $k );
+
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: SUCCESS] [Matched WC status: %s] [Order_Id: %s]',
+								$new_status,
+								$wc_order->get_id()
+							) );
+
 						$wc_order->set_status( $new_status );
 						$wc_order->add_order_note( 'PayBM ITN: paymentStatus SUCCESS' );
 						update_post_meta( $wc_order->get_id(),
@@ -851,6 +930,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					foreach ( $order_pending_to_update as $k => $wc_order ) {
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_pending',
 							'pending' );
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: PENDING] [Matched WC status: %s] [Order_Id: %s]',
+								$new_status,
+								$wc_order->get_id()
+							) );
+
 						$wc_order->set_status( $new_status );
 						$wc_order->add_order_note( 'PayBM ITN: paymentStatus PENDING' );
 						update_post_meta( $wc_order->get_id(),
@@ -862,6 +947,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					foreach ( $order_failure_to_update as $k => $wc_order ) {
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_failure',
 							'failed' );
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: FAILURE] [Matched WC status: %s] [Order_Id: %s]',
+								$new_status,
+								$wc_order->get_id()
+							) );
+
 						$wc_order->set_status( $new_status );
 						$wc_order->add_order_note( 'PayBM ITN: paymentStatus FAILURE' );
 						update_post_meta( $wc_order->get_id(),
@@ -1140,7 +1231,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		echo '<div class="payment_box payment_method_bacs">';
 		echo '<p>' . __( 'Instant payment. BLIK, credit card, Google Pay, Apple Pay.',
 				'bm-woocommerce' ) . '</p>';
-        echo '<p>' . __( 'Select the payment method you want to use.',
+		echo '<p>' . __( 'Select the payment method you want to use.',
 				'bm-woocommerce' ) . '</p>';
 		echo '</div>';
 		echo '<div class="payment_box payment_method_bacs">';

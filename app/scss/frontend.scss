@@ -1,4 +1,4 @@
-#payment > ul.wc_payment_methods {
+#payment ul.wc_payment_methods {
     .payment_method_bluemedia {
         img {
             width: 100px;
@@ -59,9 +59,8 @@
                                             }
 
                                             > label {
-                                                display: grid;
+                                                display: flex;
                                                 align-items: center;
-                                                grid-template-columns: 1.5em 90px auto;
                                                 column-gap: 5px;
                                                 cursor: pointer;
                                                 font-size: .9em;
@@ -75,13 +74,15 @@
                                                     &[type="radio"] {
                                                         cursor: pointer;
                                                         margin-left: 0;
-                                                        margin-right: auto;
+                                                        max-width: 1.5em;
                                                     }
                                                 }
 
                                                 .bm-payment-channel-method-logo,
                                                 .bm-payment-channel-group-method-logo {
+                                                    display: initial;
                                                     height: unset;
+                                                    max-width: 90px;
                                                     width: 100%;
                                                 }
 

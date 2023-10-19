@@ -28,7 +28,8 @@
     .bm-settings-banner-row .banner-txt {
       margin-right: 55px;
       height: 40px; }
-      .bm-settings-banner-row .banner-txt > span > a {
+      .bm-settings-banner-row .banner-txt > a span,
+      .bm-settings-banner-row .banner-txt > span:last-child {
         padding-left: 25px; }
       .bm-settings-banner-row .banner-txt-icon {
         font-size: 15px;

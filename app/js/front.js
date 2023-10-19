@@ -9,9 +9,13 @@ function addCurrentClass(el) {
     if (elements) {
         elements.forEach((element) => {
             if (element.checked) {
-                element.closest(".bm-payment-channel-item").classList.toggle("selected");
+                let closestItem = element.closest(".bm-payment-channel-item");
 
-                canContinue = element.closest(".bm-payment-channel-item").classList.contains("selected");
+                if (closestItem && closestItem.classList) {
+                    closestItem.classList.toggle("selected");
+                    canContinue = closestItem.classList.contains("selected");
+                }
+
 
                 if (!canContinue) {
                     element.checked = false
@@ -19,8 +23,13 @@ function addCurrentClass(el) {
 
                 // hide list of "PRZELEW INTERNETOWY"
                 if (!isChild(element, current_payment_block.querySelector("div.bm-group-expandable-wrapper"))) {
-                    bank_group_wrap.classList.remove('active');
-                    if (bank_group_radio.checked) {
+
+                    if (bank_group_wrap && bank_group_wrap.classList) {
+                        bank_group_wrap.classList.remove('active');
+                    }
+
+
+                    if (bank_group_radio && bank_group_radio.checked) {
                         bank_group_radio.checked = !bank_group_radio.checked;
 
                     }
@@ -34,9 +43,6 @@ function addCurrentClass(el) {
         });
     }
 
-    // console.log(canContinue)
-
-    //console.log(canContinue ? 'Aktywny' : 'Nieaktywny')
 
     if (canContinue) {
         BmActivateNewOrderButton()
@@ -100,13 +106,22 @@ document.addEventListener('click', function (e) {
             BmSelectGroupedLi()
 
             document.querySelectorAll(".bm-group-expandable-wrapper").forEach((element) => {
-                element.classList.add('active');
+                if (element && element.classList) {
+                    element.classList.add('active');
+                }
+
 
             });
 
             document.querySelectorAll(".bm-payment-channel-item > label > input[type='radio']").forEach((element) => {
                 if (element.checked) {
-                    element.closest(".bm-payment-channel-item").classList.remove("selected");
+
+                    let closestItem = element.closest(".bm-payment-channel-item");
+
+                    if (closestItem && closestItem.classList) {
+                        closestItem.classList.remove("selected");
+                    }
+
                     element.checked = !element.checked;
                     BmDeactivateNewOrderButton()
                 }

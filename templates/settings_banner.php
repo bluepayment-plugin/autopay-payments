@@ -10,10 +10,10 @@
              src="<?php echo blue_media()->get_plugin_images_url() ?>/logo-autopay-banner.svg">
             <span class="banner-txt"><span class="banner-txt-icon">&#10003;</span><a target="_blank"
                      href="https://developers.autopay.pl/online/wdrozenie-krok-po-kroku?mtm_campaign=woocommerce_developers_aktywacja_platnosci&mtm_source=woocommerce_backend&mtm_medium=hyperlink">
-                    <?php _e('Prowizja tylko 1,19%', 'bm-woocommerce') ?>
-                </a></span>
+                <?php _e('Opłata od transakcji', 'bm-woocommerce') ?>
+                <br><span><?php _e('tylko 1,19% + 0,25 zł', 'bm-woocommerce') ?></span></a></span>
             <span class="banner-txt"><span class="banner-txt-icon">&#10003;</span><?php _e('Przygotuj regulamin sklepu 10% taniej.', 'bm-woocommerce') ?></br>
-            <span><a target="_blank" href="https://developers.autopay.pl/legal-geek?mtm_campaign=woocommerce_legalgeek&mtm_source=woocommerce_backoffice&mtm_medium=cta"><?php _e('Dowiedz się więcej', 'bm-woocommerce') ?></a></span>
+            <span><a target="_blank" href="https://marketplace.autopay.pl/"><?php _e('Dowiedz się więcej', 'bm-woocommerce') ?></a></span>
             </span>
     </div>
 

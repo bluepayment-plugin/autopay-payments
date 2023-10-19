@@ -1,9 +1,9 @@
 === Autopay ===
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
-Requires at least: 5.0
-Tested up to: 6.3.1
-Stable tag: 4.2.2
+Requires at least: 6.0
+Tested up to: 6.3.2
+Stable tag: 4.2.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -24,8 +24,8 @@ Do najważniejszych funkcji modułu zalicza się:
 
 Wymagania
 
-- WordPress – przetestowane na wersjach od 4.4 do 6.1
-- Wtyczka WooCommerce – przetestowano na wersjach od 4.1 do 6.9.4
+- WordPress – przetestowane na wersjach od 6.0 do 6.3.2
+- Wtyczka WooCommerce – przetestowano na wersjach od 7.0 do 8.2.1
 - +
 
 == Installation	 ==
@@ -236,3 +236,13 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 ## [4.2.2] - 2023-10-02
 ### Fixed
 - Translations
+
+## [4.2.3] - 2023-10-19
+### Added
+- Ability to assign a separate status for virtual products
+- Debug and testing new features
+
+### Fixed
+- Settings texts updates
+- An order cannot be paid if there is only one payment method available to the partner
+- Styles

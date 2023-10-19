@@ -274,3 +274,12 @@ msgstr "Wybierz metodę płatności, z której chcesz skorzystać."
 
 msgid "Pay comfortably using Blik payments"
 msgstr "Płać wygodnie za pomocą płatności Blik"
+
+msgid "Payment success for a cart containing only virtual products"
+msgstr "Płatność zatwierdzona dla koszyka zawierającego tylko produkty wirtualne"
+
+msgid "Sandbox mode for logged-in administrator"
+msgstr "Tryb Sandbox dla zalogowanego administratora"
+
+msgid "Show Autopay payment gateway in Checkout only to logged-in administrators"
+msgstr "Pokazuj w Checkout bramkę płatności Autopay tylko zalogowanym administratorom"

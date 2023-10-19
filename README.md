@@ -23,8 +23,8 @@ Do najważniejszych funkcji modułu zalicza się:
 
 ### Wymagania
 
-- WordPress – przetestowane na wersjach od 4.4 do 6.3.1
-- Wtyczka WooCommerce – przetestowano na wersjach od 4.1 do 8.1.1
+- WordPress – przetestowane na wersjach od 6.0 do 6.3.2
+- Wtyczka WooCommerce – przetestowano na wersjach od 7.0 do 8.2.1
 - PHP minimum 7.3
 
 ## Instalacja modułu

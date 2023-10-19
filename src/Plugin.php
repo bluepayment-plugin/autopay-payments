@@ -63,10 +63,16 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		return $logger;
 	}
 
+
 	/**
 	 * @throws Exception
 	 */
 	protected function before_init() {
+
+		if ( $this->resolve_is_autopay_hidden() ) {
+			return;
+		}
+
 		$this->init_payment_gateway();
 
 		$this->implement_ga4();
@@ -92,6 +98,36 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			} );
 
 
+	}
+
+	private function resolve_is_autopay_hidden(): bool {
+		if ( is_admin() ) {
+			return false;
+		}
+
+		$settings = get_option( 'woocommerce_bluemedia_settings' );
+
+		if ( is_array( $settings ) && isset( $settings['autopay_only_for_admins'] ) ) {
+			if ( $settings['autopay_only_for_admins'] === 'yes' ) {
+				if ( ! function_exists( 'wp_get_current_user' ) ) {
+					@$this->require_wp_core_file( 'wp-includes/pluggable.php' );
+					if ( ! function_exists( 'wp_get_current_user' ) ) {
+						return false;
+					}
+				}
+				$current_user = wp_get_current_user();
+				if ( user_can( $current_user, 'administrator' ) ) {
+					blue_media()->get_woocommerce_logger()->log_debug(
+						'[resolve_is_autopay_hidden] true' );
+
+					return false;
+				} else {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

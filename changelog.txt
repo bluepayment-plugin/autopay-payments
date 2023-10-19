@@ -157,3 +157,13 @@
 ## [4.2.2] - 2023-10-02
 ### Fixed
 - Translations
+
+## [4.2.3] - 2023-10-19
+### Added
+- Ability to assign a separate status for virtual products
+- Debug and testing new features
+
+### Fixed
+- Settings texts updates
+- An order cannot be paid if there is only one payment method available to the partner
+- Styles

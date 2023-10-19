@@ -37,7 +37,8 @@
             margin-right: 55px;
             height: 40px;
 
-            > span > a {
+            > a span ,
+            > span:last-child {
                 padding-left: 25px;
             }
 
