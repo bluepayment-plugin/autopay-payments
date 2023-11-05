@@ -3,7 +3,7 @@ Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
 Tested up to: 6.3.2
-Stable tag: 4.2.3
+Stable tag: 4.2.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -246,3 +246,11 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 - Settings texts updates
 - An order cannot be paid if there is only one payment method available to the partner
 - Styles
+
+## [4.2.4] - 2023-11-05
+### Added
+- Debug mode improved
+
+### Fixed
+- Minor CSS fixes
+- Redirect to payment loop issue for some scenarios

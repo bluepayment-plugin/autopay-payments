@@ -20,6 +20,15 @@ class Payment_Status_Controller extends Abstract_Controller implements Controlle
 		$order_id                = WC()->session->get( 'bm_wc_order_id' );
 		$transaction_start_error = WC()->session->get( 'bm_continue_transaction_start_error' );
 
+		/*blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[order_id: %s]',
+				print_r( $order_id, true )
+			) );*/
+
+		if (empty($order_id)){
+			return;
+		}
+
 		$nonce = $_POST['nonce'];
 
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_ACTION ) ) {

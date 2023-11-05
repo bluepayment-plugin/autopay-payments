@@ -167,3 +167,11 @@
 - Settings texts updates
 - An order cannot be paid if there is only one payment method available to the partner
 - Styles
+
+## [4.2.4] - 2023-11-05
+### Added
+- Debug mode improved
+
+### Fixed
+- Minor CSS fixes
+- Redirect to payment loop issue for some scenarios

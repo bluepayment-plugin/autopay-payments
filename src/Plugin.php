@@ -101,7 +101,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	}
 
 	private function resolve_is_autopay_hidden(): bool {
-		if ( is_admin() ) {
+		if ( is_admin() || $this->is_itn_request() ) {
 			return false;
 		}
 
@@ -128,6 +128,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		}
 
 		return false;
+	}
+
+
+	private function is_itn_request(): bool {
+
+		return isset( $_GET['wc-api'] ) && 'wc_gateway_bluemedia' === $_GET['wc-api'];
 	}
 
 	/**
@@ -388,6 +394,16 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 * @throws Exception
 	 */
 	public function init() {
+		/*blue_media()->get_woocommerce_logger()->log_debug(
+			'Test GET: ' . print_r($_GET,
+				true )
+		);
+		blue_media()->get_woocommerce_logger()->log_debug(
+			'Test POST: ' . print_r($_POST,
+				true )
+		);*/
+
+
 		$this->blue_media_currency = $this->resolve_blue_media_currency_symbol();
 
 		if ( ! $this->blue_media_currency ) {
@@ -436,15 +452,32 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	}
 
 	private function init_payment_gateway() {
+		blue_media()->get_woocommerce_logger()->log_debug(
+			'[init_payment_gateway] [define filter]'
+		);
+
 		add_filter( 'woocommerce_payment_gateways',
 			function ( $gateways ) {
 				$gateways[]
 					= 'Ilabs\BM_Woocommerce\Gateway\Blue_Media_Gateway';
 
+				$order_key_found = '';
+				if ( isset( $_GET['key'] ) ) {
+					$keyValue = $_GET['key'];
+					if ( strpos( $keyValue, 'wc_order_' ) === 0 ) {
+						$order_key_found = sprintf( '[%s found in GET]',
+							$keyValue,
+						);
+					}
+				}
+
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[woocommerce_payment_gateways filter] [Blue_Media_Gateway added] %s'
+						, $order_key_found ) );
+
 				return $gateways;
 			}
 		);
-
 	}
 
 

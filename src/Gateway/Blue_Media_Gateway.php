@@ -41,6 +41,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	private $service_id;
 
 	/**
+	 * @var string
+	 */
+	private $private_key;
+
+	/**
 	 * @var bool
 	 */
 	private $testmode;
@@ -68,7 +73,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->supports = [
 			'products',
 		];
-		//tracking ID
 		$this->init_form_fields();
 		$this->init_settings();
 
@@ -79,37 +83,29 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->enabled     = $this->get_option( 'enabled' );
 		$this->testmode    = $this->resolve_is_test_mode();
 
-		$this->gateway_url     = $this->testmode
-			? self::GATEWAY_SANDBOX
-			: self::GATEWAY_PRODUCTION;
-		$this->private_key     = $this->testmode
-			? $this->get_option( 'test_private_key' )
-			: $this->get_option( 'private_key' );
-		$this->publishable_key = $this->testmode
-			? $this->get_option( 'test_publishable_key' )
-			: $this->get_option( 'publishable_key' );
-		$this->service_id      = $this->testmode
-			? $this->get_option( 'test_service_id' )
-			: $this->get_option( 'service_id' );
+		if ( $this->testmode && ! defined( 'BLUE_MEDIA_DISABLE_CACHE' ) ) {
+			define( 'BLUE_MEDIA_DISABLE_CACHE', 1 );
+		}
 
-		/*echo '<pre>';
-		print_r($this->gateway_list());die;*/
+		$this->setup_mode();
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id,
 			[ $this, 'process_admin_options' ] );
 
-
 		if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
 			if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
-
 				$params
 					= WC()->session->get( 'bm_order_payment_params' )['params'];
 
-				WC()->session->set( 'bm_order_payment_params', null );
-				WC()->session->save_data();
+				if ( empty( get_post_meta( $params['OrderID'],
+					'bm_transaction_init_params',
+					true ) ) ) {//prevent redirect loop
 
-				if ( is_array( $params ) ) {
-					printf( "<form method='post' id='paymentForm' action='%s'>
+					WC()->session->set( 'bm_order_payment_params', null );
+					WC()->session->save_data();
+
+					if ( is_array( $params ) ) {
+						printf( "<form method='post' id='paymentForm' action='%s'>
 			 <input type='hidden' name='ServiceID'  value='%s' />
 			 <input type='hidden' name='OrderID'  value='%s' />
 			 <input type='hidden' name='Amount'  value='%s' />
@@ -123,32 +119,50 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 <script type='text/javascript'>
         document.getElementById('paymentForm').submit();
     </script>",
-						$this->gateway_url . 'payment',
-						$params['ServiceID'],
-						$params['OrderID'],
-						$params['Amount'],
-						! empty( $params['GatewayID'] ) ? $params['GatewayID'] : '0',
-						blue_media()->resolve_blue_media_currency_symbol(),
-						$params['CustomerEmail'],
-						$params['PlatformName'],
-						$params['PlatformVersion'],
-						$params['PlatformPluginVersion'],
-						$params['Hash'] );
+							$this->gateway_url . 'payment',
+							$params['ServiceID'],
+							$params['OrderID'],
+							$params['Amount'],
+							! empty( $params['GatewayID'] ) ? $params['GatewayID'] : '0',
+							blue_media()->resolve_blue_media_currency_symbol(),
+							$params['CustomerEmail'],
+							$params['PlatformName'],
+							$params['PlatformVersion'],
+							$params['PlatformPluginVersion'],
+							$params['Hash'] );
+					}
+
+					blue_media()->get_woocommerce_logger()->log_debug(
+						sprintf( '[Print payment form and submit by JS] [Params: %s]',
+							serialize( $params )
+						) );
+
+					update_post_meta( $params['OrderID'],
+						'bm_transaction_init_params', $params );
+					blue_media()->update_payment_cache( 'bm_payment_start',
+						'1' );
+				} else {
+					blue_media()->get_woocommerce_logger()->log_debug(
+						sprintf( '[Print payment form canceled because bm_transaction_init_params exists in Order] [Params: %s]',
+							serialize( $params )
+						) );
 				}
-
-				blue_media()->get_woocommerce_logger()->log_debug(
-					sprintf( '[payment_start] [Params: %s]',
-						serialize( $params )
-					) );
-
-				update_post_meta( $params['OrderID'],
-					'bm_transaction_init_params', $params );
-				blue_media()->update_payment_cache( 'bm_payment_start', '1' );
 			}
 		}
 		$this->webhook();
 	}
 
+	private function setup_mode() {
+		$this->gateway_url = $this->testmode
+			? self::GATEWAY_SANDBOX
+			: self::GATEWAY_PRODUCTION;
+		$this->private_key = $this->testmode
+			? $this->get_option( 'test_private_key' )
+			: $this->get_option( 'private_key' );
+		$this->service_id  = $this->testmode
+			? $this->get_option( 'test_service_id' )
+			: $this->get_option( 'service_id' );
+	}
 
 	private function resolve_is_test_mode(): bool {
 		if ( 'yes' === $this->get_option( 'testmode', 'no' ) ) {
@@ -235,14 +249,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'type'        => 'title',
 			],
 
-			'service_id'       => [
+			'service_id'  => [
 				'title'       => __( 'Service ID',
 					'bm-woocommerce' ),
 				'description' => __( 'It contains only numbers. It is different for each shop',
 					'bm-woocommerce' ),
 				'type'        => 'text',
 			],
-			'private_key'      => [
+			'private_key' => [
 				'title'       => __( 'Production private Key',
 					'bm-woocommerce' ),
 				'description' => __( 'Contains numbers and lowercase letters. It is used to verify communication with the payment gateway. It should not be made available to the public',
@@ -340,14 +354,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'bm-woocommerce' ),
 				'type'        => 'title',
 			],
-			'test_service_id'  => [
+			'test_service_id'                         => [
 				'title'       => __( 'Test Service ID',
 					'bm-woocommerce' ),
 				'description' => __( 'It contains only numbers. It is different for each shop',
 					'bm-woocommerce' ),
 				'type'        => 'text',
 			],
-			'test_private_key' => [
+			'test_private_key'                        => [
 				'title'       => __( 'Test Private Key',
 					'bm-woocommerce' ),
 				'description' => __( 'Contains numbers and lowercase letters. It is used to verify communication with the payment gateway. It should not be made available to the public',
@@ -489,11 +503,19 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[process_payment start] [Order id: %s]',
+				$order_id
+			) );
 
 		if ( wc_notice_count( 'error' ) > 0 ) {
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[process_payment wc_notice_count > 0 exiting] [Order id: %s]',
+					$order_id
+				) );
+
 			return [];
 		}
-
 
 		global $woocommerce;
 		$order           = wc_get_order( $order_id );
@@ -521,6 +543,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				),
 			];
 			WC()->session->set( 'bm_order_payment_params', $params );
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[bm_order_payment_params saved to wc_session] [Order id: %s]',
+					$order_id
+				) );
 		}
 
 		$this->schedule_remove_unpaid_orders( $order_id );
@@ -528,10 +555,18 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$order->set_status( 'pending' );
 		$order->save();
 
-		return [
+		$return = [
 			'result'   => 'success',
 			'redirect' => $this->get_return_url( $order ),
 		];
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[process_payment] [Order id: %s] [return: %s]',
+				$order_id,
+				print_r( $return, true ),
+			) );
+
+		return $return;
 
 	}
 
@@ -750,7 +785,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function webhook() {
-
 		add_action( 'woocommerce_api_wc_gateway_bluemedia', function () {
 			try {
 
@@ -877,8 +911,18 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 					$hash_from_itn = $posted_xml->xpath( '/transactionList/hash' );
 					$hash_from_itn = (string) $hash_from_itn[0];
+
 					$is_hash_valid = $this->validate_itn_hash( $all_fields_itn,
 						$hash_from_itn );
+
+					if ( ! $is_hash_valid && ! $this->testmode ) {
+						$this->testmode = true;
+						$this->setup_mode();
+						$is_hash_valid  = $this->validate_itn_hash( $all_fields_itn,
+							$hash_from_itn );
+						$this->testmode = false;
+						$this->setup_mode();
+					}
 
 					if ( ! $is_hash_valid ) {
 
@@ -894,6 +938,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						echo __( 'validate_itn_hash - not valid',
 							'bm-woocommerce' );
 						exit;
+					} else {
+						blue_media()
+							->get_woocommerce_logger()
+							->log_debug( '[webhook] [validate_itn_hash - OK]' );
 					}
 
 					foreach ( $order_success_to_update as $k => $wc_order ) {
@@ -1078,13 +1126,38 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @param array $params
 	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	private
 	function hash_transaction_parameters(
 		array $params
 	): string {
-		return hash( 'sha256', implode( '|', $params ) . '|'
-		                       . $this->get_private_key() );
+
+		$private_key_secured     = $this->secure_private_key( $this->get_private_key() );
+		$imploded_string_secured = implode( '|',
+				$params ) . '|' . $private_key_secured;
+		$imploded_string         = implode( '|', $params ) . '|'
+		                           . $this->get_private_key();
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[hash_parameters] %s',
+				$imploded_string_secured
+			) );
+
+		return hash( 'sha256', $imploded_string );
+	}
+
+	private function secure_private_key( string $key ): string {
+		$length = strlen( $key );
+		if ( $length <= 4 ) {
+			return $key;
+		}
+
+		$hiddenPart  = substr( $key, 0, $length - 4 );
+		$hiddenPart  = str_repeat( '*', strlen( $hiddenPart ) );
+		$visiblePart = substr( $key, - 4 );
+
+		return $hiddenPart . $visiblePart;
 	}
 
 	/**
@@ -1107,8 +1180,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		                                                                      > 600//10 minutes cache
 		) {
 			$gateway_list_cache = $this->api_get_gateway_list();
-			update_option( 'bm_gateway_list_cache', $gateway_list_cache );
-			update_option( 'bm_gateway_list_cache_time', time() );
+
+			if ( ! $this->resolve_is_test_mode() ) {
+				update_option( 'bm_gateway_list_cache', $gateway_list_cache );
+				update_option( 'bm_gateway_list_cache_time', time() );
+			}
 
 			blue_media()->get_woocommerce_logger()->log_debug(
 				'Gateway list from API: ' . print_r( $gateway_list_cache, true )
@@ -1120,11 +1196,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				$gateway_list_cache = $this->api_get_gateway_list();
 				update_option( 'bm_gateway_list_cache', $gateway_list_cache );
 				update_option( 'bm_gateway_list_cache_time', time() );
-			} else {
-				//update_option( 'bm_api_last_error', '' );
 			}
 		}
-
 
 		return $gateway_list_cache;
 	}
