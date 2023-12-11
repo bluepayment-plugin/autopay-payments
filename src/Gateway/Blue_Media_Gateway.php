@@ -50,12 +50,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 */
 	private $testmode;
 
+	private $payment_on_account_page = false;
+
 
 	/**
 	 *
 	 * @throws Exception
 	 */
 	public function __construct() {
+		( new Hooks() )->init();
 		blue_media()->set_bluemedia_gateway( $this );
 
 		$this->id           = 'bluemedia';
@@ -83,6 +86,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->enabled     = $this->get_option( 'enabled' );
 		$this->testmode    = $this->resolve_is_test_mode();
 
+		$this->payment_on_account_page = apply_filters( 'autopay_payment_on_account_page',
+			$this->payment_on_account_page );
+
 		if ( $this->testmode && ! defined( 'BLUE_MEDIA_DISABLE_CACHE' ) ) {
 			define( 'BLUE_MEDIA_DISABLE_CACHE', 1 );
 		}
@@ -97,12 +103,20 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				$params
 					= WC()->session->get( 'bm_order_payment_params' )['params'];
 
-				if ( empty( get_post_meta( $params['OrderID'],
-					'bm_transaction_init_params',
-					true ) ) ) {//prevent redirect loop
-
+				if ( $this->can_redirect_to_payment_gateway( (int) $params['OrderID'] ) ) {
 					WC()->session->set( 'bm_order_payment_params', null );
 					WC()->session->save_data();
+
+					if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
+						ob_start();
+						wp_head();
+						$wp_head_html = ob_get_contents();
+						ob_end_clean();
+						echo preg_replace( '/<body[^>]*>.*<\/body>/isU', '',
+							$wp_head_html );
+						echo '<body>';
+						blue_media()->locate_template( 'redirect_to_payment_overlay.php' );
+					}
 
 					if ( is_array( $params ) ) {
 						printf( "<form method='post' id='paymentForm' action='%s'>
@@ -115,10 +129,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			 <input type='hidden' name='PlatformName'  value='%s' />
 			 <input type='hidden' name='PlatformVersion'  value='%s' />
 			 <input type='hidden' name='PlatformPluginVersion'  value='%s' />
-			 <input type='hidden' name='Hash'  value='%s' /></form>
-<script type='text/javascript'>
-        document.getElementById('paymentForm').submit();
-    </script>",
+			 <input type='hidden' name='Hash'  value='%s' /></form>",
 							$this->gateway_url . 'payment',
 							$params['ServiceID'],
 							$params['OrderID'],
@@ -132,6 +143,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							$params['Hash'] );
 					}
 
+					if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
+						_wp_footer_scripts();
+						echo '</body>';
+					} else {
+						echo "<script type='text/javascript'>document.getElementById('paymentForm').submit();</script>";
+					}
+
 					blue_media()->get_woocommerce_logger()->log_debug(
 						sprintf( '[Print payment form and submit by JS] [Params: %s]',
 							serialize( $params )
@@ -141,9 +159,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						'bm_transaction_init_params', $params );
 					blue_media()->update_payment_cache( 'bm_payment_start',
 						'1' );
+
+					exit;
 				} else {
+					WC()->session->set( 'bm_order_payment_params', null );
+					WC()->session->save_data();
+
 					blue_media()->get_woocommerce_logger()->log_debug(
-						sprintf( '[Print payment form canceled because bm_transaction_init_params exists in Order] [Params: %s]',
+						sprintf( '[Print payment form canceled because bm_transaction_init_params exists in Order.] [Params: %s]',
 							serialize( $params )
 						) );
 				}
@@ -151,6 +174,33 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		}
 		$this->webhook();
 	}
+
+	/**
+	 * @param int $order_id
+	 *
+	 * @return bool
+	 * @throws Exception
+	 *
+	 * @desc payment redirect loop protection
+	 */
+	private function can_redirect_to_payment_gateway( int $order_id ): bool {
+
+		$status = get_post_meta( $order_id,
+			'bm_transaction_init_params',
+			true );
+
+		$return          = empty( $status );
+		$return_filtered = apply_filters( 'autopay_filter_can_redirect_to_payment_gateway',
+			$return );
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[can_redirect_to_payment_gateway] $return_filtered = %s',
+				$return_filtered ? 'true' : 'false' )
+		);
+
+		return $return_filtered;
+	}
+
 
 	private function setup_mode() {
 		$this->gateway_url = $this->testmode
@@ -404,6 +454,30 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'yes' => __( 'Yes', 'bm-woocommerce' ),
 				],
 			],
+			'countdown_before_redirection'            => [
+				'title'   => __( 'Show countdown screen before redirection to increase compatibility',
+					'bm-woocommerce' ),
+				'label'   => __( '',
+					'bm-woocommerce' ),
+				'type'    => 'select',
+				'default' => 'no',
+				'options' => [
+					'no'  => __( 'No', 'bm-woocommerce' ),
+					'yes' => __( 'Yes', 'bm-woocommerce' ),
+				],
+			],
+			'compatibility_with_live_update_checkout' => [
+				'title'   => __( 'Compatibility mode with third-party plugins that reload checkout fragments',
+					'bm-woocommerce' ),
+				'label'   => __( '',
+					'bm-woocommerce' ),
+				'type'    => 'select',
+				'default' => 'no',
+				'options' => [
+					'no'  => __( 'No', 'bm-woocommerce' ),
+					'yes' => __( 'Yes', 'bm-woocommerce' ),
+				],
+			],
 		];
 	}
 
@@ -491,9 +565,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @throws Exception
 	 */
 	public function payment_fields() {
-		if ( 'yes' === $this->get_option( 'whitelabel' ) ) {
+		$whitelabel = apply_filters( 'autopay_filter_option_whitelabel',
+			$this->get_option( 'whitelabel', 'no' ) );
+
+		if ( 'yes' === $whitelabel ) {
 			$this->render_channels( $this->gateway_list() );
 		}
+
+		do_action( 'autopay_after_payment_field' );
 	}
 
 	/**
@@ -555,9 +634,17 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$order->set_status( 'pending' );
 		$order->save();
 
+		$redirect_url = $this->get_return_url( $order );
+
+		if ( $this->payment_on_account_page ) {
+			$redirect_url = add_query_arg( 'autopay_payment_on_account_page',
+				'1',
+				$redirect_url );
+		}
+
 		$return = [
 			'result'   => 'success',
-			'redirect' => $this->get_return_url( $order ),
+			'redirect' => $redirect_url,
 		];
 
 		blue_media()->get_woocommerce_logger()->log_debug(
@@ -627,9 +714,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				throw new Exception( sprintf( 'Continue transaction response invalid format (%s)',
 					serialize( $result ) ) );
 			}
-
-			//[Response: a:3:{s:6:"status";s:7:"PENDING";s:11:     c                              "redirecturl";s:67:"https://testpay.autopay.eu/web/payment/continue/AX3REERAAE/9DSHHL3H";s:4:"hash";s:64:"5e1603fc8b540bd45af293a8b72b32c1563004a753ccaefc1a54b4c9c4ab360c";}]
-
 
 			update_option( 'bm_api_last_error',
 				sprintf( '[%s server time] [BlueMedia Card debug] [Response: %s]',
@@ -785,6 +869,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function webhook() {
+		do_action( 'bm_debugger' );
+
 		add_action( 'woocommerce_api_wc_gateway_bluemedia', function () {
 			try {
 
@@ -1186,9 +1272,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				update_option( 'bm_gateway_list_cache_time', time() );
 			}
 
-			blue_media()->get_woocommerce_logger()->log_debug(
+			/*blue_media()->get_woocommerce_logger()->log_debug(
 				'Gateway list from API: ' . print_r( $gateway_list_cache, true )
-			);
+			);*/
 
 		} else {
 			$gateway_list_cache = get_option( 'bm_gateway_list_cache' );
@@ -1226,14 +1312,23 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$url = $this->gateway_url . 'gatewayList/v2';
 
+		$wp_remote_post_args = [
+			'headers' => [
+				'content-type' => 'application/json',
+			],
+			'body'    => json_encode( $params ),
+		];
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[api_get_gateway_list request] [url: %s] [args: %s]',
+				$url,
+				print_r( $wp_remote_post_args, true )
+			) );
+
+
 		$result = wp_remote_post(
 			$url,
-			[
-				'headers' => [
-					'content-type' => 'application/json',
-				],
-				'body'    => json_encode( $params ),
-			]
+			$wp_remote_post_args
 		);
 
 
@@ -1242,16 +1337,21 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				sprintf( '[gatewayList/v2] [error message: %s]',
 					$result->get_error_message()
 				) );
-
-
 		}
 
 		$result_decoded = json_decode( wp_remote_retrieve_body( $result ) );
+
 
 		if ( is_object( $result_decoded )
 		     && property_exists( $result_decoded,
 				'result' )
 		     && $result_decoded->result === 'ERROR' ) {
+
+			blue_media()->get_woocommerce_logger()->log_error(
+				sprintf( '[gatewayList/v2] [URL: %s] [Error: %s]',
+					$url,
+					print_r( $result_decoded, true )
+				) );
 
 			return [];
 		}
@@ -1269,10 +1369,17 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				return [];
 			}
 
-			blue_media()->get_woocommerce_logger()->log_debug(
+			/*blue_media()->get_woocommerce_logger()->log_debug(
 				sprintf( '[gatewayList/v2] [URL: %s] [Results: %s]',
 					$url,
 					serialize( $result_decoded )
+				) );*/
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[api_get_gateway_list] [response code: %s] [gatewayList count %s]',
+					print_r( wp_remote_retrieve_response_code( $result ),
+						true ),
+					is_array( $result_decoded->gatewayList ) ? count( $result_decoded->gatewayList ) : 0
 				) );
 
 
@@ -1309,7 +1416,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		echo '</div>';
 		echo '<div class="payment_box payment_method_bacs">';
 		echo '<div class="bm-payment-channels-wrapper">';
-		echo '<ul id="shipping_method" class="woocommerce-shipping-methods">';
+		printf( '<ul id="shipping_method" class="woocommerce-shipping-methods bm-%s">',
+			rand( 0, 1000 ) );
 
 		/**
 		 * @var Group[] $group_arr
@@ -1335,8 +1443,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
                                 <img src="%s" class="bm-payment-channel-group-method-logo">
 								<p class="bm-payment-channel-group-method-name">%s</p>
 							</label>
-							<span class="bm-payment-channel-method-desc"> 
-							<span style="text-align: justify">
+							<span class="bm-payment-channel-method-desc">
+							<span>
 							<span class="payment-method-description">%s</span>
 							</span>
                         </span>
@@ -1388,12 +1496,29 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		?>
 
         <script>
+			<?php if ('yes' === $this->get_option( 'compatibility_with_live_update_checkout',
+				'no' )):?>
+            BmTimerValue = 1500;
+			<?php else:?>
+            BmTimerValue = 0;
+			<?php endif;?>
+
             jQuery(document).ready(function () {
+                clearTimeout(bm_global_timer)
+
                 var isBlueMediaSelected = jQuery('#payment_method_bluemedia').is(':checked');
 
                 if (isBlueMediaSelected) {
                     BmDeactivateNewOrderButton()
                 }
+
+                blueMediaRadioHide();
+
+                bm_global_timer = setTimeout(function () {
+                    bm_global_update_checkout_in_progress = 0;
+                    blueMediaRadioTest();
+                }, BmTimerValue);
+
             });
 
             jQuery("input[name='payment_method']").on("click touchstart", function () {
@@ -1411,11 +1536,26 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
                     BmDeactivateNewOrderButton()
                 });
 
+                clearTimeout(bm_global_timer);
+                bm_global_timer = setTimeout(function () {
 
-                blueMediaRadioTest();
+                    if (0 === bm_global_update_checkout_in_progress) {
+                        console.log('blueMediaRadioTest bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
+                        blueMediaRadioTest();
+                    }
+                }, BmTimerValue);
 
                 jQuery('#payment_method_bluemedia').on('click', function () {
-                    blueMediaRadioShow();
+
+                    clearTimeout(bm_global_timer);
+                    bm_global_timer = setTimeout(function () {
+
+                        if (0 === bm_global_update_checkout_in_progress) {
+                            console.log('click bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
+                            blueMediaRadioShow();
+                        }
+                    }, BmTimerValue);
+
                 });
 
                 jQuery('ul.wc_payment_methods > li.wc_payment_method:not(.payment_method_bluemedia)').on('click', function () {

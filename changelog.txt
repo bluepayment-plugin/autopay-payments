@@ -175,3 +175,18 @@
 ### Fixed
 - Minor CSS fixes
 - Redirect to payment loop issue for some scenarios
+
+## [4.2.5] - 2023-11-28
+### Added
+- Show countdown screen before redirection to increase compatibility
+- Minor changes in Admin Panel
+
+### Fixed
+- CSS compatibility issues
+
+## [4.2.6] - 2023-12-11
+### Added
+- Option: Compatibility mode with third-party plugins that reload checkout fragments
+
+### Fixed
+- CSS minor fixes

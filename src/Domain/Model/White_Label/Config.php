@@ -117,7 +117,7 @@ class Config {
 	}
 
 	private function get_paypo_html_info(): string {
-		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
+		return sprintf( ' <span><span class="payment-method-description">%s </span>
                             <span class="payment-method-help-text">%s</span><a href="https://start.paypo.pl/" target="_blank"><span style=""><br>%s</a></span>',
 			__( 'Pick up your purchases, check them out and pay later - in 30 days or in convenient installments.',
 				'bm-woocommerce' ),
@@ -146,7 +146,7 @@ class Config {
 	}
 
 	private function get_smartney_html_info(): string {
-		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
+		return sprintf( ' <span><span class="payment-method-description">%s </span>
                             <a href="https://pomoc.bluemedia.pl/platnosci-online-w-e-commerce/pay-smartney" target="_blank"><span style="">%s</a></span>',
 			__( 'Buy now and pay within 30 days', 'bm-woocommerce' ),
 			__( 'Find out more', 'bm-woocommerce' )
@@ -154,7 +154,7 @@ class Config {
 	}
 
 	private function get_alior_html_info(): string {
-		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>
+		return sprintf( ' <span><span class="payment-method-description">%s </span>
                             <a href="https://kalkulator.raty.aliorbank.pl/init?supervisor=B776&promotionList=B" target="_blank"><span style="">%s</a></span>',
 			__( 'Spread the payment into convenient installments and buy without any problems.',
 				'bm-woocommerce' ),
@@ -163,7 +163,7 @@ class Config {
 	}
 
 	private function get_desc_html_info( string $text ): string {
-		return sprintf( ' <span style="text-align: justify"><span class="payment-method-description">%s </span>',
+		return sprintf( ' <span><span class="payment-method-description">%s </span>',
 			$text
 		);
 	}

@@ -283,3 +283,15 @@ msgstr "Tryb Sandbox dla zalogowanego administratora"
 
 msgid "Show Autopay payment gateway in Checkout only to logged-in administrators"
 msgstr "Pokazuj w Checkout bramkę płatności Autopay tylko zalogowanym administratorom"
+
+msgid "In a while you'll be redirected to the payment page screen"
+msgstr "Za chwilę zostaniesz przekierowany do ekranu płatności"
+
+msgid "Time to redirect:"
+msgstr "Pozostało do przekierowania:"
+
+msgid "Show countdown screen before redirection to increase compatibility"
+msgstr "Wyświetl ekran odliczania przed przekierowaniem w celu zwiększenia kompatybilności"
+
+msgid "Compatibility mode with third-party plugins that reload checkout fragments"
+msgstr "Tryb kompatybilności z wtyczkami trzecimi, które przeładowują fragmenty checkoutu"

@@ -69,6 +69,15 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 */
 	protected function before_init() {
 
+		if ( isset( $_GET['wc-api'] ) ) {
+			add_action( 'bm_debugger', function () {
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[wc-api debug] [value: %s]',
+						$_GET['wc-api']
+					) );
+			} );
+		}
+
 		if ( $this->resolve_is_autopay_hidden() ) {
 			return;
 		}
@@ -394,16 +403,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 * @throws Exception
 	 */
 	public function init() {
-		/*blue_media()->get_woocommerce_logger()->log_debug(
-			'Test GET: ' . print_r($_GET,
-				true )
-		);
-		blue_media()->get_woocommerce_logger()->log_debug(
-			'Test POST: ' . print_r($_POST,
-				true )
-		);*/
-
-
 		$this->blue_media_currency = $this->resolve_blue_media_currency_symbol();
 
 		if ( ! $this->blue_media_currency ) {
@@ -470,10 +469,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 						);
 					}
 				}
-
-				blue_media()->get_woocommerce_logger()->log_debug(
-					sprintf( '[woocommerce_payment_gateways filter] [Blue_Media_Gateway added] %s'
-						, $order_key_found ) );
 
 				return $gateways;
 			}

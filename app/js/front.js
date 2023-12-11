@@ -52,8 +52,19 @@ function addCurrentClass(el) {
 
 }
 
+var bm_global_update_checkout_in_progress = 1;
+var bm_global_timer = null;
+
+
 
 jQuery(document).ready(function () {
+
+
+    jQuery('body').on('update_checkout', function() {
+        bm_global_update_checkout_in_progress = 1;
+    });
+
+
     if (typeof window.blueMedia !== 'undefined') {
         if (typeof blue_media_ga4_tasks !== 'undefined' && typeof blueMedia.ga4TrackingId !== 'undefined') {
             window.dataLayer = window.dataLayer || [];

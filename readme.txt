@@ -3,7 +3,7 @@ Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
 Tested up to: 6.3.2
-Stable tag: 4.2.4
+Stable tag: 4.2.6
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -254,3 +254,19 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 ### Fixed
 - Minor CSS fixes
 - Redirect to payment loop issue for some scenarios
+
+
+## [4.2.5] - 2023-11-28
+### Added
+- Show countdown screen before redirection to increase compatibility
+- Minor changes in Admin Panel
+
+### Fixed
+- CSS compatibility issues
+
+## [4.2.6] - 2023-12-11
+### Added
+- Option: Compatibility mode with third-party plugins that reload checkout fragments
+
+### Fixed
+- CSS minor fixes
