@@ -188,5 +188,9 @@
 ### Added
 - Option: Compatibility mode with third-party plugins that reload checkout fragments
 
+## [4.2.7] - 2024-01-18
 ### Fixed
-- CSS minor fixes
+- CSS fixes
+### Added
+- Block Editor support (express payment)
+- Ability to migrate settings from 2.x and 3.x plugins

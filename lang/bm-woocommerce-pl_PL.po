@@ -143,8 +143,8 @@ msgstr "Żeby uzyskać dane dla środowiska testowego,"
 msgid "Autopay gateway"
 msgstr "Szybka płatność"
 
-msgid "Instant payment. BLIK, credit card, Google Pay, Apple Pay."
-msgstr "Przelew internetowy. BLIK, karta płatnicza, Google Pay, Apple Pay."
+msgid "Instant payment, BLIK, credit card, Google Pay, Apple Pay"
+msgstr "Przelew internetowy, BLIK, karta płatnicza, Google Pay, Apple Pay"
 
 msgid "PHP version is older than 7.2 so this plugin will not work. Please contact your host and ask them to upgrade."
 msgstr "Wersja PHP jest starsza niż 7.2 więc ta wtyczka się nie uruchomi. Skontaktuj się ze wsparciem technicznym Twojej witryny i poproś o aktualizację PHP."
@@ -295,3 +295,25 @@ msgstr "Wyświetl ekran odliczania przed przekierowaniem w celu zwiększenia kom
 
 msgid "Compatibility mode with third-party plugins that reload checkout fragments"
 msgstr "Tryb kompatybilności z wtyczkami trzecimi, które przeładowują fragmenty checkoutu"
+
+msgid "White label is not available when block editor for Checkout page is active"
+msgstr "Metody płatności w sklepie nie są dostępne, gdy aktywny jest edytor blokowy dla strony zamówienia"
+
+msgid "BLIK-0 is not available when block editor for Checkout page is active"
+msgstr "BLIK-0 nie jest dostępny, gdy aktywny jest edytor blokowy dla strony zamówienia"
+
+
+msgid "Autopay: No values found for import"
+msgstr "Autopay: Nie znaleziono danych do zaimportowania"
+
+msgid "Autopay: Import completed"
+msgstr "Autopay: Import zakończony"
+
+msgid "Import settings from 2.x/3.x version"
+msgstr "Zaimportuj ustawienia z wersji 2.x/3.x"
+
+msgid "Start import"
+msgstr "Importuj"
+
+msgid "Imports Service ID, configuration key and environment setting ( testing / production)"
+msgstr "Importuje Service ID, klucz konfiguracyjny oraz ustawienie środowiska (testowe / produkcyjne)"

@@ -31,7 +31,8 @@
         justify-content: flex-start;
         margin-bottom: 0; }
         #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul {
-          margin-left: 0; }
+          margin-left: 0;
+          width: 100%; }
           #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul li.bm-payment-channel-item, #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul li.bm-payment-channel-group-item {
             border: 1px solid transparent !important;
             justify-content: flex-start;

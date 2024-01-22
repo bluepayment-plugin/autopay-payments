@@ -5,9 +5,12 @@ namespace Ilabs\BM_Woocommerce\Gateway\Hooks;
 class Payment_On_Account_Page {
 
 	public function init() {
-		if ( is_wc_endpoint_url( 'order-pay' ) ) {
-			$this->payment_on_account_page_stage_1();
-		}
+
+		add_action( 'wp', function () {
+			if ( is_wc_endpoint_url( 'order-pay' ) ) {
+				$this->payment_on_account_page_stage_1();
+			}
+		} );
 
 		if ( isset( $_POST['autopay_checkout_on_account_page'] ) ) {
 			$this->payment_on_account_page_stage_2();

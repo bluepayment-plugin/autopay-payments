@@ -2,6 +2,8 @@
 
 namespace Ilabs\BM_Woocommerce;
 
+use Automattic\WooCommerce\Blocks\Package;
+use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
 use Exception;
 use Ilabs\BM_Woocommerce\Data\Remote\Ga4_Service_Client;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Add_Product_To_Cart_Use_Case;
@@ -11,7 +13,9 @@ use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Ga4_Use_Case_Interface;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Init_Checkout_Use_Case;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Remove_Product_From_Cart_Use_Case;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\View_Product_On_List_Use_Case;
+use Ilabs\BM_Woocommerce\Domain\Service\Legacy\Importer;
 use Ilabs\BM_Woocommerce\Gateway\Blue_Media_Gateway;
+use Ilabs\BM_Woocommerce\Integration\Woocommerce_Blocks\WC_Gateway_Autopay_Blocks_Support;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Abstract_Ilabs_Plugin;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Alerts;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Event\Wc_Add_To_Cart;
@@ -68,7 +72,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 * @throws Exception
 	 */
 	protected function before_init() {
-
 		if ( isset( $_GET['wc-api'] ) ) {
 			add_action( 'bm_debugger', function () {
 				blue_media()->get_woocommerce_logger()->log_debug(
@@ -81,6 +84,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		if ( $this->resolve_is_autopay_hidden() ) {
 			return;
 		}
+
+
+
+			add_action( 'woocommerce_blocks_loaded',
+				[ $this, 'woocommerce_block_support' ] );
+
 
 		$this->init_payment_gateway();
 
@@ -109,7 +118,55 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 	}
 
+
+	public function woocommerce_block_support() {
+
+		// Pobieranie aktualnego URL
+		$current_url = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+
+		// Szukana fraza
+		$search_phrase = "order-received";
+
+		// Sprawdzenie, czy fraza występuje w URL
+		if (strpos($current_url, $search_phrase) !== false) {
+			return;
+		}
+
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+			//require_once 'includes/blocks/class-wc-dummy-payments-blocks.php';
+			add_action(
+				'woocommerce_blocks_payment_method_type_registration',
+				function ( PaymentMethodRegistry $payment_method_registry ) {
+					$payment_method_registry->register( new WC_Gateway_Autopay_Blocks_Support() );
+				}
+			);
+		}
+
+
+		/*add_action(
+			'woocommerce_blocks_payment_method_type_registration',
+			function ( PaymentMethodRegistry $payment_method_registry ) {
+
+				$container = Package::container();
+				// registers as shared instance.
+				$container->register(
+					Blue_Media_Gateway_Checkout_Block::class,
+					function () {
+
+						return new Blue_Media_Gateway_Checkout_Block();
+
+					}
+				);
+				$payment_method_registry->register(
+					$container->get( Blue_Media_Gateway_Checkout_Block::class )
+				);
+			},
+			5
+		);*/
+	}
+
 	private function resolve_is_autopay_hidden(): bool {
+
 		if ( is_admin() || $this->is_itn_request() ) {
 			return false;
 		}
@@ -125,6 +182,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					}
 				}
 				$current_user = wp_get_current_user();
+
 				if ( user_can( $current_user, 'administrator' ) ) {
 					blue_media()->get_woocommerce_logger()->log_debug(
 						'[resolve_is_autopay_hidden] true' );
@@ -195,6 +253,10 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 		$current_screen = get_current_screen();
 
+		wp_enqueue_script( $this->get_plugin_prefix() . '_blocks_js',
+			$this->get_plugin_js_url() . '/blocks.js' );
+
+
 		if ( is_a( $current_screen,
 				'WP_Screen' ) && 'woocommerce_page_wc-settings' === $current_screen->id ) {
 			if ( isset( $_GET['tab'] ) && $_GET['tab'] == 'checkout' ) {
@@ -205,6 +267,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 						[ 'jquery' ],
 						1.1,
 						true );
+
 
 					wp_enqueue_style( $this->get_plugin_prefix() . '_admin_css',
 						$this->get_plugin_css_url() . '/admin.css'
@@ -404,6 +467,14 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 */
 	public function init() {
 		$this->blue_media_currency = $this->resolve_blue_media_currency_symbol();
+
+		/*$importer = new Importer();
+		var_dump($importer->get_legacy_service_id());
+		var_dump($importer->get_legacy_hash_key());
+		var_dump($importer->get_legacy_env());
+
+
+		die;*/
 
 		if ( ! $this->blue_media_currency ) {
 			$alerts = new Alerts();

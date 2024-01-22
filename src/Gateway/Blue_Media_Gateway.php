@@ -7,6 +7,7 @@ use Ilabs\BM_Woocommerce\Data\Remote\Blue_Media\Client;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group_Interface;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Group;
+use Ilabs\BM_Woocommerce\Domain\Service\Legacy\Importer;
 use Ilabs\BM_Woocommerce\Domain\Service\White_Label\Group_Mapper;
 use Ilabs\BM_Woocommerce\Domain\Woocommerce\Autopay_Order_Factory;
 use Ilabs\BM_Woocommerce\Plugin;
@@ -61,6 +62,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		( new Hooks() )->init();
 		blue_media()->set_bluemedia_gateway( $this );
 
+		( new Importer() )->handle_import();
+
 		$this->id           = 'bluemedia';
 		$this->icon
 		                    = blue_media()->get_plugin_images_url()
@@ -70,7 +73,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->method_title = __( 'Autopay Instant payment',
 			'bm-woocommerce' );
 		$this->method_description
-		                    = __( 'Instant payment. BLIK, credit card, Google Pay, Apple Pay',
+		                    = __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
 			'bm-woocommerce' );
 
 		$this->supports = [
@@ -237,6 +240,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @throws Exception
 	 */
 	public function init_form_fields() {
+		add_filter( 'woocommerce_generate_import_from_bm_legacy_html',
+			[ $this, 'generate_import_field' ] );
+
 		if ( blue_media()
 			     ->get_request()
 			     ->get_by_key( 'bmtab' ) === 'channels' ) {
@@ -250,22 +256,24 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				'label'       => __( 'Enable whitelabel mode',
 					'bm-woocommerce' ),
 				'type'        => 'checkbox',
-				'description' => __( 'Gateway mode',
+				'description' => __( 'White label is not available when block editor for Checkout page is active',
 					'bm-woocommerce' ),
 				'default'     => 'no',
-				'desc_tip'    => true,
+				'desc_tip'    => false,
 			],
 			'blik_type'       => [
-				'title'   => __( 'BLIK payment type',
+				'title'       => __( 'BLIK payment type',
 					'bm-woocommerce' ),
-				'type'    => 'select',
-				'options' => [
+				'type'        => 'select',
+				'description' => __( 'BLIK-0 is not available when block editor for Checkout page is active',
+					'bm-woocommerce' ),
+				'options'     => [
 					'with_redirect'           => __( 'Blik with redirect',
 						'bm-woocommerce' ),
 					'blik_0_without_redirect' => __( 'Blik-0 without redirect',
 						'bm-woocommerce' ),
 				],
-				'default' => 'with_redirect',
+				'default'     => 'with_redirect',
 			],
 			'testmode_header' => [
 				'title' => __( 'Test environment',
@@ -478,7 +486,56 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'yes' => __( 'Yes', 'bm-woocommerce' ),
 				],
 			],
+
+			'custom_button' => [
+				'title'       => __( 'Import settings from legacy plugin',
+					'bm-woocommerce' ),
+				'type'        => 'import_from_bm_legacy',
+				'description' => "",
+				'desc_tip'    => false,
+				'default'     => __( 'Import now',
+					'bm-woocommerce' ),
+			],
 		];
+	}
+
+	public function generate_import_field() {
+		ob_start();
+		?>
+        <tr valign="top">
+            <th scope="row"
+                class="titledesc"><?php _e( 'Import settings from 2.x/3.x version',
+					'bm-woocommerce' ) ?></th>
+            <td class="forminp">
+                <fieldset>
+                    <input type="submit" id="autopay_start_import"
+                           class="button-primary"
+                           value="<?php _e( 'Start import',
+						       'bm-woocommerce' ) ?>">
+                    <input type="hidden" name="autopay_import_legacy_settings"
+                           id="autopay_import_legacy_settings"
+                           value="0">
+                    <p class="description"><?php _e( 'Imports Service ID, configuration key and environment setting ( testing / production)',
+							'bm-woocommerce' ) ?></p>
+                </fieldset>
+            </td>
+        </tr>
+
+        <script>
+            jQuery(document).ready(function () {
+                jQuery('#autopay_start_import').click(function (e) {
+                    e.preventDefault();
+                    var form = jQuery(this).closest('form');
+                    form.submit(function () {
+                        return false;
+                    });
+                    jQuery('#autopay_import_legacy_settings').val("1")
+                    form.unbind('submit').submit();
+                });
+            });
+        </script>
+		<?php
+		return ob_get_clean();
 	}
 
 	public function render_gateway_channels_test() {
@@ -599,7 +656,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		global $woocommerce;
 		$order           = wc_get_order( $order_id );
 		$payment_channel = (int) $_POST['bm-payment-channel'] ?? null;
-		$blik0_type      = $this->get_option( 'blik_type', 'with_redirect' );
+
+		$blik0_type = $this->get_option( 'blik_type', 'with_redirect' );
 
 		if ( self::BLIK_0_CHANNEL === $payment_channel && 'blik_0_without_redirect' === $blik0_type ) {
 			$blik_code = (string) $_POST['bluemedia_blik_code'];
@@ -1409,7 +1467,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$group_arr = ( new Group_Mapper( $channels ) )->map();
 
 		echo '<div class="payment_box payment_method_bacs">';
-		echo '<p>' . __( 'Instant payment. BLIK, credit card, Google Pay, Apple Pay.',
+		echo '<p>' . __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
 				'bm-woocommerce' ) . '</p>';
 		echo '<p>' . __( 'Select the payment method you want to use.',
 				'bm-woocommerce' ) . '</p>';
@@ -1573,7 +1631,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	) {
 
 		$group_arr = ( new Group_Mapper( $channels ) )->map_for_admin_panel();
-
 
 		echo '<div class="payment_box payment_box_wpadmin payment_method_bacs">';
 		echo '<div class="bm-payment-channels-wrapper">';

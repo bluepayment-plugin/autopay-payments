@@ -2,8 +2,8 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.3.2
-Stable tag: 4.2.6
+Tested up to: 6.4.2
+Stable tag: 4.2.7
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -270,3 +270,10 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 
 ### Fixed
 - CSS minor fixes
+
+## [4.2.7] - 2024-01-18
+### Fixed
+- CSS fixes
+### Added
+- Block Editor support (express payment)
+- Ability to migrate settings from 2.x and 3.x plugins
