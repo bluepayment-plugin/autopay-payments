@@ -276,4 +276,3 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 - CSS fixes
 ### Added
 - Block Editor support (express payment)
-- Ability to migrate settings from 2.x and 3.x plugins

@@ -193,4 +193,3 @@
 - CSS fixes
 ### Added
 - Block Editor support (express payment)
-- Ability to migrate settings from 2.x and 3.x plugins
