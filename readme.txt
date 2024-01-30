@@ -45,13 +45,8 @@ Konfiguracja podstawowych pól wtyczki:
 3.	W polu Nazwa modułu płatności w sklepie wpisz nazwę płatności, czyli np.: Płatności Autopay.
 
 4.	W polu Opis modułu płatności w sklepie dodaj opis używanej bramki płatności, czyli Autopay – Twoi klienci będą widzieć tę nazwę składając zamówienie i wybierając metodę płatności.
-5.	W polu “tryb działania” Zaznacz “włącz tryb testowy” aby włączyć tryb sandbox.
-
-6.	W polu “Testowy identyfikator serwisu” wpisz Twój testowy identyfikator serwisu.
-
-7.	W polu “Testowy klucz współdzielony” wpisz Twój testowy klucz współdzielony.
       W polu “Identyfikator serwisu” wpisz identyfikator serwisu.
-8.	W polu “Klucz współdzielony” wpisz klucz współdzielony.
+5.	W polu “Klucz współdzielony” wpisz klucz współdzielony.
 
 Powyższe pola uzupełnisz danymi, które otrzymasz od Autopay S.A. Jeśli jeszcze ich nie masz - skontaktuj się z nami.
 W momencie, gdy skończysz już sprawdzać, czy wszystko działa prawidłowo – wyłącz tryb testowy, wówczas płatności na Twojej stronie będą w 100% aktywne.

@@ -46,13 +46,10 @@ Do najważniejszych funkcji modułu zalicza się:
 
 ### Konfiguracja podstawowych pól wtyczki
 
-1.	Przy nazwie Autopay ustaw Włącz, dzięki temu Twoi klienci będą mogli już korzystać z płatności internetowych.
-2.	Zaznacz pole: “Pokazuj metody płatności w sklepie”
-3. 	W polu “tryb działania” Zaznacz “włącz tryb testowy” aby włączyć tryb sandbox.
-4. 	W polu “Testowy identyfikator serwisu” wpisz Twój testowy identyfikator serwisu.
-5. 	W polu “Testowy Klucz konfiguracyjny (hash)” wpisz Twój testowy Klucz konfiguracyjny (hash).
-6. 	W polu “Identyfikator serwisu” wpisz identyfikator serwisu.
-7. 	W polu “Klucz konfiguracyjny (hash)” wpisz Klucz konfiguracyjny (hash).
+1. Przy nazwie Autopay ustaw Włącz, dzięki temu Twoi klienci będą mogli już korzystać z płatności internetowych.
+2. Zaznacz pole: “Pokazuj metody płatności w sklepie”
+3. W polu “Identyfikator serwisu” wpisz identyfikator serwisu.
+4. W polu “Klucz konfiguracyjny (hash)” wpisz Klucz konfiguracyjny (hash).
 
 Powyższe pola uzupełnisz danymi, które otrzymasz od Autopay S.A. Jeśli jeszcze ich nie masz - skontaktuj się z nami.
 W momencie, gdy skończysz już sprawdzać, czy wszystko działa prawidłowo – wyłącz tryb testowy, wówczas płatności na Twojej stronie będą w 100% aktywne.
