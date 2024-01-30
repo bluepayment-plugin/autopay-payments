@@ -52,7 +52,6 @@ Do najważniejszych funkcji modułu zalicza się:
 4. W polu “Klucz konfiguracyjny (hash)” wpisz Klucz konfiguracyjny (hash).
 
 Powyższe pola uzupełnisz danymi, które otrzymasz od Autopay S.A. Jeśli jeszcze ich nie masz - skontaktuj się z nami.
-W momencie, gdy skończysz już sprawdzać, czy wszystko działa prawidłowo – wyłącz tryb testowy, wówczas płatności na Twojej stronie będą w 100% aktywne.
 Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 
 ![Widok pól do uzupełnienia](/assets/img/screenshot_12.jpg)
@@ -65,7 +64,7 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 
 ### Konfiguracja adresów URL
 
-Upewnij się, że w panelach administracyjnych Autopay https://oplacasie.bm.pl oraz https://oplacasie-accept.bm.pl poniższe pola zawierają poprawne adresy sklepu.
+Upewnij się, że w panelach administracyjnych Autopay https://portal.autopay.eu/admin oraz https://testportal.autopay.eu/admin poniższe pola zawierają poprawne adresy sklepu.
 
 ●	Konfiguracja adresu powrotu do płatności
 {URL Twojego sklepu}/?bm_gateway_return
