@@ -67,28 +67,51 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		return $logger;
 	}
 
+	private function debug_wc_api() {
+		if ( isset( $_GET['wc-api'] ) ) {
+			add_action( 'woocommerce_api_request', function () {
+				$events                 = blue_media()->get_event_chain();
+				$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
+
+				$wc_api_debug_log_cache->push(
+					sprintf( '[wc-api debug] [value: %s]',
+						$_GET['wc-api']
+					) );
+			} );
+		} else {
+			$events                 = blue_media()->get_event_chain();
+			$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
+
+			$events
+				->on_wc_loaded()
+				->action( function () use ( $wc_api_debug_log_cache ) {
+					if ( is_array( $wc_api_debug_log_cache->get() ) ) {
+						foreach ( $wc_api_debug_log_cache->get() as $entry ) {
+							blue_media()
+								->get_woocommerce_logger()
+								->log_debug( $entry );
+						}
+					}
+
+					$wc_api_debug_log_cache->clear();
+				} )
+				->execute();
+		}
+	}
 
 	/**
 	 * @throws Exception
 	 */
 	protected function before_init() {
-		if ( isset( $_GET['wc-api'] ) ) {
-			add_action( 'bm_debugger', function () {
-				blue_media()->get_woocommerce_logger()->log_debug(
-					sprintf( '[wc-api debug] [value: %s]',
-						$_GET['wc-api']
-					) );
-			} );
-		}
+		$this->debug_wc_api();
 
 		if ( $this->resolve_is_autopay_hidden() ) {
 			return;
 		}
 
 
-
-			add_action( 'woocommerce_blocks_loaded',
-				[ $this, 'woocommerce_block_support' ] );
+		add_action( 'woocommerce_blocks_loaded',
+			[ $this, 'woocommerce_block_support' ] );
 
 
 		$this->init_payment_gateway();
@@ -128,7 +151,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		$search_phrase = "order-received";
 
 		// Sprawdzenie, czy fraza występuje w URL
-		if (strpos($current_url, $search_phrase) !== false) {
+		if ( strpos( $current_url, $search_phrase ) !== false ) {
 			return;
 		}
 
@@ -235,13 +258,13 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			);
 		}
 
-		if ( is_checkout() ) {
+		/*if ( is_checkout() ) {
 			wp_enqueue_script( $this->get_plugin_prefix() . '_c_checkout',
 				"https://cards.bm.pl/integration/checkout.js",
 				[],
 				blue_media()->get_plugin_version(),
 				true );
-		}
+		}*/
 
 	}
 
@@ -252,10 +275,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	public function enqueue_dashboard_scripts() {
 
 		$current_screen = get_current_screen();
-
-		wp_enqueue_script( $this->get_plugin_prefix() . '_blocks_js',
-			$this->get_plugin_js_url() . '/blocks.js' );
-
 
 		if ( is_a( $current_screen,
 				'WP_Screen' ) && 'woocommerce_page_wc-settings' === $current_screen->id ) {

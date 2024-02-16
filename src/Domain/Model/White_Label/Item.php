@@ -30,9 +30,14 @@ class Item {
 	private $script;
 
 	/**
-	 * @var string
+	 * @var string | null
 	 */
 	private $description;
+
+	/**
+	 * @var string | null
+	 */
+	private $block_description;
 
 
 	/**
@@ -41,7 +46,8 @@ class Item {
 	 * @param string|null $icon
 	 * @param string|null $extra_class
 	 * @param string|null $script
-	 * @param string $description
+	 * @param string|null $description
+	 * @param string|null $block_description
 	 */
 	public function __construct(
 		string $name,
@@ -49,14 +55,31 @@ class Item {
 		?string $icon,
 		?string $extra_class,
 		?string $script,
-		string $description
+		?string $description,
+		?string $block_description
+
 	) {
-		$this->name        = $name;
-		$this->id          = $id;
-		$this->icon        = $icon;
-		$this->class       = $extra_class;
-		$this->script      = $script;
-		$this->description = $description;
+		$this->name              = $name;
+		$this->id                = $id;
+		$this->icon              = $icon;
+		$this->class             = $extra_class;
+		$this->script            = $script;
+		$this->description       = $description;
+		$this->block_description = $block_description;
+	}
+
+	public function to_array(): array {
+		return [
+			'label'             => $this->name,
+			'key'               => 'bm_channnel_' . $this->id,
+			'value'             => $this->id,
+			'name'              => 'bm-payment-channel',
+			'id'                => $this->id,
+			'icon'              => $this->icon,
+			'class'             => $this->class,
+			'description'       => (string) $this->description,
+			'block_description' => (string) $this->block_description,
+		];
 	}
 
 	/**
@@ -134,7 +157,7 @@ class Item {
 	 * @return string
 	 */
 	public function get_description(): string {
-		return $this->description;
+		return $this->description ?: "";
 	}
 
 	/**
@@ -142,5 +165,13 @@ class Item {
 	 */
 	public function set_description( string $description ): void {
 		$this->description = $description;
+	}
+
+	public function get_block_description(): ?string {
+		return $this->block_description;
+	}
+
+	public function set_block_description( ?string $block_description ): void {
+		$this->block_description = $block_description;
 	}
 }

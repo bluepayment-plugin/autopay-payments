@@ -2,8 +2,8 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.4.2
-Stable tag: 4.2.7
+Tested up to: 6.4.3
+Stable tag: 4.2.8
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -24,8 +24,8 @@ Do najważniejszych funkcji modułu zalicza się:
 
 Wymagania
 
-- WordPress – przetestowane na wersjach od 6.0 do 6.3.2
-- Wtyczka WooCommerce – przetestowano na wersjach od 7.0 do 8.2.1
+- WordPress – przetestowane na wersjach od 6.0 do 6.4.3
+- Wtyczka WooCommerce – przetestowano na wersjach od 7.0 do 8.5.2
 - +
 
 == Installation	 ==
@@ -270,4 +270,16 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 ### Fixed
 - CSS fixes
 ### Added
-- Block Editor support (express payment)
+- Block Editor support (express payment)##
+
+## [4.2.8] - 2024-02-13
+### Updated
+- Payment methods integration
+### Fixed
+- Blik-0 issues for some scenarios
+- Apple Pay method visibility problem
+- Styles
+- Payment process on "My account" page
+- Email payment link support
+### Added
+- Ability to migrate settings from 2.x and 3.x plugins

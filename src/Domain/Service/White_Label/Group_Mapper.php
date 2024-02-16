@@ -73,7 +73,8 @@ class Group_Mapper {
 							$raw_channel->gatewayID,
 							$raw_channel->iconURL, $extra_class,
 							$extra_script,
-							$gateway_name ) ) );
+							$gateway_name,
+							null ) ) );
 					} elseif ( ! in_array( $raw_channel->gatewayID,
 						$ids_from_config ) ) {
 						$unknown_raw_channels[ $raw_channel->gatewayID ] = $raw_channel;
@@ -93,7 +94,8 @@ class Group_Mapper {
 					$raw_channel->iconURL,
 					null,
 					null,
-					'' ) ) );
+					null,
+					null ) ) );
 
 			}
 		}
@@ -185,7 +187,8 @@ class Group_Mapper {
 							$raw_channel->gatewayID,
 							$raw_channel->iconURL, $extra_class,
 							$extra_script,
-							'' ) ) );
+							null,
+							null ) ) );
 					} elseif ( ! in_array( $raw_channel->gatewayID,
 						$ids_from_config ) ) {
 						$unknown_raw_channels[ $raw_channel->gatewayID ] = $raw_channel;
@@ -205,7 +208,8 @@ class Group_Mapper {
 					$raw_channel->iconURL,
 					null,
 					null,
-					'' ) ) );
+					'',
+					null ) ) );
 
 			}
 		}
@@ -262,7 +266,9 @@ class Group_Mapper {
 							$raw_channel->gatewayID,
 							$raw_channel->iconURL, $extra_class,
 							$extra_script,
-							'' ) ) );
+							null,
+							$config_item['block_description'] ?? null
+						) ) );
 					} elseif ( ! in_array( $raw_channel->gatewayID,
 						$ids_from_config ) ) {
 						$unknown_raw_channels[ $raw_channel->gatewayID ] = $raw_channel;
@@ -282,14 +288,24 @@ class Group_Mapper {
 					$raw_channel->iconURL,
 					null,
 					null,
-					'' ) ) );
+					null,
+					null ) ) );
 
 			}
 		}
 
-		return $result;
+		$result_arr = [];
 
+		foreach ( $result as $group ) {
+			if ( $group instanceof Expandable_Group ) {
+				$result_arr[] = $group->to_array();
+			} else {
+				$result_arr = array_merge( $result_arr,
+					$group->to_array()['items'] );
+			}
+		}
 
+		return $result_arr;
 	}
 }
 

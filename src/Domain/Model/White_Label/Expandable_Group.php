@@ -36,7 +36,13 @@ class Expandable_Group {
 	 * @param string $icon
 	 * @param string $subtitle
 	 */
-	public function __construct( array $items, string $name, string $slug, string $icon, string $subtitle ) {
+	public function __construct(
+		array $items,
+		string $name,
+		string $slug,
+		string $icon,
+		string $subtitle
+	) {
 		$this->items    = $items;
 		$this->name     = $name;
 		$this->slug     = $slug;
@@ -44,6 +50,22 @@ class Expandable_Group {
 		$this->subtitle = $subtitle;
 	}
 
+	public function to_array(): array {
+		$items = [];
+		foreach ( $this->items as $item ) {
+			$items[] = $item->to_array();
+		}
+
+		return [
+			'label'         => $this->name,
+			'key'           => 'bm_channnel_group_' . rand( 1, 1000 ),
+			'value'         => 'test',
+			'name'          => 'bm-payment-channel-group',
+			'icon'          => $this->icon,
+			'is_expandable' => true,
+			'items'         => $items,
+		];
+	}
 
 	/**
 	 * @return string

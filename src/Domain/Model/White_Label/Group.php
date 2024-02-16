@@ -25,10 +25,28 @@ class Group {
 	 * @param string $name
 	 * @param string $slug
 	 */
-	public function __construct( array $items, string $name, string $slug = '' ) {
+	public function __construct(
+		array $items,
+		string $name,
+		string $slug = ''
+	) {
 		$this->items = $items;
 		$this->name  = $name;
 		$this->slug  = $slug;
+	}
+
+	public function to_array(): array {
+		$items = [];
+		foreach ( $this->items as $item ) {
+			$items[] = $item->to_array();
+		}
+
+		return [
+			'name'          => $this->name,
+			'slug'          => $this->slug,
+			'is_expandable' => false,
+			'items'         => $items,
+		];
 	}
 
 	/**

@@ -14,6 +14,7 @@ use Ilabs\BM_Woocommerce\Plugin;
 use SimpleXMLElement;
 use WC_Order;
 use WC_Payment_Gateway;
+use Ilabs\BM_Woocommerce\Gateway\Hooks\Payment_On_Account_Page;
 
 class Blue_Media_Gateway extends WC_Payment_Gateway {
 
@@ -60,6 +61,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 */
 	public function __construct() {
 		( new Hooks() )->init();
+
+
 		blue_media()->set_bluemedia_gateway( $this );
 
 		( new Importer() )->handle_import();
@@ -88,6 +91,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->description = '';
 		$this->enabled     = $this->get_option( 'enabled' );
 		$this->testmode    = $this->resolve_is_test_mode();
+
 
 		$this->payment_on_account_page = apply_filters( 'autopay_payment_on_account_page',
 			$this->payment_on_account_page );
@@ -174,6 +178,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						) );
 				}
 			}
+		} else {
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[is_object( WC()->session ) && ! wp_doing_ajax() returns false]  [is_object( WC()->session ) returns %s] [wp_doing_ajax() returns %s]',
+					is_object( WC()->session ) ? 'true' : 'false',
+					wp_doing_ajax() ? 'true' : 'false'
+				) );
+
+
 		}
 		$this->webhook();
 	}
@@ -681,6 +693,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			];
 			WC()->session->set( 'bm_order_payment_params', $params );
 
+			update_post_meta( $order_id, 'bm_order_payment_params', $params );
+
 			blue_media()->get_woocommerce_logger()->log_debug(
 				sprintf( '[bm_order_payment_params saved to wc_session] [Order id: %s]',
 					$order_id
@@ -695,9 +709,24 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$redirect_url = $this->get_return_url( $order );
 
 		if ( $this->payment_on_account_page ) {
-			$redirect_url = add_query_arg( 'autopay_payment_on_account_page',
-				'1',
-				$redirect_url );
+
+			if ( ! is_user_logged_in() ) {
+				$signature = Payment_On_Account_Page::generate_signature( $order_id );
+
+				$redirect_url = add_query_arg(
+					[
+						'autopay_payment_on_account_page' => '1',
+						'sig'                             => $signature,
+						'order_id'                        => $order_id,
+					],
+					$redirect_url );
+			} else {
+				$redirect_url = add_query_arg(
+					[
+						'autopay_payment_on_account_page' => '1',
+					],
+					$redirect_url );
+			}
 		}
 
 		$return = [
@@ -877,25 +906,19 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					serialize( $result ) ) );
 			}
 
-			update_option( 'bm_api_last_error',
-				sprintf( '[%s server time] [BlueMedia Blik-0 debug] [Response: %s]',
-					date( "Y-m-d H:i:s", time() ),
-					$result['redirecturl']
-				)
-			);
-
 			WC()->session->set( 'bm_continue_transaction_start_error', '' );
 
 		} catch ( Exception $e ) {
-			WC()->session->set( 'bm_continue_transaction_start_error',
-				$e->getMessage() );
 
-			update_option( 'bm_api_last_error',
-				sprintf( '[%s server time] [BlueMedia Blik-0 error] [Response: %s]',
-					date( "Y-m-d H:i:s", time() ),
+			blue_media()->get_woocommerce_logger()->log_error(
+				sprintf( '[continue_transaction_request] [Params: %s] [Error message: %s]',
+					json_encode( $params ),
 					$e->getMessage()
-				)
-			);
+				) );
+
+			WC()->session->set( 'bm_continue_transaction_start_error',
+				__( 'Payment failed.',
+					'bm-woocommerce' ) );
 		}
 	}
 
@@ -1629,7 +1652,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	function render_channels_for_admin_panel(
 		array $channels
 	) {
-
 		$group_arr = ( new Group_Mapper( $channels ) )->map_for_admin_panel();
 
 		echo '<div class="payment_box payment_box_wpadmin payment_method_bacs">';
