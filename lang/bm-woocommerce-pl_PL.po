@@ -317,3 +317,9 @@ msgstr "Importuj"
 
 msgid "Imports Service ID, configuration key and environment setting ( testing / production)"
 msgstr "Importuje Service ID, klucz konfiguracyjny oraz ustawienie środowiska (testowe / produkcyjne)"
+
+msgid "Alternative transaction start test URL"
+msgstr "Alternatywny testowy adres startu transakcji"
+
+msgid "Alternative transaction start production URL"
+msgstr "Alternatywny produkcyjny adres startu transakcji"

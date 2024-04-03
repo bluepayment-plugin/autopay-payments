@@ -67,35 +67,77 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		return $logger;
 	}
 
-	private function debug_wc_api() {
-		if ( isset( $_GET['wc-api'] ) ) {
-			add_action( 'woocommerce_api_request', function () {
-				$events                 = blue_media()->get_event_chain();
-				$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
+	private function debug_status_change_by_remote() {
+		if ( strpos( $_SERVER['REQUEST_URI'],
+				'wp-json/wc/v2/orders' ) !== false ) {
 
-				$wc_api_debug_log_cache->push(
-					sprintf( '[wc-api debug] [value: %s]',
-						$_GET['wc-api']
-					) );
-			} );
+
+			update_option( 'autopay_wpjson_log', (
+			sprintf( '[wp-json debug %s] [ip: %s] [method: %s] [request uri: %s] [headers: %s] [request: %s] [payload: %s]',
+				rand( 1, 100000 ),
+				$this->get_ip(),
+				$_SERVER['REQUEST_METHOD'],
+				$_SERVER['REQUEST_URI'],
+				print_r( getallheaders(), true ),
+				print_r( $_REQUEST ?? '', true ),
+				$this->get_json_payload_as_string()
+			) ) );
+		}
+
+		$events                 = blue_media()->get_event_chain();
+		$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
+		$events
+			->on_wc_loaded()
+			->action( function () use ( $wc_api_debug_log_cache ) {
+				$log = get_option( 'autopay_wpjson_log' );
+
+				if ( ! empty( $log ) && is_string( $log ) ) {
+					blue_media()
+						->get_woocommerce_logger()
+						->log_debug( $log );
+				}
+
+				update_option( 'autopay_wpjson_log', false);
+				$wc_api_debug_log_cache->clear();
+			} )
+			->execute();
+	}
+
+	private function get_ip(): string {
+		$headers = [
+			'HTTP_CF_CONNECTING_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_REAL_IP',
+			'HTTP_X_CLIENT_IP',
+			'HTTP_CLIENT_IP',
+			'HTTP_X_CLUSTER_CLIENT_IP',
+		];
+
+		foreach ( $headers as $header ) {
+			if ( array_key_exists( $header, $_SERVER ) ) {
+				$ip = $_SERVER[ $header ];
+				$ip = trim( explode( ',', $ip )[0] );
+
+				return $ip;
+			}
+		}
+
+		return $_SERVER['REMOTE_ADDR'] ?? '';
+	}
+
+	function get_json_payload_as_string() {
+		if ( strpos( $_SERVER['REQUEST_URI'], 'wp-json' ) !== false ) {
+			$rawData = file_get_contents( "php://input" );
+
+			$decodedData = json_decode( $rawData, true );
+
+			if ( json_last_error() === JSON_ERROR_NONE ) {
+				return print_r( $decodedData, true );
+			} else {
+				return "Błąd dekodowania JSON: " . json_last_error_msg();
+			}
 		} else {
-			$events                 = blue_media()->get_event_chain();
-			$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
-
-			$events
-				->on_wc_loaded()
-				->action( function () use ( $wc_api_debug_log_cache ) {
-					if ( is_array( $wc_api_debug_log_cache->get() ) ) {
-						foreach ( $wc_api_debug_log_cache->get() as $entry ) {
-							blue_media()
-								->get_woocommerce_logger()
-								->log_debug( $entry );
-						}
-					}
-
-					$wc_api_debug_log_cache->clear();
-				} )
-				->execute();
+			return "To żądanie nie jest skierowane do wp-json.";
 		}
 	}
 
@@ -103,13 +145,11 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 * @throws Exception
 	 */
 	protected function before_init() {
-		$this->debug_wc_api();
+		$this->debug_status_change_by_remote();
 
 		if ( $this->resolve_is_autopay_hidden() ) {
 			return;
 		}
-
-
 		add_action( 'woocommerce_blocks_loaded',
 			[ $this, 'woocommerce_block_support' ] );
 
@@ -143,14 +183,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 
 	public function woocommerce_block_support() {
-
-		// Pobieranie aktualnego URL
 		$current_url = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-
-		// Szukana fraza
 		$search_phrase = "order-received";
-
-		// Sprawdzenie, czy fraza występuje w URL
 		if ( strpos( $current_url, $search_phrase ) !== false ) {
 			return;
 		}
@@ -164,28 +198,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				}
 			);
 		}
-
-
-		/*add_action(
-			'woocommerce_blocks_payment_method_type_registration',
-			function ( PaymentMethodRegistry $payment_method_registry ) {
-
-				$container = Package::container();
-				// registers as shared instance.
-				$container->register(
-					Blue_Media_Gateway_Checkout_Block::class,
-					function () {
-
-						return new Blue_Media_Gateway_Checkout_Block();
-
-					}
-				);
-				$payment_method_registry->register(
-					$container->get( Blue_Media_Gateway_Checkout_Block::class )
-				);
-			},
-			5
-		);*/
 	}
 
 	private function resolve_is_autopay_hidden(): bool {
@@ -352,8 +364,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 									'bm-woocommerce' ) . '</li>
                                 <li>' . __( 'Your measurement ID is in the upper right corner (eg G-QCX4K9GSPC).',
 									'bm-woocommerce' ) . '</li>
-                                </ul>    
-                                
+                                </ul>
+
                                   </div><div class="bm-modal-overlay"></div>';
 						}
 					}

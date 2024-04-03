@@ -10,6 +10,7 @@ use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Group;
 use Ilabs\BM_Woocommerce\Domain\Service\Legacy\Importer;
 use Ilabs\BM_Woocommerce\Domain\Service\White_Label\Group_Mapper;
 use Ilabs\BM_Woocommerce\Domain\Woocommerce\Autopay_Order_Factory;
+use Ilabs\BM_Woocommerce\Helpers\Helper;
 use Ilabs\BM_Woocommerce\Plugin;
 use SimpleXMLElement;
 use WC_Order;
@@ -40,6 +41,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	/**
 	 * @var string
 	 */
+	private $gateway_url_not_modified_by_user;
+
+	/**
+	 * @var string
+	 */
 	private $service_id;
 
 	/**
@@ -62,21 +68,20 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	public function __construct() {
 		( new Hooks() )->init();
 
-
 		blue_media()->set_bluemedia_gateway( $this );
 
 		( new Importer() )->handle_import();
 
 		$this->id           = 'bluemedia';
 		$this->icon
-		                    = blue_media()->get_plugin_images_url()
-		                      . '/logo-autopay.svg';
+							= blue_media()->get_plugin_images_url()
+							  . '/logo-autopay.svg';
 		$this->has_fields
-		                    = true;
+							= true;
 		$this->method_title = __( 'Autopay Instant payment',
 			'bm-woocommerce' );
 		$this->method_description
-		                    = __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
+							= __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
 			'bm-woocommerce' );
 
 		$this->supports = [
@@ -88,7 +93,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->title = __( 'Autopay gateway',
 			'bm-woocommerce' );
 
-		$this->description = '';
+		$this->description = __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
+			'bm-woocommerce' );
 		$this->enabled     = $this->get_option( 'enabled' );
 		$this->testmode    = $this->resolve_is_test_mode();
 
@@ -100,33 +106,37 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			define( 'BLUE_MEDIA_DISABLE_CACHE', 1 );
 		}
 
-		$this->setup_mode();
+		$this->setup_variables();
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id,
 			[ $this, 'process_admin_options' ] );
 
-		if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
-			if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
-				$params
-					= WC()->session->get( 'bm_order_payment_params' )['params'];
+		if ( isset( $_GET['autopay_express_payment'] ) || isset( $_GET['autopay_payment_on_account_page'] ) ) {
+			if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
+				if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
+					$params
+						= WC()->session->get( 'bm_order_payment_params' )['params'];
 
-				if ( $this->can_redirect_to_payment_gateway( (int) $params['OrderID'] ) ) {
-					WC()->session->set( 'bm_order_payment_params', null );
-					WC()->session->save_data();
+					if ( $this->can_redirect_to_payment_gateway( (int) $params['OrderID'] ) ) {
+						WC()->session->set( 'bm_order_payment_params', null );
+						WC()->session->save_data();
+						delete_post_meta( (int) $params['OrderID'],
+							'bm_order_payment_params' );
 
-					if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
-						ob_start();
-						wp_head();
-						$wp_head_html = ob_get_contents();
-						ob_end_clean();
-						echo preg_replace( '/<body[^>]*>.*<\/body>/isU', '',
-							$wp_head_html );
-						echo '<body>';
-						blue_media()->locate_template( 'redirect_to_payment_overlay.php' );
-					}
+						if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
+							ob_start();
+							wp_head();
+							$wp_head_html = ob_get_contents();
+							ob_end_clean();
+							echo preg_replace( '/<body[^>]*>.*<\/body>/isU',
+								'',
+								$wp_head_html );
+							echo '<body>';
+							blue_media()->locate_template( 'redirect_to_payment_overlay.php' );
+						}
 
-					if ( is_array( $params ) ) {
-						printf( "<form method='post' id='paymentForm' action='%s'>
+						if ( is_array( $params ) ) {
+							printf( "<form method='post' id='paymentForm' action='%s'>
 			 <input type='hidden' name='ServiceID'  value='%s' />
 			 <input type='hidden' name='OrderID'  value='%s' />
 			 <input type='hidden' name='Amount'  value='%s' />
@@ -137,55 +147,62 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			 <input type='hidden' name='PlatformVersion'  value='%s' />
 			 <input type='hidden' name='PlatformPluginVersion'  value='%s' />
 			 <input type='hidden' name='Hash'  value='%s' /></form>",
-							$this->gateway_url . 'payment',
-							$params['ServiceID'],
-							$params['OrderID'],
-							$params['Amount'],
-							! empty( $params['GatewayID'] ) ? $params['GatewayID'] : '0',
-							blue_media()->resolve_blue_media_currency_symbol(),
-							$params['CustomerEmail'],
-							$params['PlatformName'],
-							$params['PlatformVersion'],
-							$params['PlatformPluginVersion'],
-							$params['Hash'] );
-					}
+								$this->gateway_url . 'payment',
+								$params['ServiceID'],
+								$params['OrderID'],
+								$params['Amount'],
+								! empty( $params['GatewayID'] ) ? $params['GatewayID'] : '0',
+								blue_media()->resolve_blue_media_currency_symbol(),
+								$params['CustomerEmail'],
+								$params['PlatformName'],
+								$params['PlatformVersion'],
+								$params['PlatformPluginVersion'],
+								$params['Hash'] );
+						}
 
-					if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
-						_wp_footer_scripts();
-						echo '</body>';
+						if ( 'yes' === $this->get_option( 'countdown_before_redirection' ) ) {
+							_wp_footer_scripts();
+							echo '</body>';
+						} else {
+							echo "<script type='text/javascript'>document.getElementById('paymentForm').submit();</script>";
+						}
+
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[Print payment form and submit by JS] [Params: %s] [url: %s] [is_rest_request: %s]',
+								serialize( $params ),
+								$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+								defined( 'REST_REQUEST' ) ? 'yes' : 'no'
+							) );
+
+						update_post_meta( $params['OrderID'],
+							'bm_transaction_init_params',
+							$params );
+						blue_media()->update_payment_cache( 'bm_payment_start',
+							'1' );
+
+						exit;
 					} else {
-						echo "<script type='text/javascript'>document.getElementById('paymentForm').submit();</script>";
+						WC()->session->set( 'bm_order_payment_params', null );
+						WC()->session->save_data();
+
+						blue_media()->get_woocommerce_logger()->log_debug(
+							sprintf( '[Print payment form canceled.] [Params: %s] [url: %s]',
+								serialize( $params ),
+								$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
+							) );
 					}
-
-					blue_media()->get_woocommerce_logger()->log_debug(
-						sprintf( '[Print payment form and submit by JS] [Params: %s]',
-							serialize( $params )
-						) );
-
-					update_post_meta( $params['OrderID'],
-						'bm_transaction_init_params', $params );
-					blue_media()->update_payment_cache( 'bm_payment_start',
-						'1' );
-
-					exit;
 				} else {
-					WC()->session->set( 'bm_order_payment_params', null );
-					WC()->session->save_data();
-
 					blue_media()->get_woocommerce_logger()->log_debug(
-						sprintf( '[Print payment form canceled because bm_transaction_init_params exists in Order.] [Params: %s]',
-							serialize( $params )
+						sprintf( '[Print payment form canceled. bm_order_payment_params not found in WC Session] [url: %s]',
+							$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
 						) );
 				}
+			} else {
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[Print payment form canceled. WC Session not exists] [url: %s]',
+						$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
+					) );
 			}
-		} else {
-			blue_media()->get_woocommerce_logger()->log_debug(
-				sprintf( '[is_object( WC()->session ) && ! wp_doing_ajax() returns false]  [is_object( WC()->session ) returns %s] [wp_doing_ajax() returns %s]',
-					is_object( WC()->session ) ? 'true' : 'false',
-					wp_doing_ajax() ? 'true' : 'false'
-				) );
-
-
 		}
 		$this->webhook();
 	}
@@ -204,7 +221,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			'bm_transaction_init_params',
 			true );
 
-		$return          = empty( $status );
+		$return = empty( $status );
+
+		if ( ! isset( $_GET['autopay_express_payment'] ) ) {
+			$return = false;
+		}
+
 		$return_filtered = apply_filters( 'autopay_filter_can_redirect_to_payment_gateway',
 			$return );
 
@@ -216,17 +238,31 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $return_filtered;
 	}
 
+	private function setup_variables() {
+		if ( $this->testmode ) {
+			$test_gateway_url = $this->get_option( 'test_gateway_url' );
+			if ( Helper::is_string_url( $test_gateway_url ) ) {
+				$test_gateway_url  = Helper::format_gateway_url( $test_gateway_url );
+				$this->gateway_url = $test_gateway_url;
+			} else {
+				$this->gateway_url = self::GATEWAY_SANDBOX;
+			}
+			$this->gateway_url_not_modified_by_user = self::GATEWAY_SANDBOX;
+			$this->private_key                      = $this->get_option( 'test_private_key' );
+			$this->service_id                       = $this->get_option( 'test_service_id' );
 
-	private function setup_mode() {
-		$this->gateway_url = $this->testmode
-			? self::GATEWAY_SANDBOX
-			: self::GATEWAY_PRODUCTION;
-		$this->private_key = $this->testmode
-			? $this->get_option( 'test_private_key' )
-			: $this->get_option( 'private_key' );
-		$this->service_id  = $this->testmode
-			? $this->get_option( 'test_service_id' )
-			: $this->get_option( 'service_id' );
+		} else {
+			$production_gateway_url = $this->get_option( 'gateway_url' );
+			if ( Helper::is_string_url( $production_gateway_url ) ) {
+				$production_gateway_url = Helper::format_gateway_url( $production_gateway_url );
+				$this->gateway_url      = $production_gateway_url;
+			} else {
+				$this->gateway_url = self::GATEWAY_PRODUCTION;
+			}
+			$this->gateway_url_not_modified_by_user = self::GATEWAY_PRODUCTION;
+			$this->private_key                      = $this->get_option( 'private_key' );
+			$this->service_id                       = $this->get_option( 'service_id' );
+		}
 	}
 
 	private function resolve_is_test_mode(): bool {
@@ -256,8 +292,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			[ $this, 'generate_import_field' ] );
 
 		if ( blue_media()
-			     ->get_request()
-			     ->get_by_key( 'bmtab' ) === 'channels' ) {
+				 ->get_request()
+				 ->get_by_key( 'bmtab' ) === 'channels' ) {
 			return;
 		}
 
@@ -312,9 +348,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'bm-woocommerce' ),
 				'description' => "<span class='p-info'>" . __( 'The service ID and shared key for the test environment are different from production data.',
 						'bm-woocommerce' )
-				                 . '<br>' . __( 'To get the data for the test environment,',
+								 . '<br>' . __( 'To get the data for the test environment,',
 						'bm-woocommerce' ) . '<a href="https://developers.autopay.pl/kontakt?mtm_campaign=woocommerce_developers_formularz&mtm_source=woocommerce_backoffice&mtm_medium=hiperlink">'
-				                 . ' ' . __( 'please contact us.',
+								 . ' ' . __( 'please contact us.',
 						'bm-woocommerce' ) . '</a></span>',
 				'type'        => 'title',
 			],
@@ -499,6 +535,20 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				],
 			],
 
+			'gateway_url' => [
+				'title'       => __( 'Alternative transaction start production URL',
+					'bm-woocommerce' ),
+				'description' => '',
+				'type'        => 'text',
+			],
+
+			'test_gateway_url' => [
+				'title'       => __( 'Alternative transaction start test URL',
+					'bm-woocommerce' ),
+				'description' => '',
+				'type'        => 'text',
+			],
+
 			'custom_button' => [
 				'title'       => __( 'Import settings from legacy plugin',
 					'bm-woocommerce' ),
@@ -514,38 +564,38 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	public function generate_import_field() {
 		ob_start();
 		?>
-        <tr valign="top">
-            <th scope="row"
-                class="titledesc"><?php _e( 'Import settings from 2.x/3.x version',
+		<tr valign="top">
+			<th scope="row"
+				class="titledesc"><?php _e( 'Import settings from 2.x/3.x version',
 					'bm-woocommerce' ) ?></th>
-            <td class="forminp">
-                <fieldset>
-                    <input type="submit" id="autopay_start_import"
-                           class="button-primary"
-                           value="<?php _e( 'Start import',
-						       'bm-woocommerce' ) ?>">
-                    <input type="hidden" name="autopay_import_legacy_settings"
-                           id="autopay_import_legacy_settings"
-                           value="0">
-                    <p class="description"><?php _e( 'Imports Service ID, configuration key and environment setting ( testing / production)',
+			<td class="forminp">
+				<fieldset>
+					<input type="submit" id="autopay_start_import"
+						   class="button-primary"
+						   value="<?php _e( 'Start import',
+							   'bm-woocommerce' ) ?>">
+					<input type="hidden" name="autopay_import_legacy_settings"
+						   id="autopay_import_legacy_settings"
+						   value="0">
+					<p class="description"><?php _e( 'Imports Service ID, configuration key and environment setting ( testing / production)',
 							'bm-woocommerce' ) ?></p>
-                </fieldset>
-            </td>
-        </tr>
+				</fieldset>
+			</td>
+		</tr>
 
-        <script>
-            jQuery(document).ready(function () {
-                jQuery('#autopay_start_import').click(function (e) {
-                    e.preventDefault();
-                    var form = jQuery(this).closest('form');
-                    form.submit(function () {
-                        return false;
-                    });
-                    jQuery('#autopay_import_legacy_settings').val("1")
-                    form.unbind('submit').submit();
-                });
-            });
-        </script>
+		<script>
+			jQuery(document).ready(function () {
+				jQuery('#autopay_start_import').click(function (e) {
+					e.preventDefault();
+					var form = jQuery(this).closest('form');
+					form.submit(function () {
+						return false;
+					});
+					jQuery('#autopay_import_legacy_settings').val("1")
+					form.unbind('submit').submit();
+				});
+			});
+		</script>
 		<?php
 		return ob_get_clean();
 	}
@@ -584,61 +634,67 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		ob_start();
 		?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <label
-                        for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?><?php echo $this->get_tooltip_html( $data ); // WPCS: XSS ok. ?></label>
-            </th>
-            <td class="forminp">
-                <fieldset>
-                    <legend class="screen-reader-text">
-                        <span><?php echo wp_kses_post( $data['title'] ); ?></span>
-                    </legend>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label
+					for="<?php echo esc_attr( $field_key ); ?>"><?php echo wp_kses_post( $data['title'] ); ?><?php echo $this->get_tooltip_html( $data ); // WPCS: XSS ok. ?></label>
+			</th>
+			<td class="forminp">
+				<fieldset>
+					<legend class="screen-reader-text">
+						<span><?php echo wp_kses_post( $data['title'] ); ?></span>
+					</legend>
 					<?php foreach ( (array) $data['options'] as $option_key => $option_value ) : ?>
 				<?php if ( is_array( $option_value ) ) : ?>
 
-                    <optgroup label="<?php echo esc_attr( $option_key ); ?>">
+					<optgroup label="<?php echo esc_attr( $option_key ); ?>">
 						<?php foreach ( $option_value as $option_key_inner => $option_value_inner ) : ?>
-                            <label
-                                    for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value_inner ); ?></label>
-                            <input id="<?php echo esc_attr( $option_key ); ?>"
-                                   type="radio"
-                                   name="<?php echo esc_attr( $field_key ); ?>"
-                                   value="<?php echo esc_attr( $option_key_inner ); ?>" <?php checked( (string) $option_key_inner,
+							<label
+								for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value_inner ); ?></label>
+							<input id="<?php echo esc_attr( $option_key ); ?>"
+								   type="radio"
+								   name="<?php echo esc_attr( $field_key ); ?>"
+								   value="<?php echo esc_attr( $option_key_inner ); ?>" <?php checked( (string) $option_key_inner,
 								esc_attr( $value ) ); ?>>
 						<?php endforeach; ?>
-                    </optgroup>
+					</optgroup>
 				<?php else : ?>
-                    <label
-                            for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value ); ?></label>
-                    <input id="<?php echo esc_attr( $option_key ); ?>"
-                           type="radio"
-                           name="<?php echo esc_attr( $field_key ); ?>"
-                           value="<?php echo esc_attr( $option_key ); ?>" <?php checked( (string) $option_key,
+					<label
+						for="<?php echo esc_attr( $option_key ); ?>"><?php echo esc_html( $option_value ); ?></label>
+					<input id="<?php echo esc_attr( $option_key ); ?>"
+						   type="radio"
+						   name="<?php echo esc_attr( $field_key ); ?>"
+						   value="<?php echo esc_attr( $option_key ); ?>" <?php checked( (string) $option_key,
 						esc_attr( $value ) ); ?>>
 						<?php endif; ?>
 						<?php endforeach; ?>
-                    </input>
+					</input>
 					<?php echo $this->get_description_html( $data ); // WPCS: XSS ok. ?>
-                </fieldset>
-            </td>
-        </tr>
+				</fieldset>
+			</td>
+		</tr>
 		<?php
 
 		return ob_get_clean();
 	}
 
 
+	private function is_whitelabel_mode_enabled(): bool {
+		$whitelabel = apply_filters( 'autopay_filter_option_whitelabel',
+			$this->get_option( 'whitelabel', 'no' ) );
+
+		return 'yes' === $whitelabel;
+	}
+
 	/**
 	 * @return void
 	 * @throws Exception
 	 */
 	public function payment_fields() {
-		$whitelabel = apply_filters( 'autopay_filter_option_whitelabel',
-			$this->get_option( 'whitelabel', 'no' ) );
-
-		if ( 'yes' === $whitelabel ) {
+		if ( $this->is_whitelabel_mode_enabled() ) {
 			$this->render_channels( $this->gateway_list() );
+		} else {
+			echo wpautop( wptexturize( $this->description ) );
 		}
 
 		do_action( 'autopay_after_payment_field' );
@@ -665,9 +721,21 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			return [];
 		}
 
-		global $woocommerce;
 		$order           = wc_get_order( $order_id );
 		$payment_channel = (int) $_POST['bm-payment-channel'] ?? null;
+		$is_blik_0       = false;
+
+		if ( 0 === $payment_channel && $this->is_whitelabel_mode_enabled() ) {
+			if ( isset( $_POST['bm-payment-channel'] ) ) {//nie pokazuj błędu w module blokowym w opcji z przekierowaniem
+				blue_media()->get_woocommerce_logger()->log_error(
+					sprintf( '[Cannot redirect to payment] [$_POST["bm-payment-channel"]: %s]',
+						sanitize_key( $_POST['bm-payment-channel'] )
+					) );
+
+				throw new Exception( __( 'Autopay payments: Cannot redirect to payment because no payment channel selected.',
+					'bm-woocommerce' ) );
+			}
+		}
 
 		$blik0_type = $this->get_option( 'blik_type', 'with_redirect' );
 
@@ -676,6 +744,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 			if ( $this->is_blik_0_code_valid( $blik_code ) ) {
 				$this->process_blik_0_payment( $order, $blik_code );
+				$is_blik_0 = true;
 			} else {
 				wc_add_notice( __( 'The code you provided is invalid. Code should be 6 digits.',
 					'bm-woocommerce' ),
@@ -688,7 +757,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		} else {
 			$params = [
 				'params' => $this->prepare_initial_transaction_parameters(
-					wc_get_order( $order_id ), $payment_channel
+					wc_get_order( $order_id ),
+					$payment_channel
 				),
 			];
 			WC()->session->set( 'bm_order_payment_params', $params );
@@ -703,8 +773,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$this->schedule_remove_unpaid_orders( $order_id );
 
-		$order->set_status( 'pending' );
-		$order->save();
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[wc_get_order_statuses] [%s]',
+				print_r( wc_get_order_statuses(), true )
+			) );
+
+		$this->update_order_status( $order, 'pending' );
+		$order->add_order_note( __( 'Autopay: Payment process started for order id:',
+				'bm-woocommerce' ) . $order_id );
 
 		$redirect_url = $this->get_return_url( $order );
 
@@ -727,6 +803,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					],
 					$redirect_url );
 			}
+		} elseif ( ! $is_blik_0 ) {
+			$redirect_url = add_query_arg(
+				[
+					'autopay_express_payment' => '1',
+				],
+				$redirect_url );
 		}
 
 		$return = [
@@ -760,7 +842,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					$order->get_id() );
 
 				return '#';
-			}, 10, 2 );
+			},
+			10,
+			2 );
 
 
 		$client = new Client();
@@ -786,7 +870,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		try {
 			update_post_meta( $order->get_id(),
-				'bm_transaction_init_params', $params );
+				'bm_transaction_init_params',
+				$params );
 
 			$result = $this->decode_continue_transaction_response( $client->continue_transaction_request(
 				$params,
@@ -865,7 +950,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					$order->get_id() );
 
 				return '#';
-			}, 10, 2 );
+			},
+			10,
+			2 );
 
 		$client = new Client();
 		$params = [
@@ -890,12 +977,19 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		try {
 			update_post_meta( $order->get_id(),
-				'bm_transaction_init_params', $params );
+				'bm_transaction_init_params',
+				$params );
 
 			$result = $this->decode_continue_transaction_response( $client->continue_transaction_request(
 				$params,
 				$this->gateway_url . 'payment'
 			) );
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[process_blik_0_payment] [continue_transaction_request] [params: %s] [result: %s]',
+					print_r( $params, true ),
+					print_r( $result, true ),
+				) );
 
 			if ( isset( $result['reason'] ) ) {
 				throw new Exception( $result['reason'] );
@@ -923,7 +1017,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 	private function get_price_for_api_request( WC_Order $order ) {
-		$price = str_replace( ',', '.',
+		$price = str_replace( ',',
+			'.',
 			(string) $order->get_total( false ) );
 		if ( strpos( $price, '.' ) === false ) {
 			$price = $price . '.00';
@@ -1019,7 +1114,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 
 						$init_params = get_post_meta( $wc_order_id,
-							'bm_transaction_init_params', true );
+							'bm_transaction_init_params',
+							true );
 
 
 						if ( ! is_array( $init_params ) ) {
@@ -1084,11 +1180,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 					if ( ! $is_hash_valid && ! $this->testmode ) {
 						$this->testmode = true;
-						$this->setup_mode();
+						$this->setup_variables();
 						$is_hash_valid  = $this->validate_itn_hash( $all_fields_itn,
 							$hash_from_itn );
 						$this->testmode = false;
-						$this->setup_mode();
+						$this->setup_variables();
 					}
 
 					if ( ! $is_hash_valid ) {
@@ -1129,51 +1225,61 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$wc_order->payment_complete( $k );
 
 						blue_media()->get_woocommerce_logger()->log_debug(
-							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: SUCCESS] [Matched WC status: %s] [Order_Id: %s]',
+							sprintf( '[webhook] [Status from ITN: SUCCESS] [Matched WC status: %s] [Order_Id: %s]',
 								$new_status,
 								$wc_order->get_id()
 							) );
 
-						$wc_order->set_status( $new_status );
-						$wc_order->add_order_note( 'PayBM ITN: paymentStatus SUCCESS' );
+						$this->update_order_status( $wc_order,
+							$new_status,
+							'Autopay ITN: paymentStatus SUCCESS' );
+
 						update_post_meta( $wc_order->get_id(),
 							'bm_order_itn_status',
 							self::ITN_SUCCESS_STATUS_ID );
-						$wc_order->save();
+
+
+						do_action( 'woocommerce_payment_complete',
+							$wc_order->get_id(),
+							'' );
+
+
 					}
 
 					foreach ( $order_pending_to_update as $k => $wc_order ) {
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_pending',
 							'pending' );
 						blue_media()->get_woocommerce_logger()->log_debug(
-							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: PENDING] [Matched WC status: %s] [Order_Id: %s]',
+							sprintf( '[webhook] [Status from ITN: PENDING] [Matched WC status: %s] [Order_Id: %s]',
 								$new_status,
 								$wc_order->get_id()
 							) );
 
-						$wc_order->set_status( $new_status );
-						$wc_order->add_order_note( 'PayBM ITN: paymentStatus PENDING' );
+						$this->update_order_status( $wc_order,
+							$new_status,
+							'Autopay ITN: paymentStatus PENDING' );
+
 						update_post_meta( $wc_order->get_id(),
 							'bm_order_itn_status',
 							self::ITN_PENDING_STATUS_ID );
-						$wc_order->save();
 					}
 
 					foreach ( $order_failure_to_update as $k => $wc_order ) {
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_failure',
 							'failed' );
 						blue_media()->get_woocommerce_logger()->log_debug(
-							sprintf( '[webhook] [$wc_order->set_status] [Status from ITN: FAILURE] [Matched WC status: %s] [Order_Id: %s]',
+							sprintf( '[webhook] [Status from ITN: FAILURE] [Matched WC status: %s] [Order_Id: %s]',
 								$new_status,
 								$wc_order->get_id()
 							) );
 
-						$wc_order->set_status( $new_status );
-						$wc_order->add_order_note( 'PayBM ITN: paymentStatus FAILURE' );
+						$this->update_order_status( $wc_order,
+							$new_status,
+							'Autopay ITN: paymentStatus FAILURE' );
+
 						update_post_meta( $wc_order->get_id(),
 							'bm_order_itn_status',
 							self::ITN_FAILURE_STATUS_ID );
-						$wc_order->save();
 					}
 
 
@@ -1183,7 +1289,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$this->generate_response_xml_hash( $all_fields_reponse ) );
 					xmlwriter_end_element( $xw ); // hash
 					xmlwriter_end_document( $xw );
-					echo xmlwriter_output_memory( $xw );
+
+					$xml_response = xmlwriter_output_memory( $xw );
+					blue_media()->get_woocommerce_logger()->log_debug(
+						sprintf( '[webhook xml_response] [xml: %s]',
+							$xml_response
+						) );
+
+					echo $xml_response;
 
 					exit;//exit with 200
 				}
@@ -1304,7 +1417,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$imploded_string_secured = implode( '|',
 				$params ) . '|' . $private_key_secured;
 		$imploded_string         = implode( '|', $params ) . '|'
-		                           . $this->get_private_key();
+								   . $this->get_private_key();
 
 		blue_media()->get_woocommerce_logger()->log_debug(
 			sprintf( '[hash_parameters] %s',
@@ -1343,8 +1456,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$force_rebuild_cache = false
 	): array {
 		if ( defined( 'BLUE_MEDIA_DISABLE_CACHE' ) || $force_rebuild_cache || time()
-		                                                                      - (int) get_option( 'bm_gateway_list_cache_time' )
-		                                                                      > 600//10 minutes cache
+																			  - (int) get_option( 'bm_gateway_list_cache_time' )
+																			  > 600//10 minutes cache
 		) {
 			$gateway_list_cache = $this->api_get_gateway_list();
 
@@ -1391,7 +1504,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$params = array_merge( $params, [ 'Hash' => $params_hash ] );
 
-		$url = $this->gateway_url . 'gatewayList/v2';
+		$url = $this->gateway_url_not_modified_by_user . 'gatewayList/v2';
 
 		$wp_remote_post_args = [
 			'headers' => [
@@ -1424,9 +1537,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 
 		if ( is_object( $result_decoded )
-		     && property_exists( $result_decoded,
+			 && property_exists( $result_decoded,
 				'result' )
-		     && $result_decoded->result === 'ERROR' ) {
+			 && $result_decoded->result === 'ERROR' ) {
 
 			blue_media()->get_woocommerce_logger()->log_error(
 				sprintf( '[gatewayList/v2] [URL: %s] [Error: %s]',
@@ -1576,75 +1689,75 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		?>
 
-        <script>
+		<script>
 			<?php if ('yes' === $this->get_option( 'compatibility_with_live_update_checkout',
 				'no' )):?>
-            BmTimerValue = 1500;
+			BmTimerValue = 1500;
 			<?php else:?>
-            BmTimerValue = 0;
+			BmTimerValue = 0;
 			<?php endif;?>
 
-            jQuery(document).ready(function () {
-                clearTimeout(bm_global_timer)
+			jQuery(document).ready(function () {
+				clearTimeout(bm_global_timer)
 
-                var isBlueMediaSelected = jQuery('#payment_method_bluemedia').is(':checked');
+				var isBlueMediaSelected = jQuery('#payment_method_bluemedia').is(':checked');
 
-                if (isBlueMediaSelected) {
-                    BmDeactivateNewOrderButton()
-                }
+				if (isBlueMediaSelected) {
+					BmDeactivateNewOrderButton()
+				}
 
-                blueMediaRadioHide();
+				blueMediaRadioHide();
 
-                bm_global_timer = setTimeout(function () {
-                    bm_global_update_checkout_in_progress = 0;
-                    blueMediaRadioTest();
-                }, BmTimerValue);
+				bm_global_timer = setTimeout(function () {
+					bm_global_update_checkout_in_progress = 0;
+					blueMediaRadioTest();
+				}, BmTimerValue);
 
-            });
+			});
 
-            jQuery("input[name='payment_method']").on("click touchstart", function () {
-                var radioButtons = jQuery("input[name='payment_method']");
-                for (var i = 0; i < radioButtons.length; i++) {
-                    if (radioButtons[i].checked && radioButtons[i].id !== "payment_method_bluemedia") {
-                        BmActivateNewOrderButton()
-                        BmDeselectGroupedLi()
-                    }
-                }
+			jQuery("input[name='payment_method']").on("click touchstart", function () {
+				var radioButtons = jQuery("input[name='payment_method']");
+				for (var i = 0; i < radioButtons.length; i++) {
+					if (radioButtons[i].checked && radioButtons[i].id !== "payment_method_bluemedia") {
+						BmActivateNewOrderButton()
+						BmDeselectGroupedLi()
+					}
+				}
 
-                jQuery("input[id='payment_method_bluemedia']").on("click", function () {
-                    jQuery(".payment_box").find("input[type='radio']").prop("checked", false);
-                    jQuery(".payment_box").find("li").removeClass("selected");
-                    BmDeactivateNewOrderButton()
-                });
+				jQuery("input[id='payment_method_bluemedia']").on("click", function () {
+					jQuery(".payment_box").find("input[type='radio']").prop("checked", false);
+					jQuery(".payment_box").find("li").removeClass("selected");
+					BmDeactivateNewOrderButton()
+				});
 
-                clearTimeout(bm_global_timer);
-                bm_global_timer = setTimeout(function () {
+				clearTimeout(bm_global_timer);
+				bm_global_timer = setTimeout(function () {
 
-                    if (0 === bm_global_update_checkout_in_progress) {
-                        console.log('blueMediaRadioTest bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
-                        blueMediaRadioTest();
-                    }
-                }, BmTimerValue);
+					if (0 === bm_global_update_checkout_in_progress) {
+						console.log('blueMediaRadioTest bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
+						blueMediaRadioTest();
+					}
+				}, BmTimerValue);
 
-                jQuery('#payment_method_bluemedia').on('click', function () {
+				jQuery('#payment_method_bluemedia').on('click', function () {
 
-                    clearTimeout(bm_global_timer);
-                    bm_global_timer = setTimeout(function () {
+					clearTimeout(bm_global_timer);
+					bm_global_timer = setTimeout(function () {
 
-                        if (0 === bm_global_update_checkout_in_progress) {
-                            console.log('click bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
-                            blueMediaRadioShow();
-                        }
-                    }, BmTimerValue);
+						if (0 === bm_global_update_checkout_in_progress) {
+							console.log('click bm_global_update_checkout_in_progress ' + bm_global_update_checkout_in_progress)
+							blueMediaRadioShow();
+						}
+					}, BmTimerValue);
 
-                });
+				});
 
-                jQuery('ul.wc_payment_methods > li.wc_payment_method:not(.payment_method_bluemedia)').on('click', function () {
-                    blueMediaRadioHide();
-                });
-            });
+				jQuery('ul.wc_payment_methods > li.wc_payment_method:not(.payment_method_bluemedia)').on('click', function () {
+					blueMediaRadioHide();
+				});
+			});
 
-        </script><?php
+		</script><?php
 	}
 
 
@@ -1725,5 +1838,35 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$array = array_merge( $p2, $p1, $array );
 	}
 
+	private function update_order_status(
+		WC_Order $order,
+		string $new_status,
+		string $note = ''
+	): bool {
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[update status to: %s] [Order id: %s]',
+				$new_status,
+				$order->get_id()
+			) );
 
+		$result = $order->update_status( $new_status, $note );
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[update status result: %s] [Order id: %s] [Status: %s]',
+				$result ? 'true' : 'false',
+				$order->get_id(),
+				$new_status
+			) );
+
+		return $result;
+	}
+
+	/*private function payment_complete(int $order_id, string $matched_status) {
+		add_filter( 'woocommerce_payment_complete_order_status',
+
+
+				$this->needs_processing() ? 'processing' : 'completed', $this->get_id(), $this ) );
+
+
+	}*/
 }

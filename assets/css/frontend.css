@@ -60,6 +60,7 @@
               #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul li.bm-payment-channel-item > label .bm-payment-channel-group-method-logo, #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul li.bm-payment-channel-group-item > label .bm-payment-channel-method-logo,
               #payment ul.wc_payment_methods > li.wc_payment_method.payment_method_bluemedia > .payment_box.payment_method_bluemedia .payment_box.payment_method_bacs > .bm-payment-channels-wrapper ul.woocommerce-shipping-methods > div > li > ul li.bm-payment-channel-group-item > label .bm-payment-channel-group-method-logo {
                 display: initial;
+                background-color: #fff;
                 height: unset;
                 max-width: 90px;
                 width: 100%; }
@@ -204,5 +205,8 @@ body.theme-astra .payment_box.payment_method_bluemedia > .bm-payment-channels-wr
 
 body.theme-astra .woocommerce .woocommerce-checkout #payment ul.wc_payment_methods li.payment_method_bluemedia ul#shipping_method li {
   padding-left: 0; }
+  body.theme-astra .woocommerce .woocommerce-checkout #payment ul.wc_payment_methods li.payment_method_bluemedia ul#shipping_method li .bm-payment-channel-item,
+  body.theme-astra .woocommerce .woocommerce-checkout #payment ul.wc_payment_methods li.payment_method_bluemedia ul#shipping_method li .bm-payment-channel-group-item {
+    padding: 5px; }
 
 /* Compatibility with Astra theme - end */

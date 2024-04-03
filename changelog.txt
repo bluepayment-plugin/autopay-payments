@@ -205,3 +205,14 @@
 - Email payment link support
 ### Added
 - Ability to migrate settings from 2.x and 3.x plugins
+
+## [4.2.9] - 2024-04-02
+### Fixed
+- Styles
+- Displaying description on non-whitelabel mode
+- Order notes
+- Minor fixes
+
+### Added
+- Option: alternative transaction start URL
+- Improvement debugger

@@ -91,6 +91,7 @@
                                                 .bm-payment-channel-method-logo,
                                                 .bm-payment-channel-group-method-logo {
                                                     display: initial;
+                                                    background-color: #fff;
                                                     height: unset;
                                                     max-width: 90px;
                                                     width: 100%;
@@ -328,6 +329,11 @@ body.theme-astra {
 
     .woocommerce .woocommerce-checkout #payment ul.wc_payment_methods li.payment_method_bluemedia ul#shipping_method li {
         padding-left: 0;
+
+        .bm-payment-channel-item,
+        .bm-payment-channel-group-item {
+            padding: 5px;
+        }
     }
 }
 /* Compatibility with Astra theme - end */
