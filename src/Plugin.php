@@ -72,16 +72,17 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				'wp-json/wc/v2/orders' ) !== false ) {
 
 
-			update_option( 'autopay_wpjson_log', (
-			sprintf( '[wp-json debug %s] [ip: %s] [method: %s] [request uri: %s] [headers: %s] [request: %s] [payload: %s]',
-				rand( 1, 100000 ),
-				$this->get_ip(),
-				$_SERVER['REQUEST_METHOD'],
-				$_SERVER['REQUEST_URI'],
-				print_r( getallheaders(), true ),
-				print_r( $_REQUEST ?? '', true ),
-				$this->get_json_payload_as_string()
-			) ) );
+			update_option( 'autopay_wpjson_log',
+				(
+				sprintf( '[wp-json debug %s] [ip: %s] [method: %s] [request uri: %s] [headers: %s] [request: %s] [payload: %s]',
+					rand( 1, 100000 ),
+					$this->get_ip(),
+					$_SERVER['REQUEST_METHOD'],
+					$_SERVER['REQUEST_URI'],
+					print_r( getallheaders(), true ),
+					print_r( $_REQUEST ?? '', true ),
+					$this->get_json_payload_as_string()
+				) ) );
 		}
 
 		$events                 = blue_media()->get_event_chain();
@@ -97,7 +98,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 						->log_debug( $log );
 				}
 
-				update_option( 'autopay_wpjson_log', false);
+				update_option( 'autopay_wpjson_log', false );
 				$wc_api_debug_log_cache->clear();
 			} )
 			->execute();
@@ -183,7 +184,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 
 	public function woocommerce_block_support() {
-		$current_url = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+		$current_url   = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		$search_phrase = "order-received";
 		if ( strpos( $current_url, $search_phrase ) !== false ) {
 			return;
@@ -497,15 +498,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 * @throws Exception
 	 */
 	public function init() {
+		$this->check_woocommerce_version();
 		$this->blue_media_currency = $this->resolve_blue_media_currency_symbol();
-
-		/*$importer = new Importer();
-		var_dump($importer->get_legacy_service_id());
-		var_dump($importer->get_legacy_hash_key());
-		var_dump($importer->get_legacy_env());
-
-
-		die;*/
 
 		if ( ! $this->blue_media_currency ) {
 			$alerts = new Alerts();
@@ -524,7 +518,9 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					$return_url );
 
 				return $return_url;
-			}, 10, 2 );
+			},
+			10,
+			2 );
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 		require_once ABSPATH
@@ -534,7 +530,9 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		add_action( 'template_redirect', [ $this, 'return_redirect_handler' ] );
 
 		add_filter( 'woocommerce_cancel_unpaid_order',
-			[ $this, 'bm_woocommerce_cancel_unpaid_order_filter' ], 10, 2 );
+			[ $this, 'bm_woocommerce_cancel_unpaid_order_filter' ],
+			10,
+			2 );
 
 
 		if ( ! is_admin() ) {
@@ -742,5 +740,18 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 */
 	public function get_blue_media_gateway(): ?Blue_Media_Gateway {
 		return self::$blue_media_gateway;
+	}
+
+	private function check_woocommerce_version() {
+		if ( defined( 'WC_VERSION' ) ) {
+			if ( version_compare( WC_VERSION, '8.1.0', '<' ) ) {
+				$alerts = new Alerts();
+				$msg    = sprintf(
+					__( 'The block-based payment module will not work with the installed version of Woocommerce. Install at least 8.1.0 version.',
+						'bm-woocommerce' )
+				);
+				$alerts->add_error( 'Autopay: ' . $msg );
+			}
+		}
 	}
 }

@@ -318,8 +318,20 @@ msgstr "Importuj"
 msgid "Imports Service ID, configuration key and environment setting ( testing / production)"
 msgstr "Importuje Service ID, klucz konfiguracyjny oraz ustawienie środowiska (testowe / produkcyjne)"
 
+msgid "Pay with Autopay"
+msgstr "Zapłać z Autopay"
+
+msgid "Autopay Payments: Cannot redirect to payment because no payment channel selected."
+msgstr "Autopay Payments: Nie można przekierować do płatności, ponieważ nie został wybrany żaden kanał płatności."
+
+msgid "No payment channel selected."
+msgstr "Nie wybrano kanału płatności."
+
 msgid "Alternative transaction start test URL"
 msgstr "Alternatywny testowy adres startu transakcji"
 
 msgid "Alternative transaction start production URL"
 msgstr "Alternatywny produkcyjny adres startu transakcji"
+
+msgid "The block-based payment module will not work with the installed version of Woocommerce. Install at least 8.1.0 version."
+msgstr "Moduł płatności oparty o bloki nie będzie działać z zainstalowaną wersją Woocommerce. Zainstaluj wersję co najmniej 8.1.0."

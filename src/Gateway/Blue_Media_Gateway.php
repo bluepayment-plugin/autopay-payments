@@ -216,16 +216,28 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @desc payment redirect loop protection
 	 */
 	private function can_redirect_to_payment_gateway( int $order_id ): bool {
+		$return = true;
 
 		$status = get_post_meta( $order_id,
-			'bm_transaction_init_params',
+			'bm_order_payment_params',
 			true );
 
-		$return = empty( $status );
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[can_redirect_to_payment_gateway] [$status = %s] [GET: %s] [Order ID: %s]',
+				print_r( $status, true ),
+				print_r( $_GET, true ),
+				$order_id )
+		);
 
-		if ( ! isset( $_GET['autopay_express_payment'] ) ) {
+
+		if ( ! isset( $_GET['autopay_express_payment'] ) || empty($status) ) {
 			$return = false;
 		}
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[can_redirect_to_payment_gateway] $return = %s',
+				$return ? 'true' : 'false' )
+		);
 
 		$return_filtered = apply_filters( 'autopay_filter_can_redirect_to_payment_gateway',
 			$return );
@@ -722,8 +734,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		}
 
 		$order           = wc_get_order( $order_id );
-		$payment_channel = (int) $_POST['bm-payment-channel'] ?? null;
-		$is_blik_0       = false;
+		$payment_channel = (int) $_POST['bm-payment-channel'] ?? null;//classic checkout
+
+		if ( 0 === $payment_channel ) {
+			$payment_channel = (int) $_POST['autopay_numeric_channel_id'] ?? null;
+		}
+		$is_blik_0 = false;
 
 		if ( 0 === $payment_channel && $this->is_whitelabel_mode_enabled() ) {
 			if ( isset( $_POST['bm-payment-channel'] ) ) {//nie pokazuj błędu w module blokowym w opcji z przekierowaniem

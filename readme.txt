@@ -2,8 +2,8 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.4.3
-Stable tag: 4.2.9
+Tested up to: 6.5.2
+Stable tag: 4.3.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -294,3 +294,11 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 ### Added
 - Option: alternative transaction start URL
 - Improvement debugger
+
+## [4.3.0] - 2024-04-26
+
+### Added
+- Block payment (white label)
+
+### Fixed
+- Problems with redirection to payment in some scenarios

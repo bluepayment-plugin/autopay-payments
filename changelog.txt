@@ -216,3 +216,11 @@
 ### Added
 - Option: alternative transaction start URL
 - Improvement debugger
+
+## [4.3.0] - 2024-04-26
+
+### Added
+- Block payment (white label)
+
+### Fixed
+- Problems with redirection to payment in some scenarios

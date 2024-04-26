@@ -108,7 +108,10 @@ class Group_Mapper {
 	private function check_amount_range( $gateway_obj ) {
 		if ( ! property_exists( $gateway_obj,
 				'currencyList' ) || ! is_array( $gateway_obj->currencyList ) ) {
-			//ignore if not exists
+			return true;
+		}
+
+		if ( ! WC()->cart ) {
 			return true;
 		}
 
@@ -249,7 +252,9 @@ class Group_Mapper {
 				$unspecified_ids_group_key = array_keys( $result )[ count( $result ) - 1 ];
 			} else {
 				foreach ( $this->raw_channels_from_bm_api as $raw_channel ) {
-
+					if ( ! $this->check_amount_range( $raw_channel ) ) {
+						continue;
+					}
 					if ( in_array( $raw_channel->gatewayID,
 						$config_item['ids'] ) ) {
 						if ( ! $instance_created ) {

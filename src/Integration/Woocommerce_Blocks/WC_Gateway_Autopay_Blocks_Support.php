@@ -65,7 +65,7 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 			'[WC_Gateway_Autopay_Blocks_Support get_payment_method_script_handles]' );*/
 
 		$script_path       = 'blocks/assets/js/frontend/blocks.js';
-		$script_path_css       = 'blocks/assets/js/frontend/blocks-styles.css';
+		$script_path_css   = 'blocks/assets/js/frontend/blocks-styles.css';
 		$script_asset_path = blue_media()->get_plugin_dir() . '/blocks/assets/js/frontend/blocks.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
 			? require( $script_asset_path )
@@ -74,7 +74,7 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 				'version'      => '1.2.0',
 			];
 		$script_url        = blue_media()->get_plugin_url() . $script_path;
-		$script_url_css        = blue_media()->get_plugin_url() . $script_path_css;
+		$script_url_css    = blue_media()->get_plugin_url() . $script_path_css;
 
 		wp_register_script(
 			'autopay-payments-blocks',
@@ -90,9 +90,9 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'autopay-payments-blocks',
+			$result = wp_set_script_translations( 'autopay-payments-blocks',
 				blue_media()->get_text_domain(),
-				blue_media()->get_plugin_dir() . '/' . blue_media()->get_from_config( 'lang_dir' ) );
+				blue_media()->get_plugin_dir() . blue_media()->get_from_config( 'lang_dir' ) );
 		}
 
 		return [ 'autopay-payments-blocks' ];
@@ -110,12 +110,19 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 			->gateway_list( true );
 
 		return [
-			'title'       => $this->gateway->get_title(),
-			'description' => $this->gateway->get_method_description(),
-			'icon_src'    => blue_media()->get_plugin_images_url() . "/logo-autopay-banner.svg",
-			'supports'    => array_filter( $this->gateway->supports,
+			'title'                    => $this->gateway->get_title(),
+			'description'              => $this->gateway->get_method_description(),
+			'icon_src'                 => blue_media()->get_plugin_images_url() . "/logo-autopay-banner.svg",
+			'whitelabel'               => $this->gateway->get_option( 'whitelabel' ) === 'yes',
+			'place_order_button_label' => __( 'Pay with Autopay',
+				'bm-woocommerce' ),
+			'supports'                 => array_filter( $this->gateway->supports,
 				[ $this->gateway, 'supports' ] ),
-			'channels'    => ( new Group_Mapper( $channels ) )->map_for_blocks(),
+			'channels'                 => ( new Group_Mapper( $channels ) )->map_for_blocks(),
+			'messages'                  => [
+				'no_payment_channel_selected' => __( 'No payment channel selected.',
+					'bm-woocommerce' ),
+			],
 		];
 	}
 }
