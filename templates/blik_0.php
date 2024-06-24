@@ -44,6 +44,23 @@ $generic_error_message = __( 'Payment failed.',
     var bm_blik0_payment_in_progress = false;
     var placeOrderBlikStarted = false;
 
+	var autopayBlik0TimePassed = false;
+	var autopayBlik0TimerRunning = false;
+
+	async function autopayBlik0Countdown() {
+		if (autopayBlik0TimePassed || autopayBlik0TimerRunning) {
+			return;
+		}
+		autopayBlik0TimerRunning = true;
+
+		await new Promise(resolve => setTimeout(resolve, 120000));
+
+		autopayBlik0TimePassed = true;
+		autopayBlik0TimerRunning = false;
+
+
+	}
+
 
     function bm_sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -75,6 +92,8 @@ $generic_error_message = __( 'Payment failed.',
             jQuery('.bluemedia-loader').show()
             jQuery('.bluemedia-status-box').show()
 
+			autopayBlik0Countdown();
+
             var data = {
                 action: "bm_payment_get_status_action",
                 nonce: "<?php echo wp_create_nonce( Payment_Status_Controller::NONCE_ACTION ) ?>"
@@ -105,7 +124,6 @@ $generic_error_message = __( 'Payment failed.',
                                 blueMediaUpdateStatus(response.message, response.status)
 
                                 setTimeout(function () {
-                                    //bmCheckBlik0Status()
                                     window.location.href = response.order_received_url;
 
                                 }, 3000)
@@ -122,11 +140,24 @@ $generic_error_message = __( 'Payment failed.',
                             if (response.hasOwnProperty('message')
 
                             ) {
-                                blueMediaUpdateStatus(response.message, response.status)
 
-                                setTimeout(function () {
-                                    bmCheckBlik0Status()
-                                }, 3000)
+								if (autopayBlik0TimePassed){
+									let urlObj = new URL(response.order_received_url);
+									urlObj.searchParams.set('blik0_timeout', '1');
+									blueMediaUpdateStatus('<?php esc_html_e( $generic_error_message ); ?>', 'error')
+									setTimeout(function () {
+										window.location.href = urlObj.toString();
+									}, 3000)
+
+								} else  {
+									blueMediaUpdateStatus(response.message, response.status)
+
+									setTimeout(function () {
+										bmCheckBlik0Status()
+									}, 3000)
+								}
+
+
                                 return false
                             }
                             blueMediaUpdateStatus('<?php esc_html_e( $generic_error_message ); ?>' + JSON.stringify(response), 'error')
@@ -167,7 +198,7 @@ $generic_error_message = __( 'Payment failed.',
 
 
         }
-
+0
 
         function blueMediaUpdateStatus(message, status) {
             $('.bm-blik-overlay').show();

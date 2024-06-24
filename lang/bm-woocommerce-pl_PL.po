@@ -86,23 +86,11 @@ msgstr "Płatność zatwierdzona"
 msgid "Payment failure"
 msgstr "Płatność nieudana"
 
-msgid "Go to \"Administrator\" in the lower left corner."
-msgstr "Przejdź do \"Administrator\" w lewym dolnym rogu."
-
-msgid "In the \"Services\" section, click \"Data Streams\"."
-msgstr "W sekcji \"Usługi\" kliknij \"Strumienie danych.\""
-
 msgid "Click the name of the data stream."
 msgstr "Kliknij nazwę strumienia danych"
 
-msgid "Your measurement ID is in the upper right corner (eg G-QCX4K9GSPC)."
-msgstr "Twój identyfikator pomiaru znajduje się w prawym górnym rogu (np. G-QCX4K9GSPC)."
-
 msgid "The identifier is in the format G-XXXXXXX."
 msgstr "Identyfikator jest w formacie G-XXXXXXX."
-
-msgid "Where can I find the Measurement ID?"
-msgstr "Gdzie mogę znaleźć identyfikator pomiaru?"
 
 msgid "Unpaid order cancelled - time limit reached."
 msgstr "Status zamówienia zmieniony z Oczekujące na Anulowano. Upłynął czas wstrzymania stanu magazynowego."
@@ -335,3 +323,84 @@ msgstr "Alternatywny produkcyjny adres startu transakcji"
 
 msgid "The block-based payment module will not work with the installed version of Woocommerce. Install at least 8.1.0 version."
 msgstr "Moduł płatności oparty o bloki nie będzie działać z zainstalowaną wersją Woocommerce. Zainstaluj wersję co najmniej 8.1.0."
+
+msgid "CSS Editor"
+msgstr "Edytor CSS"
+
+msgid "Apply styles"
+msgstr "Zastosuj style"
+
+msgid "Save changes"
+msgstr "Zapisz zmiany"
+
+msgid "Insert your CSS code here"
+msgstr "Umieść własny kod CSS w tym polu"
+
+msgid "Feature enabled"
+msgstr "Funkcja włączona"
+
+msgid "Use this feature carefully. The CSS code you enter may cause unexpected visual changes to your Checkout page."
+msgstr "Używaj tej funkcji ostrożnie. Wprowadzony kod CSS, może spowodować nieoczekiwane zmiany w wyglądzie strony Zamówienia."
+
+msgid "Changes have been saved."
+msgstr "Zmiany zostały zapisane."
+
+msgid "Filter checkout order received url from"
+msgstr "Filtruj adres URL finalizacji zamówienia. Fraza do zmiany:"
+
+msgid "Filter checkout order received url to"
+msgstr "Filtruj adres URL finalizacji zamówienia. Zamień na:"
+
+msgid "Measurement ID"
+msgstr "Identyfikator pomiaru"
+
+msgid "Where can I find the Measurement ID?"
+msgstr "Gdzie mogę znaleźć Identyfikator pomiaru?"
+
+msgid "Where can I find the Stream ID?"
+msgstr "Gdzie mogę znaleźć Identyfikator strumienia danych?"
+
+msgid "Stream ID"
+msgstr "Identyfikator strumienia danych"
+
+msgid "The identifier is in numeric format."
+msgstr "Identyfikator ma format numeryczny"
+
+msgid "Measurement Protocol API Secret"
+msgstr "Tajny klucz API platformy Measurement Protocol"
+
+msgid "API Secret"
+msgstr "Tajny klucz API"
+
+msgid "Where can I find the Api secret?"
+msgstr "Gdzie mogę znaleźć tajny klucz API?"
+
+msgid "Log into the Google Analytics dashboard and click on \"Administration\"."
+msgstr "Zaloguj się do panelu Google Analytics i kliknij \"Administracja\"."
+
+msgid "Copy the Measurement ID from the \"Web stream details\" box."
+msgstr "Skopiuj Identyfikator Pomiaru z pola \"Szczegóły strumienia\"."
+
+msgid "Copy the Stream ID from the \"Web stream details\" box."
+msgstr "Skopiuj identyfikator strumienia danych z pola \"Szczegóły strumienia\"."
+
+msgid "Scroll down to find Measurement Protocol API secrets. Click into it."
+msgstr "Przewiń w dół do pola Tajne klucze API platformy Measurement Protocol i kliknij."
+
+msgid "Here you can Create a new API secret."
+msgstr "Możesz tutaj utworzyć tajny klucz API."
+
+msgid "In the \"Services\" section, click \"Data Streams\"."
+msgstr "W sekcji \"Usługi\" kliknij \"Strumienie danych\"."
+
+msgid "Order status that triggers the \"Purchase\" server side GA4 event"
+msgstr "Status zamówienia, który wyzwala zdarzenie \"Purchase\" GA4"
+
+msgid "Autopay BLIK-0: Timed out while waiting for confirmation."
+msgstr "Autopay BLIK-0: Upłynął czas na potwierdzenie transakcji."
+
+msgid "Autopay: Payment process started for order id:"
+msgstr "Autopay: Rozpoczęto płatność dla zamówienia ID:"
+
+msgid "Autopay: Blik-0 payment process started for order ID:"
+msgstr "Autopay: Rozpoczęto płatność BLIK-0 dla zamówienia ID:"

@@ -46,6 +46,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	/**
 	 * @var string
 	 */
+	private $express_payment_redirect_url;
+
+	/**
+	 * @var string
+	 */
 	private $service_id;
 
 	/**
@@ -147,7 +152,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			 <input type='hidden' name='PlatformVersion'  value='%s' />
 			 <input type='hidden' name='PlatformPluginVersion'  value='%s' />
 			 <input type='hidden' name='Hash'  value='%s' /></form>",
-								$this->gateway_url . 'payment',
+								$this->express_payment_redirect_url,
 								$params['ServiceID'],
 								$params['OrderID'],
 								$params['Amount'],
@@ -218,19 +223,29 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	private function can_redirect_to_payment_gateway( int $order_id ): bool {
 		$return = true;
 
-		$status = get_post_meta( $order_id,
+		$wc_order = wc_get_order( $order_id );
+
+		if ( ! $wc_order ) {
+			return false;
+		}
+
+		/*$status = get_post_meta( $order_id,
 			'bm_order_payment_params',
-			true );
+			true );*/
+
+
+		$status = $wc_order->get_meta( 'bm_order_payment_params' );
+
 
 		blue_media()->get_woocommerce_logger()->log_debug(
-			sprintf( '[can_redirect_to_payment_gateway] [$status = %s] [GET: %s] [Order ID: %s]',
+			sprintf( '[can_redirect_to_payment_gateway] [$status = %s] [GET: %s] [REQUEST: %s] [Order ID: %s]',
 				print_r( $status, true ),
 				print_r( $_GET, true ),
+				print_r( $_REQUEST, true ),
 				$order_id )
 		);
 
-
-		if ( ! isset( $_GET['autopay_express_payment'] ) || empty($status) ) {
+		if ( ! isset( $_GET['autopay_express_payment'] ) || empty( $status ) ) {
 			$return = false;
 		}
 
@@ -254,10 +269,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		if ( $this->testmode ) {
 			$test_gateway_url = $this->get_option( 'test_gateway_url' );
 			if ( Helper::is_string_url( $test_gateway_url ) ) {
-				$test_gateway_url  = Helper::format_gateway_url( $test_gateway_url );
-				$this->gateway_url = $test_gateway_url;
+				$test_gateway_url                   = Helper::format_gateway_url( $test_gateway_url );
+				$this->gateway_url                  = $test_gateway_url;
+				$this->express_payment_redirect_url = $this->gateway_url;
 			} else {
-				$this->gateway_url = self::GATEWAY_SANDBOX;
+				$this->gateway_url                  = self::GATEWAY_SANDBOX;
+				$this->express_payment_redirect_url = $this->gateway_url . 'payment';
 			}
 			$this->gateway_url_not_modified_by_user = self::GATEWAY_SANDBOX;
 			$this->private_key                      = $this->get_option( 'test_private_key' );
@@ -266,10 +283,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		} else {
 			$production_gateway_url = $this->get_option( 'gateway_url' );
 			if ( Helper::is_string_url( $production_gateway_url ) ) {
-				$production_gateway_url = Helper::format_gateway_url( $production_gateway_url );
-				$this->gateway_url      = $production_gateway_url;
+				$production_gateway_url             = Helper::format_gateway_url( $production_gateway_url );
+				$this->gateway_url                  = $production_gateway_url;
+				$this->express_payment_redirect_url = $this->gateway_url;
 			} else {
-				$this->gateway_url = self::GATEWAY_PRODUCTION;
+				$this->gateway_url                  = self::GATEWAY_PRODUCTION;
+				$this->express_payment_redirect_url = $this->gateway_url . 'payment';
 			}
 			$this->gateway_url_not_modified_by_user = self::GATEWAY_PRODUCTION;
 			$this->private_key                      = $this->get_option( 'private_key' );
@@ -303,9 +322,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		add_filter( 'woocommerce_generate_import_from_bm_legacy_html',
 			[ $this, 'generate_import_field' ] );
 
-		if ( blue_media()
-				 ->get_request()
-				 ->get_by_key( 'bmtab' ) === 'channels' ) {
+		if ( ! empty( blue_media()
+			->get_request()
+			->get_by_key( 'bmtab' ) ) ) {
 			return;
 		}
 
@@ -381,10 +400,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'bm-woocommerce' ),
 				'type'        => 'password',
 			],
-
-
 			'ga4_tracking_id'                         => [
-				'title'       => __( 'Google Analytics Tracking ID',
+				'title'       => __( 'Measurement ID',
 					'bm-woocommerce' ),
 				'description' => ( function () {
 					$desc           = __( 'The identifier is in the format G-XXXXXXX.',
@@ -392,35 +409,38 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					$desc_link_text = __( 'Where can I find the Measurement ID?',
 						'bm-woocommerce' );
 
-					return "$desc <a class='bm_ga_help_modal' href='#'>$desc_link_text</a>";
+					return "$desc <br><a class='bm_ga_help_modal' href='#'>$desc_link_text</a>";
 				} )(),
 				'type'        => 'text',
+				'bmtab'       => 'analytics',
 			],
-			'ga4_api_secret'                          => [
-				'title'       => __( 'Google Analytics Api secret',
+			'ga4_client_id'                           => [
+				'title'       => __( 'Stream ID',
 					'bm-woocommerce' ),
 				'description' => ( function () {
-					$desc           = __( 'The identifier is in the format G-XXXXXXX.',
+					$desc           = __( 'The identifier is in numeric format.',
 						'bm-woocommerce' );
-					$desc_link_text = __( 'Where can I find the Measurement ID?',
+					$desc_link_text = __( 'Where can I find the Stream ID?',
+						'bm-woocommerce' );
+
+					return "$desc <br><a class='bm_ga_help_modal' href='#'>$desc_link_text</a>";
+				} )(),
+				'type'        => 'text',
+				'bmtab'       => 'analytics',
+			],
+			'ga4_api_secret'                          => [
+				'title'       => __( 'API Secret',
+					'bm-woocommerce' ),
+				'description' => ( function () {
+					$desc           = __( '',
+						'bm-woocommerce' );
+					$desc_link_text = __( 'Where can I find the Api secret?',
 						'bm-woocommerce' );
 
 					return "$desc <a class='bm_ga_help_modal' href='#'>$desc_link_text</a>";
 				} )(),
 				'type'        => 'password',
-			],
-			'ga4_client_id'                           => [
-				'title'       => __( 'Google Analytics Client ID',
-					'bm-woocommerce' ),
-				'description' => ( function () {
-					$desc           = __( 'The identifier is in the format G-XXXXXXX.',
-						'bm-woocommerce' );
-					$desc_link_text = __( 'Where can I find the Measurement ID?',
-						'bm-woocommerce' );
-
-					return "$desc <a class='bm_ga_help_modal' href='#'>$desc_link_text</a>";
-				} )(),
-				'type'        => 'text',
+				'bmtab'       => 'analytics',
 			],
 			'wc_payment_statuses'                     => [
 				'title'       => __( 'Payment statuses',
@@ -559,6 +579,30 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					'bm-woocommerce' ),
 				'description' => '',
 				'type'        => 'text',
+			],
+
+			'order_received_url_filter_from' => [
+				'title'       => __( 'Filter checkout order received url from',
+					'bm-woocommerce' ),
+				'description' => '',
+				'type'        => 'text',
+			],
+
+			'order_received_url_filter_to' => [
+				'title'       => __( 'Filter checkout order received url to',
+					'bm-woocommerce' ),
+				'description' => '',
+				'type'        => 'text',
+			],
+
+			'ga4_purchase_status'         => [
+				'title'       => __( 'Order status that triggers the "Purchase" server side GA4 event',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-on-hold',
 			],
 
 			'custom_button' => [
@@ -779,7 +823,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			];
 			WC()->session->set( 'bm_order_payment_params', $params );
 
-			update_post_meta( $order_id, 'bm_order_payment_params', $params );
+			//update_post_meta( $order_id, 'bm_order_payment_params', $params );
+			$order->add_meta_data( 'bm_order_payment_params', $params );
+			$order->save();
 
 			blue_media()->get_woocommerce_logger()->log_debug(
 				sprintf( '[bm_order_payment_params saved to wc_session] [Order id: %s]',
@@ -794,42 +840,69 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				print_r( wc_get_order_statuses(), true )
 			) );
 
-		$this->update_order_status( $order, 'pending' );
-		$order->add_order_note( __( 'Autopay: Payment process started for order id:',
-				'bm-woocommerce' ) . $order_id );
+		if ( ! $is_blik_0 ) {
+			$this->update_order_status( $order, 'pending' );
+			$order->add_order_note( __( 'Autopay: Payment process started for order ID:',
+					'bm-woocommerce' ) . $order_id );
+		}
 
-		$redirect_url = $this->get_return_url( $order );
-
+		$order_received_url_filtered = $this->resolve_return_url( $order );
+		$original_order_received_url   = $this->get_return_url( $order );
 		if ( $this->payment_on_account_page ) {
 
 			if ( ! is_user_logged_in() ) {
 				$signature = Payment_On_Account_Page::generate_signature( $order_id );
 
-				$redirect_url = add_query_arg(
+				$order_received_url_filtered = add_query_arg(
 					[
 						'autopay_payment_on_account_page' => '1',
 						'sig'                             => $signature,
 						'order_id'                        => $order_id,
 					],
-					$redirect_url );
+					$order_received_url_filtered );
+
+				$original_order_received_url = add_query_arg(
+					[
+						'autopay_payment_on_account_page' => '1',
+						'sig'                             => $signature,
+						'order_id'                        => $order_id,
+					],
+					$original_order_received_url );
 			} else {
-				$redirect_url = add_query_arg(
+				$order_received_url_filtered = add_query_arg(
 					[
 						'autopay_payment_on_account_page' => '1',
 					],
-					$redirect_url );
+					$order_received_url_filtered );
+
+				$original_order_received_url = add_query_arg(
+					[
+						'autopay_payment_on_account_page' => '1',
+					],
+					$original_order_received_url );
 			}
 		} elseif ( ! $is_blik_0 ) {
-			$redirect_url = add_query_arg(
+			$order_received_url_filtered = add_query_arg(
 				[
 					'autopay_express_payment' => '1',
 				],
-				$redirect_url );
+				$order_received_url_filtered );
+
+			$original_order_received_url = add_query_arg(
+				[
+					'autopay_express_payment' => '1',
+				],
+				$original_order_received_url );
+
 		}
+
+		$order->add_meta_data( 'autopay_order_received_url',
+			$order_received_url_filtered );
+		$order->save();
 
 		$return = [
 			'result'   => 'success',
-			'redirect' => $redirect_url,
+			'redirect' => $original_order_received_url,
 		];
 
 		blue_media()->get_woocommerce_logger()->log_debug(
@@ -840,6 +913,37 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		return $return;
 
+	}
+
+	public function resolve_return_url( WC_Order $order ) {
+		$order_received_url_filter_from = trim( $this->get_option( 'order_received_url_filter_from',
+			'' ) );
+		$order_received_url_filter_to   = trim( $this->get_option( 'order_received_url_filter_to',
+			'' ) );
+		$return_url                     = $this->get_return_url( $order );
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[resolve_return_url] [original return URL: %s]',
+				$return_url,
+			) );
+
+		if ( $order_received_url_filter_from !== '' ) {
+
+			$return = str_replace( $order_received_url_filter_from,
+				$order_received_url_filter_to,
+				$return_url );
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[resolve_return_url] [order_received_url_filter_from: %s] [order_received_url_filter_to: %s] [result: %s]',
+					$order_received_url_filter_from,
+					$order_received_url_filter_to,
+					$return
+				) );
+
+			return $return;
+		} else {
+			return $return_url;
+		}
 	}
 
 	private function is_blik_0_code_valid( string $code ): bool {
@@ -931,7 +1035,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 
-	private function decode_continue_transaction_response( $response_xml ) {
+	public function decode_continue_transaction_response( $response_xml ) {
 		$xml = simplexml_load_string( $response_xml );
 
 		if ( ! $xml ) {
@@ -1018,6 +1122,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 			WC()->session->set( 'bm_continue_transaction_start_error', '' );
 
+			$this->update_order_status( $order, 'pending' );
+			$order->add_order_note( __( 'Autopay: Blik-0 payment process started for order ID:',
+					'bm-woocommerce' ) . $order->get_id() );
+
 		} catch ( Exception $e ) {
 
 			blue_media()->get_woocommerce_logger()->log_error(
@@ -1029,6 +1137,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			WC()->session->set( 'bm_continue_transaction_start_error',
 				__( 'Payment failed.',
 					'bm-woocommerce' ) );
+
+			$new_status = $this->get_option( 'wc_payment_status_on_bm_failure',
+				'failed' );
+			$this->update_order_status( $order,
+				$new_status,
+				'Autopay ITN: paymentStatus FAILURE' );
+			$order->save();
 		}
 	}
 
@@ -1064,6 +1179,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		do_action( 'bm_debugger' );
 
 		add_action( 'woocommerce_api_wc_gateway_bluemedia', function () {
+			if ( ob_get_level() ) {
+				ob_clean();
+			}
+
 			try {
 
 				/*
@@ -1128,17 +1247,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$bm_order_status = (string) $transaction->paymentStatus;
 						$bm_remote_id    = (string) $transaction->remoteID;
 
-
 						$init_params = get_post_meta( $wc_order_id,
 							'bm_transaction_init_params',
 							true );
 
 
 						if ( ! is_array( $init_params ) ) {
-							/*throw new Exception(
-								'Autopay webhook error - transaction (ID: '
-								. $wc_order_id . ') does not contain BlueMedia gateway data' );*/
-
 							continue;
 						}
 
@@ -1173,6 +1287,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						xmlwriter_end_element( $xw ); // transactionConfirmed
 						$wc_order = wc_get_order( $wc_order_id );
 
+						blue_media()
+							->get_woocommerce_logger()
+							->log_debug( sprintf( '[webhook] [$bm_order_status: %s]',
+								$bm_order_status ) );
 
 						if ( self::ITN_SUCCESS_STATUS_ID === $bm_order_status ) {
 							$order_success_to_update[ $bm_remote_id ] = $wc_order;
@@ -1224,6 +1342,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					}
 
 					foreach ( $order_success_to_update as $k => $wc_order ) {
+						$wc_order->add_meta_data( 'autopay_itn_received',
+							'SUCCESS' );
 						$autopay_order = ( new Autopay_Order_Factory() )->create_by_wc_order( $wc_order );
 						if ( $autopay_order->is_order_only_virtual() ) {
 							blue_media()->get_woocommerce_logger()->log_debug(
@@ -1263,6 +1383,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					}
 
 					foreach ( $order_pending_to_update as $k => $wc_order ) {
+						$wc_order->add_meta_data( 'autopay_itn_received',
+							'PENDING' );
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_pending',
 							'pending' );
 						blue_media()->get_woocommerce_logger()->log_debug(
@@ -1281,6 +1403,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 					}
 
 					foreach ( $order_failure_to_update as $k => $wc_order ) {
+						$wc_order->add_meta_data( 'autopay_itn_received',
+							'FAILURE' );
 						$new_status = $this->get_option( 'wc_payment_status_on_bm_failure',
 							'failed' );
 						blue_media()->get_woocommerce_logger()->log_debug(
@@ -1424,7 +1548,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @return string
 	 * @throws Exception
 	 */
-	private
+	public
 	function hash_transaction_parameters(
 		array $params
 	): string {
@@ -1854,7 +1978,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$array = array_merge( $p2, $p1, $array );
 	}
 
-	private function update_order_status(
+	public function update_order_status(
 		WC_Order $order,
 		string $new_status,
 		string $note = ''
@@ -1877,12 +2001,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $result;
 	}
 
-	/*private function payment_complete(int $order_id, string $matched_status) {
-		add_filter( 'woocommerce_payment_complete_order_status',
+	public function get_gateway_url(): string {
+		return $this->gateway_url;
+	}
 
+	public function get_gateway_url_not_modified_by_user(): string {
+		return $this->gateway_url_not_modified_by_user;
+	}
 
-				$this->needs_processing() ? 'processing' : 'completed', $this->get_id(), $this ) );
-
-
-	}*/
+	public function get_service_id(): string {
+		return $this->service_id;
+	}
 }

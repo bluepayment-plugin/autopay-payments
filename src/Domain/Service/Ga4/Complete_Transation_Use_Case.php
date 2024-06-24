@@ -12,6 +12,8 @@ use WC_Order;
 
 class Complete_Transation_Use_Case extends Abstract_Ga4_Use_Case implements Ga4_Use_Case_Interface {
 
+	const PURCHASE_EVENT_ORDER_STATUS_TRIGGERED = 1;
+
 	/**
 	 * @var WC_Order
 	 */
@@ -49,7 +51,7 @@ class Complete_Transation_Use_Case extends Abstract_Ga4_Use_Case implements Ga4_
 			$item_dto->set_price( (float) $wc_product->get_price( null ) );
 			$item_dto->set_quantity( (int) $item['product_quantity'] );
 			$item_dto->set_variant( (string) $item['variation_id'] );
-			$item_dto->set_category(Wc_Helpers::get_main_category($wc_product));
+			$item_dto->set_category( Wc_Helpers::get_main_category( $wc_product ) );
 			$item_dto->set_brand( '' );
 			$item_dto->set_id( (int) $item['product_id'] );
 			$items_dto[] = $item_dto;
@@ -62,5 +64,20 @@ class Complete_Transation_Use_Case extends Abstract_Ga4_Use_Case implements Ga4_
 
 	public function get_event_name(): string {
 		return 'purchase';
+	}
+
+	public function get_ga4_purchase_event_status(): int {
+		return (int) $this->order->get_meta( 'autopay_purchase_event_status' );
+	}
+
+	public function update_ga4_purchase_event_status(
+		int $status
+	) {
+		$this->order->add_meta_data( 'autopay_purchase_event_status', $status );
+		$this->order->save();
+	}
+
+	public function get_order(): WC_Order {
+		return $this->order;
 	}
 }

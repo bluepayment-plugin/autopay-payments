@@ -41,10 +41,6 @@ abstract class Abstract_Controller {
 		return 'wp_ajax_nopriv_bm_' . $action_name . '_action';
 	}
 
-	protected function build_action_name( string $action_name ): string {
-		return ai_blog_composer()->prefix_by_short_slug( $action_name ) . '_action';
-	}
-
 	protected function get_ajax_action_name( string $action ): string {
 		return $this->build_full_action_name( $action );
 	}

@@ -22,7 +22,7 @@
             <span>1</span>
             <div>
 				<?php _e( 'Załóż darmowe konto w serwisie', 'bm-woocommerce' ) ?>
-                <a class="icon-box-link" target="_blank" href="https://portal.autopay.eu/5ce7d59a-88f7-4c34-bc17-222d32f3505a/?pk_campaign=woocommerce_panel&pk_source=woocommerce_panel&pk_medium=cta"><?php _e( 'Zarejestruj się', 'bm-woocommerce' ) ?></a>
+                <a class="icon-box-link" target="_blank" href="https://portal.autopay.eu/?utm_campaign=woocommerce_panel&utm_source=woocommerce_panel&utm_medium=cta"><?php _e( 'Zarejestruj się', 'bm-woocommerce' ) ?></a>
             </div>
         </div>
 

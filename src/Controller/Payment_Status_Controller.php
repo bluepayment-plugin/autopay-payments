@@ -85,6 +85,9 @@ class Payment_Status_Controller extends Abstract_Controller implements Controlle
 	}
 
 	public function handle() {
+		//todo dodać endpoint do postowania
+
+
 		add_action( $this->get_ajax_action_name( self::ACTION_NAME ),
 			function () {
 				$this->execute_request();
