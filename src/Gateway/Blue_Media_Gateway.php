@@ -179,12 +179,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 								defined( 'REST_REQUEST' ) ? 'yes' : 'no'
 							) );
 
-						update_post_meta( $params['OrderID'],
-							'bm_transaction_init_params',
+						$order = wc_get_order( $params['OrderID'] );
+						$order->add_meta_data( 'bm_transaction_init_params',
 							$params );
-						blue_media()->update_payment_cache( 'bm_payment_start',
-							'1' );
-
+						$order->save_meta_data();
+						/*blue_media()->update_payment_cache( 'bm_payment_start',
+							'1' );*/
 						exit;
 					} else {
 						WC()->session->set( 'bm_order_payment_params', null );
@@ -221,31 +221,26 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @desc payment redirect loop protection
 	 */
 	private function can_redirect_to_payment_gateway( int $order_id ): bool {
-		$return = true;
-
+		$return   = true;
 		$wc_order = wc_get_order( $order_id );
 
 		if ( ! $wc_order ) {
 			return false;
 		}
 
-		/*$status = get_post_meta( $order_id,
-			'bm_order_payment_params',
-			true );*/
-
-
-		$status = $wc_order->get_meta( 'bm_order_payment_params' );
-
+		$status   = $wc_order->get_meta( 'bm_order_payment_params' );
+		$returned = (string) $wc_order->get_meta( 'autopay_returned_from_payment' );
 
 		blue_media()->get_woocommerce_logger()->log_debug(
-			sprintf( '[can_redirect_to_payment_gateway] [$status = %s] [GET: %s] [REQUEST: %s] [Order ID: %s]',
+			sprintf( '[can_redirect_to_payment_gateway] [$status = %s] [$returned = %s] [GET: %s] [REQUEST: %s] [Order ID: %s]',
 				print_r( $status, true ),
+				$returned,
 				print_r( $_GET, true ),
 				print_r( $_REQUEST, true ),
 				$order_id )
 		);
 
-		if ( ! isset( $_GET['autopay_express_payment'] ) || empty( $status ) ) {
+		if ( '1' === $returned || ! isset( $_GET['autopay_express_payment'] ) || empty( $status ) ) {
 			$return = false;
 		}
 
@@ -763,6 +758,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
+
 		blue_media()->get_woocommerce_logger()->log_debug(
 			sprintf( '[process_payment start] [Order id: %s]',
 				$order_id
@@ -822,15 +818,10 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				),
 			];
 			WC()->session->set( 'bm_order_payment_params', $params );
+			WC()->session->save_data();
 
-			//update_post_meta( $order_id, 'bm_order_payment_params', $params );
 			$order->add_meta_data( 'bm_order_payment_params', $params );
 			$order->save();
-
-			blue_media()->get_woocommerce_logger()->log_debug(
-				sprintf( '[bm_order_payment_params saved to wc_session] [Order id: %s]',
-					$order_id
-				) );
 		}
 
 		$this->schedule_remove_unpaid_orders( $order_id );
@@ -911,8 +902,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				print_r( $return, true ),
 			) );
 
-		return $return;
+		wc()->session->set( 'store_api_draft_order', 0 );
+		WC()->cart->empty_cart();
+		WC()->session->save_data();
 
+		return $return;
 	}
 
 	public function resolve_return_url( WC_Order $order ) {
@@ -1096,9 +1090,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		] );
 
 		try {
-			update_post_meta( $order->get_id(),
-				'bm_transaction_init_params',
+			$order->add_meta_data( 'bm_transaction_init_params',
 				$params );
+			$order->save_meta_data();
 
 			$result = $this->decode_continue_transaction_response( $client->continue_transaction_request(
 				$params,
@@ -1247,9 +1241,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 						$bm_order_status = (string) $transaction->paymentStatus;
 						$bm_remote_id    = (string) $transaction->remoteID;
 
-						$init_params = get_post_meta( $wc_order_id,
-							'bm_transaction_init_params',
-							true );
+						$order = wc_get_order( $wc_order_id );
+
+						if ( $order instanceof WC_Order ) {
+							$init_params = $order->get_meta( 'bm_transaction_init_params' );
+						} else {
+							$init_params = null;
+						}
 
 
 						if ( ! is_array( $init_params ) ) {
@@ -1374,12 +1372,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							'bm_order_itn_status',
 							self::ITN_SUCCESS_STATUS_ID );
 
-
 						do_action( 'woocommerce_payment_complete',
 							$wc_order->get_id(),
 							'' );
-
-
 					}
 
 					foreach ( $order_pending_to_update as $k => $wc_order ) {

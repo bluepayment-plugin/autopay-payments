@@ -647,7 +647,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			return;
 		}
 
-		add_filter( 'woocommerce_get_checkout_order_received_url',
+		/*add_filter( 'woocommerce_get_checkout_order_received_url',
 			function ( $return_url, $order ) {
 				$this->update_payment_cache( 'bm_order_received_url',
 					$return_url );
@@ -655,7 +655,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				return $return_url;
 			},
 			10,
-			2 );
+			2 );*/
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 		require_once ABSPATH
@@ -671,14 +671,14 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			2 );
 
 
-		if ( ! is_admin() ) {
+		/*if ( ! is_admin() ) {
 			if ( ! empty( $this->get_from_payment_cache( 'bm_order_received_url' ) )
 			     && empty( $this->get_from_payment_cache( 'bm_payment_start' ) ) ) {
 
 				$this->update_payment_cache( 'bm_order_received_url', null );
 				$this->update_payment_cache( 'bm_payment_start', null );
 			}
-		}
+		}*/
 
 		if ( get_option( 'bluemedia_activated' ) === '1' ) {
 			$this->reposition_on_activate();
@@ -733,11 +733,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			}
 
 			if ( $order ) {
+				$order->add_meta_data( 'autopay_returned_from_payment', '1' );
+				$order->save_meta_data();
 				$finish_url = $order->get_meta( 'autopay_order_received_url' );
 				if ( empty( $finish_url ) ) {
 					$finish_url = $order->get_checkout_order_received_url();
 				}
-				//( new Order_Summary() )->debug();
 
 				blue_media()->get_woocommerce_logger()->log_debug(
 					sprintf( '[return_redirect_handler] [doing redirect] [url: %s]',

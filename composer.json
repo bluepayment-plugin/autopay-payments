@@ -17,10 +17,10 @@
       "type": "package",
       "package": {
         "name": "isolated-ilabs-plugin/ilabs-plugin",
-        "version": "1.0.28",
+        "version": "1.0.29",
         "dist": {
           "type": "zip",
-          "url": "ilabs/setup/isolated_dependencies/isolated-ilabs-plugin-1.0.28.zip"
+          "url": "ilabs/setup/isolated_dependencies/isolated-ilabs-plugin-1.0.29.zip"
         }
       }
     },
@@ -48,7 +48,7 @@
     }
   ],
   "require": {
-    "isolated-ilabs-plugin/ilabs-plugin": "1.0.28",
+    "isolated-ilabs-plugin/ilabs-plugin": "1.0.29",
     "isolated-guzzlehttp-guzzle/isolated-guzzle": "7.5.1",
     "isolated-br33f-php-ga4-mp/isolated-php-ga4-mp": "0.1.2"
   }

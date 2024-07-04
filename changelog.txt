@@ -1,5 +1,11 @@
 *** Autopay Changelog ***
 
+## [4.3.2] - 2024-07-04
+
+### Fixed
+- **Checkout** - Fix purchasing process issues that can occur in specific configurations of the Merchant environments.
+
+
 ## [4.3.1] - 2024-06-24
 
 ### Added
