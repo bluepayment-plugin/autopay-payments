@@ -193,20 +193,20 @@ Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Por
 4. uzupełnij dane do zwrotu;
 5. kliknij 'Zwróć', żeby potwierdzić akcję.
 
-### Czy jest możliwość "wyciągnięcia" samego BLIK-a na whitelabel (wyświetlenia metody Blik bezpośrednio na liście dostępnych w sklepie metod płatności)?
+### Czy jest możliwość umieszczenia samego BLIK-a na whitelabel (wyświetlenia metody Blik bezpośrednio na liście dostępnych w sklepie metod płatności)?
 
 Niestety nie ma takiej możliwości. Wtyczka umożliwia jedynie:
 - wyświetlenie wszystkich dostępnych metod płatności bezpośrednio na liście metod (w tym również Blik)
 albo
 - wyświetlenie jednego zbiorczego przycisku "Zapłać", który po przekierowaniu przekierowuje na dedykowaną stronę Autopay zawierającą listę wszystkich dostępnych dla płatnika metod płatności
 
-### Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "błędny identyfikator serwisu i/lub klucz konfiguracyjny (hash)" - co mam zrobić?
+### Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat - błędny identyfikator serwisu i/lub klucz konfiguracyjny (hash) - co mam zrobić?
 
 1. Częstym błędem jest niepoprawne podanie danych dostępowych. Na przykład: wpisanie danej wraz z poprzedzającą/następującą spacją, skopiowanej jedynie części klucza zamiast całości, wpisanie wartości w niepoprawne pola.
 2. Upewnij się, że dane wpisane są poprawnie.
 3. Jeżeli cały czas otrzymujesz ten sam komunikat skontaktuj się z nami za pośrednictwem tego formularza
 
-###  Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "brak możliwości weryfikacji poprawności danych dostępowych do konta" - co mam zrobić?
+###  Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat - brak możliwości weryfikacji poprawności danych dostępowych do konta - co mam zrobić?
 
 Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontaktuj się z nami za pośrednictwem tego formularza
 
@@ -218,6 +218,6 @@ Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontak
 
 Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontaktuj się z nami za pośrednictwem tego formularza
 
-### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat "brak dostępnych metod płatności dla tej waluty" - co mam zrobić?
+### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat - brak dostępnych metod płatności dla tej waluty - co mam zrobić?
 
 Dla wybranej przez Ciebie waluty nie ma dostępnych żadnych metod płatności. Skontaktuj się z nami z wykorzystaniem tego formularza i poproś zespół Autopay o sprawdzenie konfiguracji Twojego konta.
