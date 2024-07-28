@@ -114,14 +114,17 @@ Aby nawiązać komunikację wtyczki z kontem Google Analytics należy podać pop
 **UWAGA!** Wtyczka rejestruje zdarzenie "purchase" w oparciu o osiągnięcie przez zamówienie statusu "Completed". Jeżeli w ramach konfiguracji platformy WooCommerce edytowałeś standardowe ustawienia statusów zamówienia, wtyczka może mieć problemy z komunikacją z Google Analytics.
 
 Po połączeniu z wtyczką, w koncie Google Analytics pojawią się następujące zdarzenia:
- - `view_item_list` - użytkownik zobaczył produkt na liście,
- - `view_item` - użytkownik wyświetlił stronę produktu,
- - `add_to_cart` - użytkownik dodał produkt do koszyka,
- - `remove_from_cart` - użytkownik usunął produkt z koszyka,
- - `begin_checkout` - użytkownik rozpoczął proces zamówienia (koszyk i/lub wybór metody dostawy),
- - `checkout_progress` - użytkownik przeszedł do drugiego kroku zamówienia (wybór metody płatności),
- - `set_checkout_option` - użytkownik uzupełnił dane zamówienia,
- - `purchase` - użytkownik złożył zamówienie oraz opłacił je poprzez płatność Autopay (oznaczenie jako konwersja).
+
+| Nazwa zdarzenia | Klucz zdarzenia | Opis |
+| --------------- | --------------- | ---- |
+| Wyświetl produkt na liście | `view_item_list` |  Wyzwalane dla każdego produktu, który znajduje się na liście i jest widoczny dla klienta podczas przeglądania strony. |
+| Zobacz szczegóły produktu | `view_item` | Wyzwalane, gdy użytkownik odwiedzi stronę określonego produktu. Wyzwalane podczas wyświetlania/ładowania strony. |
+| Kliknij na produkt | `add_to_cart` | Wyzwalane, gdy użytkownik doda produkt do koszyka. |
+| Usuń produkt z koszyka | `remove_from_cart` | Wyzwalane, gdy użytkownik usunie produkt z koszyka. |
+| Rozpocznij proces realizacji zamówienia | `begin_checkout` | Wyzwalane, gdy użytkownik przejdzie do kasy. |
+| Wypełnione dane zamówienia | `set_checkout_option` | Wyzwalane, gdy użytkownik uzupełnił dane zamówienia. |
+| Wybór metody płatności | `checkout_progress` | Wyzwalane, gdy użytkownik przeszedł do drugiego kroku zamówienia (wybór metody płatności).|
+| Zakończenie transakcji | `purchase` | Wyzwalane po pomyślnym zakończeniu transakcji. Wysyłane jest po stronie serwera, by transakcja została oznaczona, nawet jeśli klient nie powrócił do strony z podziękowaniem. |
 
 Dane wymagane do połączenia wtyczki z Twoim kontem Google Analytics to:
  - Klucz śledzący Google Analytics
