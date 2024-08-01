@@ -2,8 +2,8 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.5.4
-Stable tag: 4.3.2
+Tested up to: 6.6.1
+Stable tag: 4.3.3
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -24,8 +24,8 @@ Do najważniejszych funkcji modułu zalicza się:
 
 Wymagania
 
-- WordPress – przetestowane na wersjach od 6.0 do 6.5.4
-- Wtyczka WooCommerce – przetestowano na wersjach od 7.0 do 8.9.3
+- WordPress – przetestowane na wersjach od 6.0 do 6.6.1
+- Wtyczka WooCommerce – przetestowano na wersjach od 8.1 do 9.1.4
 - +
 
 == Installation	 ==
@@ -59,6 +59,18 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 2. Dostępne metody płatności
 
 == Changelog ==
+
+## [4.3.3] - 2024-08-01
+
+### Added
+- **Settings** - Added a new section: Services for You, aimed at supporting merchants in running an efficient store.
+
+### Changes
+- **Settings** - Redesigned the informational banner.
+
+### Fixed
+- **My Account Page** - Fixed the issue with redirecting to payment for the Blik-0 payment method on the My Account page.
+
 
 ## [4.3.2] - 2024-07-04
 

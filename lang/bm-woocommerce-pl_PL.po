@@ -404,3 +404,15 @@ msgstr "Autopay: Rozpoczęto płatność dla zamówienia ID:"
 
 msgid "Autopay: Blik-0 payment process started for order ID:"
 msgstr "Autopay: Rozpoczęto płatność BLIK-0 dla zamówienia ID:"
+
+msgid "Services for you"
+msgstr "Usługi dla Ciebie"
+
+msgid "Oops, something went wrong!"
+msgstr "Ups, coś poszło nie tak!"
+
+msgid "The list of services for Merchant couldn't be loaded. This may be a temporary problem. Try again in a while. If it still doesn't work,"
+msgstr "Nie udało się załadować listy usług dla Merchanta. Może to być chwilowy problem. Spróbuj ponownie za chwilę. Jeśli dalej nie działa,"
+
+msgid "let us know."
+msgstr "daj nam znać."

@@ -33,11 +33,23 @@
 		<li>
 			<?php if ( 'css_editor' === $tab ): ?>
 				<span class="autopay-tab current"><?php _e( 'CSS Editor',
-						'bm-woocommerce' ) ?></span>
+						'bm-woocommerce' ) ?></span> |
 			<?php else: ?>
 				<span class="autopay-tab"><a
 						href="<?php esc_attr_e( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=bluemedia&bmtab=css_editor' ) ) ?>">
 					<?php _e( 'CSS Editor', 'bm-woocommerce' ) ?></a></span> |
+			<?php endif; ?>
+		</li>
+
+
+<li>
+			<?php if ( 'vas' === $tab ): ?>
+				<span class="autopay-tab current"><?php _e( 'Services for you',
+						'bm-woocommerce' ) ?></span>
+			<?php else: ?>
+				<span class="autopay-tab"><a
+						href="<?php esc_attr_e( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=bluemedia&bmtab=vas' ) ) ?>">
+					<?php _e( 'Services for you', 'bm-woocommerce' ) ?></a></span>
 			<?php endif; ?>
 		</li>
 
