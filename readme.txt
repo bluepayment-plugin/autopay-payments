@@ -3,7 +3,7 @@ Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
 Tested up to: 6.6.1
-Stable tag: 4.3.3
+Stable tag: 4.3.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -59,6 +59,11 @@ Po uzupełnieniu wszystkich pól – wybierz: Zapisz zmiany i gotowe.
 2. Dostępne metody płatności
 
 == Changelog ==
+
+## [4.3.4] - 2024-08-12
+
+### Fixed
+- **Checkout Page** - Fixed the issue with redirecting to payment on classic Checkout in case of editing address details.
 
 ## [4.3.3] - 2024-08-01
 

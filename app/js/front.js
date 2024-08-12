@@ -58,12 +58,44 @@ var bm_global_timer = null;
 
 
 jQuery(document).ready(function () {
-
-
     jQuery('body').on('update_checkout', function() {
         bm_global_update_checkout_in_progress = 1;
-    });
+        const bm_payment_channel_items = document.querySelectorAll(".bm-payment-channels-wrapper .bm-payment-channel-item > label > input[type='radio']");
+        const bm_gateway_bank_group = document.querySelector("#bm-gateway-bank-group");
 
+        if(bm_gateway_bank_group && bm_gateway_bank_group.checked) {
+            const checkUpdateComplete = setInterval(function() {
+                if (bm_global_update_checkout_in_progress === 0) {
+                    const bm_payment_channel_group_item = document.querySelector(".bm-group-przelew-internetowy .bm-payment-channel-group-item");
+                    const bm_group_expandable_wrapper = document.querySelector(".bm-group-przelew-internetowy  .bm-group-expandable-wrapper");
+
+                    if (bm_payment_channel_group_item && bm_group_expandable_wrapper) {
+                        clearInterval(checkUpdateComplete);
+                        BmActivateNewOrderButton();
+                        bm_payment_channel_group_item.classList.add('bm-selected-group');
+                        bm_group_expandable_wrapper.classList.add('active');
+                    }
+                }
+            }, 100);
+        }
+
+
+        if (bm_payment_channel_items) {
+            bm_payment_channel_items.forEach((element) => {
+                if (element.checked) {
+                    const checkUpdateComplete = setInterval(function() {
+                        if (bm_global_update_checkout_in_progress === 0) {
+                            clearInterval(checkUpdateComplete);
+            
+                            if (element && element.checked) {
+                                BmActivateNewOrderButton();
+                            }
+                        }
+                    }, 100);
+                }
+            });
+        }
+    });
 
     if (typeof window.blueMedia !== 'undefined') {
         if (typeof blue_media_ga4_tasks !== 'undefined' && typeof blueMedia.ga4TrackingId !== 'undefined') {
@@ -77,7 +109,6 @@ jQuery(document).ready(function () {
             gtag('js', new Date());
             gtag('config', blueMedia.ga4TrackingId);
             let events = JSON.parse(blue_media_ga4_tasks)[0].events;
-            //console.log(events);
 
             events.forEach((event) => {
                 gtag('event', event.name,
@@ -113,7 +144,7 @@ document.addEventListener('click', function (e) {
     // click on PRZELEW INTERNETOWY
     if (target.hasAttribute('id') && target.getAttribute('id') == 'bm-gateway-bank-group') {
         if (target.checked) {
-
+            BmActivateNewOrderButton()
             BmSelectGroupedLi()
 
             document.querySelectorAll(".bm-group-expandable-wrapper").forEach((element) => {
@@ -134,14 +165,11 @@ document.addEventListener('click', function (e) {
                     }
 
                     element.checked = !element.checked;
-                    BmDeactivateNewOrderButton()
                 }
             })
         }
     } else {
-        //console.log(target.getAttribute('class'));
         if (target.hasAttribute('class') && target.getAttribute('class') !== 'bm-payment-channel-group-in-group') {
-            //console.log(target.getAttribute('class'));
             BmDeselectGroupedLi()
         }
     }
