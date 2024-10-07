@@ -32,13 +32,13 @@ Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzed
 
 ### Wymagania do instalacji wtyczki
 
-- WordPress – przetestowane na wersjach od `6.0` do `6.5.4`
+- WordPress – przetestowane na wersjach od `6.0` do `6.6`
 - Wtyczka WooCommerce – przetestowano na wersjach od `7.9.0` do `8.9.3`
 - PHP w wersji min. `7.4`
 
 ### Pobierz z Wordpress.org
 
-Platforma [Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/) skupia różnego rodzaju rozszerzenia kompatybilne ze stronami zbudowanymi w oparciu o Wordpress / WooCommerce.
+Platforma [Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/) skupia różnego rodzaju rozszerzenia kompatybilne ze stronami zbudowanymi w oparciu o WordPress / WooCommerce.
 W przypadku wtyczki płatniczej Autopay, na stronie [https://wordpress.org](https://wordpress.org) znajdują się różne (oficjalne i nieoficjalne) wersje wtyczek. Najnowszą wersję wtyczki tworzonej bezpośrednio przez Autopay możesz znaleźć w [marketplacie Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/).
 
 #### Samodzielna instalacja wtyczki Autopay
@@ -65,22 +65,9 @@ Zakładka "Uwierzytelnianie" umożliwi Ci wprowadzenie danych dostępowych Twoje
 2. **Identyfikator serwisu** - Jest to identyfikator Twojego konta Autopay. Znajdziesz go po zalogowaniu się na swoje konto, wybierz z menu "Ustawienia serwisu" a następnie dla sekcji "Konfiguracja techniczna serwisu" kliknij na guzik "Wybierz". ID serwisu to wartość "Identyfikatora serwisu"
 3. **Klucz konfiguracyjny (hash)** - Jest to wartość dedykowana dla Twojej strony na Twoim koncie Autopay. Znajdziesz go po zalogowaniu się na swoje konto, wybierz z menu "**Ustawienia serwisu**", a następnie dla sekcji "Konfiguracja techniczna serwisu" kliknij na guzik "Wybierz". Podpisany jest jako Klucz konfiguracyjny (hash)
 > Środowisko testowe a Identyfikator serwisu i Klucz konfiguracyjny (hash)
-Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla środowiska testowego i produkcyjnego. Jeżeli założyłeś nowe konto Autopay i nie masz jeszcze dostępu do środowiska testowego możesz je uzyskać wysyłając prośbę o dostęp.
+Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla środowiska testowego i produkcyjnego. Jeżeli założyłeś nowe konto Autopay i nie masz jeszcze dostępu do środowiska testowego możesz je uzyskać [wysyłając prośbę o dostęp](https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_documentation&utm_medium=text_link).
 > 
 > Wybierz kategorię weryfikacje, uzupełnij dane, a w treści wiadomości podaj id swojego obecnego serwisu i poproś o utworzenie środowiska testowego dla Twojego sklepu.
-
-### Status uwierzytelniania
-Wtyczka autopay pomoże sprawdzić czy została poprawnie skonfigurowana i może procesować płatności. W tym celu należy dla wybranego środowiska oraz waluty kliknąć guzik "Sprawdź połączenie". Opis wyników znajduje się w tabeli poniżej:
-
-| Komunikat                                                           | Wyjaśnienie                                                                                                           |
-|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| działa poprawnie                                                    | Wszystko ok                                                                                                           |
-| wprowadź identyfikator serwisu                                      | Nie wprowadzono Identyfikatora serwisu                                                                                |
-| wprowadź klucz konfiguracyjny (hash)                                | Nie wprowadzono Klucza konfiguracyjnego                                                                               |
-| błędny identyfikator serwisu i/lub klucz konfiguracyjny (hash)      | Wprowadzony Identyfikator lub klucz są niepoprawne - upewnij się, że poprawnie skpiowałeś je ze swojego konta Autopay |
-| brak możliwości weryfikacji poprawności danych dostępowych do konta | Nie jesteśmy w stanie przetestować poprawność wprowadzonych przez Ciebie danych dostępowych. Weryfikację będzie musiał przeprowadzić samodzielnie bezpośrednio dokonując zakupu na swoim sklepie |
-| brak możliwości weryfikacji                                         | Nie jesteśmy w stanie zweryfikować, czy Twój sklep poprawnie otrzymuje od Autopay informacje o statusie płatności. Weryfikację taką będziesz musiał przeprowadzić samodzielnie dokonując zakupu na swoim sklepie lub sprawdzić nasze FAQ | 
-| błąd połączenia                                                     | Wtyczce nie udało się przeprowadzić testu. Upewnij się, żę masz poprawny dostęp do internetu i powtórz test po kilku minutach. Jeżeli błąd nadal występuje skontaktuj się z nami korzystając z formatki: LINK lub sprawdzić nasze FAQ |
 
 ### Powiadomienia o statusie transakcji
 
@@ -88,51 +75,56 @@ Autopay komunikuje się z wtyczką za pomocą ITN (Instant Transaction Notificat
 
 ### Ustawienia płatności
 
-1. Metody płatności mogą być wyświetlane na Twoim sklepie na kilka różnych sposób - w zależności od tego jak sklep został zbudowany lub co osobiście preferujesz, uważasz za bardziej skuteczne. Każdy taki sposób określamy mianem "Trybu płatności". Poniższa tabela pomoże Ci zapoznać się z oferowanymi trybami i dokonać wyboru takiego, które najlepiej pasuje do Twojego sklepu.
+ Metody płatności mogą być wyświetlane na Twoim sklepie na kilka różnych sposób - w zależności od tego jak sklep został zbudowany lub co osobiście preferujesz, uważasz za bardziej skuteczne. Każdy taki sposób określamy mianem "Trybu płatności". Poniższa tabela pomoże Ci zapoznać się z oferowanymi trybami i dokonać wyboru takiego, które najlepiej pasuje do Twojego sklepu.
 - **Przenieś na stronę płatności Autopay** - Na liście metod pojawi się jeden guzik przekierowujący klienta do strony płatności hostowanej przez Autopay, gdzie płatnik zobaczy pełną listę dostępnych metod płatności. Tryb ten jest minimalistyczny i jednocześnie w najmniejszym stopniu ingeruje kod Twojego sklepu. Jeżeli inne tryby sprawiają pewne trudności na stronie lub nie wyświetlają się w poprawny sposób na Twoim sklepie, warto skorzystać z tego trybu.
 - **Wyświetl każdą dostępną metodę osobno** - Na liście pojawi się dedykowany guzik dla każdej z dostępnych metod płatności. Płatnik dowie się więc z jakich dokładnie metod może skorzystać, już na stronie Twoje sklepu. Po wybraniu metody, płatnik zostanie przekierowany bezpośrednio na stronę, na której będzie mógł sfinalizować płatność. Na przykład klikając na metodę "BLIK" przeniesiony zostanie na stronę BLIK i poproszony o podanie kod wygnerowanego w swoim banku.
-- **Tryb płatności BLIK** - Jest to osobne ustawienie aktywne tylko jeżeli uruchomiony zostanie tryb "Wyświetl każdą dostępną metodę osobno" i dotyczy sposobu opłacania zamówienia z wykorzystaniem metody płatności "BLIK":
-    - "przenieś na stronę BLIK" - po wyborze metody płatności BLIK płatnik zostanie przeniesiony na stronę BLIK i poproszony o podanie kodu płatności oraz zatwierdzenie go w aplikacji. Dodatkowo, płatnik może zapamiętać nasz sklep na urządzeniu z którego korzysta. Sprawi to, że w przyszłości przy płatności BLIK na naszym sklepie i tym samym urządzeniu nie będzie już pytany o podanie kodu BLIK, a w jego aplikacji bankowej prośba o potwierdzenie płatności pojawi się od razu po przekierowaniu go na stronę BLIK. 
-    - "wprowadź kod BLIK bezpośrednio na sklepie" - po wyborze metody BLIK płatnikowi wyświetli się dedykowane pole na Twoim sklepie, w które będzie mógł wpisać kod BLIK. Płatnik nie zostanie nigdzie przekierowywany, płatność odbędzie się bezpośrednio na Twoim sklepie.
-2. Konfiguracja statusów płatności wpływa bezpośrednio na to jak przebiega zamówienia na Twoim sklepie.
+    - **Tryb płatności BLIK** - Jest to osobne ustawienie aktywne tylko jeżeli uruchomiony zostanie tryb "Wyświetl każdą dostępną metodę osobno" i dotyczy sposobu opłacania zamówienia z wykorzystaniem metody płatności "BLIK":
+      - "przenieś na stronę BLIK" - po wyborze metody płatności BLIK płatnik zostanie przeniesiony na stronę BLIK i poproszony o podanie kodu płatności oraz zatwierdzenie go w aplikacji. Dodatkowo, płatnik może zapamiętać nasz sklep na urządzeniu, z którego korzysta. Sprawi to, że w przyszłości przy płatności BLIK na naszym sklepie i tym samym urządzeniu nie będzie już pytany o podanie kodu BLIK, a w jego aplikacji bankowej prośba o potwierdzenie płatności pojawi się od razu po przekierowaniu go na stronę BLIK. 
+      - "wprowadź kod BLIK bezpośrednio na sklepie" - po wyborze metody BLIK płatnikowi wyświetli się dedykowane pole na Twoim sklepie, w które będzie mógł wpisać kod BLIK. Płatnik nie zostanie nigdzie przekierowywany, płatność odbędzie się bezpośrednio na Twoim sklepie.
+Konfiguracja statusów płatności wpływa bezpośrednio na to jak przebiega zamówienie na Twoim sklepie.
    - **Płatność rozpoczęta** - Proces płatności właśnie się rozpoczął - oznacza to, że płatnik wybrał i zatwierdził konkretną metodę płatności. Zamówienie zostało już utworzone w Twoim sklepie. Płatność nie osiągnęła jeszcze swojego finalnego statusu. Ustaw status zamówienia, który odpowiada temu opisowi.
    - **Płatność zatwierdzona** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
    - **Płatność zatwierdzona dla koszyka zawierającego tylko produkty wirtualne** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Jest to status dedykowany dla sprzedaży produktów cyfrowych - umożliwiający zlecenie natychmiastowej wysyłki zamówienia do płatnika. Ustaw status zamówienia, który odpowiada temu opisowi.
    - **Płatność nieudana** - Rozpoczęta przez płatnika płatność nie powiodła się. Ty jako sprzedawca nie otrzymasz środków od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
 
-### Połącz z Google Analytics
+### Analityka
 Wtyczka Autopay umożliwia wysyłanie bezpośrednio do Google Analytics informacji o dokonaniu płatności. Umożliwia to m.in. śledzenie konwersji sprzedażowej w ramach platformy Google Analytics. Komunikacja z Google Analytics jest opcjonalną funkcją wtyczki i nie jest wymagana do poprawnego działania wtyczki.
 Aby nawiązać komunikację wtyczki z kontem Google Analytics należy podać poprawne dane konta Google Analytics.
 
-**UWAGA!** Wtyczka rejestruje zdarzenie "purchase" w oparciu o osiągnięcie przez zamówienie statusu "Completed". Jeżeli w ramach konfiguracji platformy WooCommerce edytowałeś standardowe ustawienia statusów zamówienia, wtyczka może mieć problemy z komunikacją z Google Analytics.
+**UWAGA!** Wtyczka rejestruje zdarzenie "purchase" w oparciu o osiągnięcie przez zamówienie statusu "Completed". Możesz zmienić status wyswalający zdarzenie w Google Analytics korzystając z opcji **Status zamówienia wyzwalający zdarzenie “Zakończenie transakcji”**.
 
 Po połączeniu z wtyczką, w koncie Google Analytics pojawią się następujące zdarzenia:
- - `view_item_list` - użytkownik zobaczył produkt na liście,
- - `view_item` - użytkownik wyświetlił stronę produktu,
- - `add_to_cart` - użytkownik dodał produkt do koszyka,
- - `remove_from_cart` - użytkownik usunął produkt z koszyka,
- - `begin_checkout` - użytkownik rozpoczął proces zamówienia (koszyk i/lub wybór metody dostawy),
- - `checkout_progress` - użytkownik przeszedł do drugiego kroku zamówienia (wybór metody płatności),
- - `set_checkout_option` - użytkownik uzupełnił dane zamówienia,
- - `purchase` - użytkownik złożył zamówienie oraz opłacił je poprzez płatność Autopay (oznaczenie jako konwersja).
+
+| Nazwa zdarzenia | Klucz zdarzenia | Opis |
+| --------------- | --------------- | ---- |
+| Wyświetl produkt na liście | `view_item_list` |  Wyzwalane dla każdego produktu, który znajduje się na liście i jest widoczny dla klienta podczas przeglądania strony. |
+| Zobacz szczegóły produktu | `view_item` | Wyzwalane, gdy użytkownik odwiedzi stronę określonego produktu. Wyzwalane podczas wyświetlania/ładowania strony. |
+| Kliknij na produkt | `add_to_cart` | Wyzwalane, gdy użytkownik doda produkt do koszyka. |
+| Usuń produkt z koszyka | `remove_from_cart` | Wyzwalane, gdy użytkownik usunie produkt z koszyka. |
+| Rozpocznij proces realizacji zamówienia | `begin_checkout` | Wyzwalane, gdy użytkownik przejdzie do kasy. |
+| Wypełnione dane zamówienia | `set_checkout_option` | Wyzwalane, gdy użytkownik uzupełnił dane zamówienia. |
+| Wybór metody płatności | `checkout_progress` | Wyzwalane, gdy użytkownik przeszedł do drugiego kroku zamówienia (wybór metody płatności).|
+| Zakończenie transakcji | `purchase` | Wyzwalane po pomyślnym zakończeniu transakcji. Wysyłane jest po stronie serwera, by transakcja została oznaczona, nawet jeśli klient nie powrócił do strony z podziękowaniem. |
 
 Dane wymagane do połączenia wtyczki z Twoim kontem Google Analytics to:
- - Klucz śledzący Google Analytics
- - Google Analytics API Secret
- - Google Analytics Client ID
+ - **Identyfikator pomiaru**, który znajdziesz w Google Analytics: 
+   1. Zaloguj się do panelu Google Analytics i klnij do "Administrator" w lewym dolnym rogu.
+   2. W sekcji "Zbieranie i modyfikowanie danych" kliknij "Strumienie danych".
+   3.  Kliknij nazwę strumienia danych.
+   4.Twój identyfikator pomiaru znajduje się w prawym górnym rogu (np. G-QCX4K9GSPC). 
+ - **Identyfikator strumienia danych**, który znajdziesz w Google Anlytics:
+   1. Zaloguj się do panelu Google Analytics i kliknij "Administracja".
+   2. W sekcji "Usługi" kliknij "Strumienie danych".
+   3.  Kliknij nazwę strumienia danych.
+   4.  Skopiuj identyfikator strumienia danych z pola "Szczegóły strumienia".
+ - **Tajny klucz API**, który znajdziesz w Google Analytics:
+   1. Przejdź do "Administrator" w lewym dolnym rogu.
+   2. W sekcji „Usługi” kliknij „Strumienie danych”.
+   3. Kliknij nazwę strumienia danych.
+   4. Następnie kliknij "Utwórz" w sekcji "Measurement Protocol"
 
-### Pomoc i diagnozowanie błędów
+### Ustawienia zaawansowane
 Ta sekcja wtyczki służy rozwiązywaniu problemów z konfiguracją wtyczki. Jeżeli Twoja wtyczka działa poprawnie, nie ma potrzeby abyś korzystał z tej sekcji.
-
-Dane Twojego sklepu pomagają usprawnić wszelkie zapytania do pomocy technicznej Autopay. Bardzo często mają one wpływ na diagnozę przyczyny problemu lub sposób jego rozwiązania.
-Pamiętaj więc by do każdego zgłoszenia załączać:
-- Wersję wtyczki
-- Wersję WooCommerce
-- Wersję PHP
-- A także "Raport strony" w formacie `*.zip` - który zawiera szczegółowe informacje dotyczące konfiguracji Twojego sklepu oraz wszelkich dodanych do niego wtyczek (większość zgłaszanych przez użytkowników wtyczki Autopay problemów wynika z konfliktów z innymi wgranymi na sklepie wtyczkami).
-
-Rozwiązanie lub diagnozowanie przyczyn nielicznych problemów z wtyczką Autopay może wymagać skorzystania z zaawansowanych ustawień wtyczki.
-Korzystaj z nich tylko, jeżeli masz problemy z obecną konfiguracją wtyczki. Przed ich użyciem zapoznaj się z dokumentacją.
 
 **Tryb debudowania** - Uruchamia tryb rozwiązywania błędów na Twoim sklepie. Włączaj go tylko po konsultacji ze wsparciem technicznym Autopay. Tryb ten umożliwia zbieranie szczegółowych informacji dotyczących działania Twojej wtyczki na sklepie, które następnie przesyłane są do deweloperów Autopay pracujących nad rozwiązaniem zgłoszonego przez Ciebie problemu.
 
@@ -143,6 +135,10 @@ Korzystaj z nich tylko, jeżeli masz problemy z obecną konfiguracją wtyczki. P
 **Wyświetl ekran odliczania przed przekierowaniem w celu zwiększenia kompatybilności** - Ustawienie pomoże pomóc rozwiązać problemy wywołane instalacją na sklepie wybranych wtyczek od innych dostawców (np. wtyczek do analityki, wtyczek do realizacji zamówień kurierskich, itp.).
 
 **Tryb kompatybilności z wtyczkami trzecimi, które przeładowują fragmenty checkout** - Tryb zgodności z wtyczkami innych firm umożliwiający przeładowanie elementów kodu checkoutu.
+
+**Alternatywny produkcyjny adres startu transakcji** - opcja umożliwia skorzystanie z innego adresu rozpoczęcia transakcji, jeżeli taki zostanie uzgodniony z Autopay.
+
+**Zamień domyślny adres potwierdzenia zamówienia** - opcja umożliwia skorzystanie z innego adresu potwierdzenia transakcji, jeżeli taki zostanie uzgodniony z Autopay.
 
 **Nadaj własne stylowanie CSS** - Umożliwia wgranie własnych stylów CSS dla wyświetlania listy metod Autopay na Twoim sklepie. Może być wykorzystany przez pracownika wsparcia technicznego Autopay, aby przygotować kod CSS specjalnie dla Twojego sklepu. Lub, jeżeli jesteś ekspertem w kodowaniu front-end, możesz wykorzystać tę funkcję samodzielnie, aby zmienić style CSS.
 
@@ -178,19 +174,13 @@ Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się
 
 Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/portal) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
 
-### Czy jest możliwość "wyciągnięcia" samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
+### Czy jest możliwość umieszczenia samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
 
 Niestety nie ma takiej możliwości. Wtyczka umożliwia jedynie:
 - wyświetlenie wszystkich dostępnych metod płatności bezpośrednio na liście metod (w tym również BLIK)
 albo
 - wyświetlenie jednego zbiorczego przycisku "Zapłać", który po przekierowaniu przekierowuje na dedykowaną stronę Autopay zawierającą listę wszystkich dostępnych dla płatnika metod płatności
 
-### Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "błędny identyfikator serwisu i/lub klucz konfiguracyjny (hash)" - co mam zrobić?
-
-1. Częstym błędem jest niepoprawne podanie danych dostępowych. Na przykład: wpisanie danej wraz z poprzedzającą/następującą spacją, skopiowanej jedynie części klucza zamiast całości, wpisanie wartości w niepoprawne pola.
-2. Upewnij się, że dane wpisane są poprawnie.
-3. Jeżeli cały czas otrzymujesz ten sam komunikat skontaktuj się z nami za pośrednictwem tego formularza
-
-### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat "brak dostępnych metod płatności dla tej waluty" - co mam zrobić?
+### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat - brak dostępnych metod płatności dla tej waluty - co mam zrobić?
 
 Dla wybranej przez Ciebie waluty nie ma dostępnych żadnych metod płatności. Skontaktuj się z nami z wykorzystaniem [tego formularza](https://developers.autopay.pl/kontakt) i poproś zespół Autopay o sprawdzenie konfiguracji Twojego konta.
