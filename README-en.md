@@ -163,12 +163,6 @@ Unfortunately, this is not possible. The plugin only allows:
   or
 - displaying a single "Pay" button, which redirects to a dedicated Autopay page containing a list of all payment methods available to the payer.
 
-### During the test of the configuration data in the plugin, I receive the message "invalid service identifier and/or configuration key (hash)" - what should I do?
-
-1. A common error is incorrect access data entry. For example: entering data with a leading/trailing space, copying only part of the key instead of the entire key, entering values into the wrong fields.
-2. Ensure that the data is entered correctly.
-3. If you still receive the same message, contact us using this form.
-
 ### During the configuration of the plugin in the payment settings, instead of displaying a list of available payment methods, I receive the message "no available payment methods for this currency" - what should I do?
 
 For the currency you selected, there are no available payment methods. Contact us using [this form](https://developers.autopay.pl/kontakt) and ask the Autopay team to check the configuration of your account.
