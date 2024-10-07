@@ -20,7 +20,7 @@ Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzed
 - Najpopularniejsze sposoby sprzedaży dla platformy WooCommerce
 - kup jako gość / kup jak zarejestrowany użytkownik
 - checkout krokowy lub checkout blokowy
-- przetwarzanie płatności z przekierowaniem do zewnętrznej strony płatności lub pozostając bezpośrednio na sklepie (wybrane metody: karty, blik)
+- przetwarzanie płatności z przekierowaniem do zewnętrznej strony płatności lub pozostając bezpośrednio na sklepie (wybrane metody: karty, BLIK)
 - wsparcie środowiska testowego (realizacja testowych transakcji w celu poprawnej instalacji i konfiguracji wtyczki)
 - płatności odroczone i ratalne
 - natywna integracja z Google Analytics 4 z poziomu wtyczki płatniczej Autopay
@@ -32,9 +32,9 @@ Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzed
 
 ### Wymagania do instalacji wtyczki
 
-- WordPress – przetestowane na wersjach od 6.0 do 6.5.4
-- Wtyczka WooCommerce – przetestowano na wersjach od 7.9.0 do 8.9.3
-- PHP w wersji min. 7.4
+- WordPress – przetestowane na wersjach od `6.0` do `6.5.4`
+- Wtyczka WooCommerce – przetestowano na wersjach od `7.9.0` do `8.9.3`
+- PHP w wersji min. `7.4`
 
 ### Pobierz z Wordpress.org
 
@@ -43,9 +43,8 @@ W przypadku wtyczki płatniczej Autopay, na stronie [https://wordpress.org](http
 
 #### Samodzielna instalacja wtyczki Autopay
 1. Wtyczka płatnicza Autopay jest aktywnie rozwijana, w każdej nowej wersji oferując szereg nowych funkcjonalności i poprawek. W celu instalacji najnowszej wersji wtyczki zalecamy każdorazowe odwiedzanie naszego konta w [serwisie GitHub](https://github.com/bluepayment-plugin/autopay-payments/).
-2. Proszę odszukać wersję wtyczki oznaczoną etykietą "latest" i pobrać znajdujący się w niej plik .zip.
+2. Proszę odszukać wersję wtyczki oznaczoną etykietą "latest" i pobrać znajdujący się w niej plik `.zip`.
 ![Instrukcja pobierania archiwum z wtyczką](/assets/img/screenshot_3.png)
-<em>Instrukcja pobierania archiwum z wtyczką<em>
 3. Pobierze plik `.zip` w celu instalacji wtyczki.
 4. Zaloguj się do panelu administracyjnego twojej strony WordPress.
 5. W menu po lewej strony wybierz sekcję **Wtyczki** a następni kliknij **Dodaj nową**.
@@ -69,9 +68,6 @@ Zakładka "Uwierzytelnianie" umożliwi Ci wprowadzenie danych dostępowych Twoje
 Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla środowiska testowego i produkcyjnego. Jeżeli założyłeś nowe konto Autopay i nie masz jeszcze dostępu do środowiska testowego możesz je uzyskać wysyłając prośbę o dostęp.
 > 
 > Wybierz kategorię weryfikacje, uzupełnij dane, a w treści wiadomości podaj id swojego obecnego serwisu i poproś o utworzenie środowiska testowego dla Twojego sklepu.
-4. Waluty sklepu a Identyfikator serwisu i Klucz konfiguracyjny (hash)
-Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla każdej z walut. W celu uruchomienia kolejnej waluty skontaktuj się z nami.
-Wybierz kategorię weryfikacje, uzupełnij dane, a w treści wiadomości podaj id swojego obecnego serwisu i poproś o dodanie walut, które Cię interesują dla Twojego sklepu.
 
 ### Status uwierzytelniania
 Wtyczka autopay pomoże sprawdzić czy została poprawnie skonfigurowana i może procesować płatności. W tym celu należy dla wybranego środowiska oraz waluty kliknąć guzik "Sprawdź połączenie". Opis wyników znajduje się w tabeli poniżej:
@@ -93,19 +89,16 @@ Autopay komunikuje się z wtyczką za pomocą ITN (Instant Transaction Notificat
 ### Ustawienia płatności
 
 1. Metody płatności mogą być wyświetlane na Twoim sklepie na kilka różnych sposób - w zależności od tego jak sklep został zbudowany lub co osobiście preferujesz, uważasz za bardziej skuteczne. Każdy taki sposób określamy mianem "Trybu płatności". Poniższa tabela pomoże Ci zapoznać się z oferowanymi trybami i dokonać wyboru takiego, które najlepiej pasuje do Twojego sklepu.
-- **Przenieś na stronę płatności Autopay** - Na liście metod pojawi się jeden guzik przekierowujący klienta do strony płatności hostowanej przez Autopay, gdzie płatnik zobaczy pełną listę dostępnych metod płatności. Tryb ten jest minimalistyczny i jednocześnie w najmniejszym stopniu ingeruje kod Twojego sklepu. Jeżeli inne tryby sprawiają pewne trudności na stronie lub nie wyświetlają się w poprawny sposób na Twoim sklepie, warto skorzystać z tego trybu.           |
-- **Wyświetl każdą dostępną metodę osobno** - Na liście pojawi się dedykowany guzik dla każdej z dostępnych metod płatności. Płatnik dowie się więc z jakich dokładnie metod może skorzystać, już na stronie Twoje sklepu. Po wybraniu metody, płatnik zostanie przekierowany bezpośrednio na stronę, na której będzie mógł sfinalizować płatność. Na przykład klikając na metodę "Blik" przeniesiony zostanie na stronę Blik i poproszony o podanie kod wygnerowanego w swoim banku. |
-- **Tryb płatności blik** - Jest to osobne ustawienie aktywne tylko jeżeli uruchomiony zostanie tryb "Wyświetl każdą dostępną metodę osobno" i dotyczy sposobu opłacania zamówienia z wykorzystaniem metody płatności "Blik":
-    - "przenieś na stronę Blik" - po wyborze metody płatności Blik płatnik zostanie przeniesiony na stronę Blik i poproszony o podanie kodu płatności oraz zatwierdzenie go w aplikacji. Dodatkowo, płatnik może zapamiętać nasz sklep na urządzeniu z którego korzysta. Sprawi to, że w przyszłości przy płatności Blik na naszym sklepie i tym samym urządzeniu nie będzie już pytany o podanie kodu Blik, a w jego aplikacji bankowej prośba o potwierdzenie płatności pojawi się od razu po przekierowaniu go na stronę Blik. 
-    - "wprowadź kod Blik bezpośrednio na sklepie" - po wyborze metody Blik płatnikowi wyświetli się dedykowane pole na Twoim sklepie, w które będzie mógł wpisać kod Blik. Płatnik nie zostanie nigdzie przekierowywany, płatność odbędzie się bezpośrednio na Twoim sklepie.
-- **Edytor blokowy** - Tryb "edytor blokowy" ustawi się automatycznie w oparciu o to, jak skonfigurowałeś swój sklep WooCommerce. Edytor blokowy jest najnowszym rozwiązaniem w budowaniu sklepów WooCommerce i cechujący się:
-    - **Optymalizacja konwersji** - Checkout blokowy usprawnia proces finalizacji zamówienia, redukując przyczyny porzucania koszyków.
-    - **Natychmiastowa walidacja pól** - Szybszy proces zakupu dzięki natychmiastowemu powiadamianiu klientów o błędach w formularzach.
+- **Przenieś na stronę płatności Autopay** - Na liście metod pojawi się jeden guzik przekierowujący klienta do strony płatności hostowanej przez Autopay, gdzie płatnik zobaczy pełną listę dostępnych metod płatności. Tryb ten jest minimalistyczny i jednocześnie w najmniejszym stopniu ingeruje kod Twojego sklepu. Jeżeli inne tryby sprawiają pewne trudności na stronie lub nie wyświetlają się w poprawny sposób na Twoim sklepie, warto skorzystać z tego trybu.
+- **Wyświetl każdą dostępną metodę osobno** - Na liście pojawi się dedykowany guzik dla każdej z dostępnych metod płatności. Płatnik dowie się więc z jakich dokładnie metod może skorzystać, już na stronie Twoje sklepu. Po wybraniu metody, płatnik zostanie przekierowany bezpośrednio na stronę, na której będzie mógł sfinalizować płatność. Na przykład klikając na metodę "BLIK" przeniesiony zostanie na stronę BLIK i poproszony o podanie kod wygnerowanego w swoim banku.
+- **Tryb płatności BLIK** - Jest to osobne ustawienie aktywne tylko jeżeli uruchomiony zostanie tryb "Wyświetl każdą dostępną metodę osobno" i dotyczy sposobu opłacania zamówienia z wykorzystaniem metody płatności "BLIK":
+    - "przenieś na stronę BLIK" - po wyborze metody płatności BLIK płatnik zostanie przeniesiony na stronę BLIK i poproszony o podanie kodu płatności oraz zatwierdzenie go w aplikacji. Dodatkowo, płatnik może zapamiętać nasz sklep na urządzeniu z którego korzysta. Sprawi to, że w przyszłości przy płatności BLIK na naszym sklepie i tym samym urządzeniu nie będzie już pytany o podanie kodu BLIK, a w jego aplikacji bankowej prośba o potwierdzenie płatności pojawi się od razu po przekierowaniu go na stronę BLIK. 
+    - "wprowadź kod BLIK bezpośrednio na sklepie" - po wyborze metody BLIK płatnikowi wyświetli się dedykowane pole na Twoim sklepie, w które będzie mógł wpisać kod BLIK. Płatnik nie zostanie nigdzie przekierowywany, płatność odbędzie się bezpośrednio na Twoim sklepie.
 2. Konfiguracja statusów płatności wpływa bezpośrednio na to jak przebiega zamówienia na Twoim sklepie.
-- **Płatność rozpoczęta** - Proces płatności właśnie się rozpoczął - oznacza to, że płatnik wybrał i zatwierdził konkretną metodę płatności. Zamówienie zostało już utworzone w Twoim sklepie. Płatność nie osiągnęła jeszcze swojego finalnego statusu. Ustaw status zamówienia, który odpowiada temu opisowi.
-- **Płatność zatwierdzona** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
-- **Płatność zatwierdzona dla koszyka zawierającego tylko produkty wirtualne** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Jest to status dedykowany dla sprzedaży produktów cyfrowych - umożliwiający zlecenie natychmiastowej wysyłki zamówienia do płatnika. Ustaw status zamówienia, który odpowiada temu opisowi.
-- **Płatność nieudana** - Rozpoczęta przez płatnika płatność nie powiodła się. Ty jako sprzedawca nie otrzymasz środków od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
+   - **Płatność rozpoczęta** - Proces płatności właśnie się rozpoczął - oznacza to, że płatnik wybrał i zatwierdził konkretną metodę płatności. Zamówienie zostało już utworzone w Twoim sklepie. Płatność nie osiągnęła jeszcze swojego finalnego statusu. Ustaw status zamówienia, który odpowiada temu opisowi.
+   - **Płatność zatwierdzona** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
+   - **Płatność zatwierdzona dla koszyka zawierającego tylko produkty wirtualne** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Jest to status dedykowany dla sprzedaży produktów cyfrowych - umożliwiający zlecenie natychmiastowej wysyłki zamówienia do płatnika. Ustaw status zamówienia, który odpowiada temu opisowi.
+   - **Płatność nieudana** - Rozpoczęta przez płatnika płatność nie powiodła się. Ty jako sprzedawca nie otrzymasz środków od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
 
 ### Połącz z Google Analytics
 Wtyczka Autopay umożliwia wysyłanie bezpośrednio do Google Analytics informacji o dokonaniu płatności. Umożliwia to m.in. śledzenie konwersji sprzedażowej w ramach platformy Google Analytics. Komunikacja z Google Analytics jest opcjonalną funkcją wtyczki i nie jest wymagana do poprawnego działania wtyczki.
@@ -161,7 +154,7 @@ Konfigurację ITN sprawdzić na dwa sposoby: bezpośrednio we wtyczce; oraz na s
 Konfiguracja we wtyczce polega na przeprowadzeniu automatycznego testu w zakładce "Uwierzytelnianie" (wymaga zainstalowania wtyczki Autopay).
 
 Jeżeli chcesz upewnić się, że konfiguracja ITN przebiegła poprawnie po stronie konta Autopay:
-1. Upewnij się, że w [produkcyjny portalu administracyjnym](https://portal.autopay.eu/admin) i/lub [testowym portalu administracyjnym](https://testportal.autopay.eu/admin) poniższe pola zawierają poprawne adresy sklepu.
+1. Upewnij się, że w [produkcyjny portalu administracyjnym](https://portal.autopay.eu/panel) i/lub [testowym portalu administracyjnym](https://testportal.autopay.eu/panel) poniższe pola zawierają poprawne adresy sklepu.
 2. Konfiguracja adresu powrotu do płatności `{URL Twojego sklepu}/?bm_gateway_return`
 3. Przykład: `https://moj-sklep.com/?bm_gateway_return`
 4. Konfiguracja adresu, na który jest wysyłany ITN `{URL Twojego sklepu}/?wc-api=wc_gateway_bluemedia`
@@ -171,29 +164,24 @@ Jeżeli chcesz upewnić się, że konfiguracja ITN przebiegła poprawnie po stro
 
 Niestety, w przypadku Płatności dla WooCommerce nie ma takiej możliwości. Jeżeli metody Autopay są uruchomione na sklepie, to wszystkie dostępne dla merchanta pojawią się również na sklepie.
 
-### Jak włączyć BLIK 0 (wpisanie kodu Blik bezpośrednio na stronie sklepu, bez przekierowania płatnika na stronę blik)?
+### Jak włączyć BLIK 0 (wpisanie kodu BLIK bezpośrednio na stronie sklepu, bez przekierowania płatnika na stronę BLIK)?
 
-Aby włączyć tzn. BLIK 0 (wpisywanie kody Blik bezpośrednio na stronie sklepu, bez konieczności przekierowania płatnika) należy wejść do konfiguracji wtyczki, wybrać sekcję Ustawienia. Następnie wybrać tryb płatności "Wyświetl każdą dostępną metodę osobno" i w ramach "Trybu płatności blik" wybrać "wprowadź kod Blik bezpośrednio na sklepie".
+Aby włączyć tzn. BLIK 0 (wpisywanie kody BLIK bezpośrednio na stronie sklepu, bez konieczności przekierowania płatnika) należy wejść do konfiguracji wtyczki, wybrać sekcję Ustawienia. Następnie wybrać tryb płatności "Wyświetl każdą dostępną metodę osobno" i w ramach "Trybu płatności BLIK" wybrać "wprowadź kod BLIK bezpośrednio na sklepie".
 
 ### Czy można dodać inną walutę?
 
-Tak, wtyczka Autopay od wersji 4.1.26 umożliwia dodania innej waluty niż polski złoty. Należy jednak pamiętać, że walutę tę musisz mieć również skonfigurowaną w ramach Twojego konta Autopay. Co zazwyczaj wiąże się z posiadaniem oddzielnych danych uwierzytelniających.
-Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić …
-Aby dodać do swojego konta Autopay kolejną walutę, należy …
+Tak, wtyczka Autopay od wersji `4.1.26` umożliwia dodania innej waluty niż polski złoty. Należy jednak pamiętać, że walutę tę musisz mieć również skonfigurowaną w ramach Twojego konta Autopay. Co zazwyczaj wiąże się z posiadaniem oddzielnych danych uwierzytelniających.
+Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/portal).
+Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się z nami przez [formularz](https://developers.autopay.pl/kontakt).
 
 ### Jak zlecać zwroty (z poziomu sklepu czy portalu Autopay)?
 
-Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/admin) i wejdź w zakładkę "Transakcje", po czym:
-1. kliknij 'strzałkę zwrotu' (⟲);
-2. zaznacz płatności, które chcesz zwrócić;
-3. kliknij 'zwróć zaznaczone';
-4. uzupełnij dane do zwrotu;
-5. kliknij 'Zwróć', żeby potwierdzić akcję.
+Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/portal) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
 
-### Czy jest możliwość "wyciągnięcia" samego BLIK-a na whitelabel (wyświetlenia metody Blik bezpośrednio na liście dostępnych w sklepie metod płatności)?
+### Czy jest możliwość "wyciągnięcia" samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
 
 Niestety nie ma takiej możliwości. Wtyczka umożliwia jedynie:
-- wyświetlenie wszystkich dostępnych metod płatności bezpośrednio na liście metod (w tym również Blik)
+- wyświetlenie wszystkich dostępnych metod płatności bezpośrednio na liście metod (w tym również BLIK)
 albo
 - wyświetlenie jednego zbiorczego przycisku "Zapłać", który po przekierowaniu przekierowuje na dedykowaną stronę Autopay zawierającą listę wszystkich dostępnych dla płatnika metod płatności
 
@@ -203,18 +191,6 @@ albo
 2. Upewnij się, że dane wpisane są poprawnie.
 3. Jeżeli cały czas otrzymujesz ten sam komunikat skontaktuj się z nami za pośrednictwem tego formularza
 
-###  Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "brak możliwości weryfikacji poprawności danych dostępowych do konta" - co mam zrobić?
-
-Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontaktuj się z nami za pośrednictwem tego formularza
-
-### Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "brak możliwości weryfikacji" - co mam zrobić?
-
-Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontaktuj się z nami za pośrednictwem tego formularza
-
-### Podczas testu poprawności wprowadzonych danych konfiguracyjnych we wtyczce otrzymuję komunikat "błąd połączenia" - co mam zrobić?
-
-Poczekaj 15-20 minut i ponów test. Jeżeli komunikat jest nadal ten sam skontaktuj się z nami za pośrednictwem tego formularza
-
 ### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat "brak dostępnych metod płatności dla tej waluty" - co mam zrobić?
 
-Dla wybranej przez Ciebie waluty nie ma dostępnych żadnych metod płatności. Skontaktuj się z nami z wykorzystaniem tego formularza i poproś zespół Autopay o sprawdzenie konfiguracji Twojego konta.
+Dla wybranej przez Ciebie waluty nie ma dostępnych żadnych metod płatności. Skontaktuj się z nami z wykorzystaniem [tego formularza](https://developers.autopay.pl/kontakt) i poproś zespół Autopay o sprawdzenie konfiguracji Twojego konta.
