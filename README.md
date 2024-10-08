@@ -8,12 +8,12 @@ Autopay to moduł płatności umożliwiający realizację transakcji bezgotówko
 
 Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzedaż na Twoim sklepie:
 - Najpopularniejsze metody płatności w Polsce i Europie
-  - Przelewy online (Pay by Link)
+  - Przelewy online ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
   - Szybkie przelewy bankowe
-  - BLIK
+  - [BLIK](https://autopay.pl/rozwiazania/blik)
   - Visa Mobile
-  - Google Pay
-  - Apple Pay
+  - [Google Pay](https://autopay.pl/rozwiazania/google-pay)
+  - [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
   - Płatności ratalne
   - Płatności cykliczne
   - Płatności zagraniczne

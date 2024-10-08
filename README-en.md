@@ -9,12 +9,12 @@ Autopay is a payment module that enables cashless transactions in stores built o
 The Autopay payment plugin offers a range of features supporting sales in your store:
 
 - The most popular payment methods in Europe:
-	- Online bank transfers (Pay by Link)
+	- Online bank transfers ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
 	- Fast bank transfers
-	- BLIK
+	- [BLIK](https://autopay.pl/rozwiazania/blik)
 	- Visa Mobile
-	- Google Pay
-	- Apple Pay
+	- [Google Pay](https://autopay.pl/rozwiazania/google-pay)
+	- [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
 	- Installment payments
 	- Recurring payments 
 	- International payments
