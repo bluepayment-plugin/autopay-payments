@@ -1,4 +1,4 @@
-# Instructions for Woocommerce plugin: Autopay payment gateway
+# Instructions for WooCommerce plugin: Autopay payment gateway
 
 ## Basic Information
 

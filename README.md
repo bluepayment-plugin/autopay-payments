@@ -1,4 +1,4 @@
-# Instrukcja dla wtyczki Woocommerce: bramka płatności Autopay
+# Instrukcja dla wtyczki WooCommerce: bramka płatności Autopay
 
 ## Podstawowe informacje
 
