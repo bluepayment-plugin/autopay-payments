@@ -116,6 +116,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id,
 			[ $this, 'process_admin_options' ] );
 
+
 		if ( isset( $_GET['autopay_express_payment'] ) || isset( $_GET['autopay_payment_on_account_page'] ) ) {
 			if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
 				if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
@@ -889,6 +890,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$order->add_meta_data( 'autopay_order_received_url',
 			$order_received_url_filtered );
+
 		$order->save();
 
 		$return = [
@@ -1057,11 +1059,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		string $blik_authorization_code
 	) {
 		add_filter( 'woocommerce_get_checkout_order_received_url',
-			function ( $redirect_url, $order ) {
+			function ( $redirect_url, WC_Order $order ) {
 				WC()->session->set( 'bm_original_order_received_url',
 					$redirect_url );
 				WC()->session->set( 'bm_wc_order_id',
 					$order->get_id() );
+
+				$order->add_meta_data( 'autopay_original_order_received_url',
+					$redirect_url );
+				$order->save_meta_data();
 
 				return '#';
 			},

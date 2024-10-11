@@ -15,6 +15,8 @@ use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Complete_Transation_Use_Case;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Init_Checkout_Use_Case;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Remove_Product_From_Cart_Use_Case;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\View_Product_On_List_Use_Case;
+use Ilabs\BM_Woocommerce\Domain\Service\Settings\Banner;
+use Ilabs\BM_Woocommerce\Domain\Service\Settings\Vas;
 use Ilabs\BM_Woocommerce\Gateway\Blue_Media_Gateway;
 use Ilabs\BM_Woocommerce\Integration\Woocommerce_Blocks\WC_Gateway_Autopay_Blocks_Support;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Abstract_Ilabs_Plugin;
@@ -49,7 +51,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		return new \Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Logger\Wp_Debug_Logger();
 	}
 
-	public function get_woocommerce_logger(): Woocommerce_Logger {
+	public function get_woocommerce_logger( ?string $log_id = null
+	): Woocommerce_Logger {
 		$settings = get_option( 'woocommerce_bluemedia_settings' );
 
 		$debug_mode = 'no';
@@ -57,7 +60,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			$debug_mode = $settings['debug_mode'];
 		}
 
-		$logger = parent::get_woocommerce_logger();
+		$log_id = $log_id ?: $this->get_from_config( 'slug' );
+		$logger = new Woocommerce_Logger( $log_id );
 
 		if ( 'yes' === $debug_mode ) {
 			$logger->set_null_logger( false );
@@ -68,15 +72,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 		return $logger;
 	}
 
-	private function debug_status_change_by_remote() {
-		if ( strpos( $_SERVER['REQUEST_URI'],
-				'wp-json/wc/v2/orders' ) !== false ) {
+	private function accesss_log() {
+		if ( isset( $_REQUEST ) ) {
 
-
-			update_option( 'autopay_wpjson_log',
+			update_option( 'autopay_access_log',
 				(
-				sprintf( '[wp-json debug %s] [ip: %s] [method: %s] [request uri: %s] [headers: %s] [request: %s] [payload: %s]',
-					rand( 1, 100000 ),
+				sprintf( '[access_log] [ip: %s] [method: %s] [request uri: %s] [headers: %s] [request: %s] [payload: %s]',
 					$this->get_ip(),
 					$_SERVER['REQUEST_METHOD'],
 					$_SERVER['REQUEST_URI'],
@@ -86,26 +87,25 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				) ) );
 		}
 
-		$events                 = blue_media()->get_event_chain();
-		$wc_api_debug_log_cache = $events->get_wp_options_based_cache( 'wc_api_debug_log_cache' );
+		$events = blue_media()->get_event_chain();
+
 		$events
 			->on_wc_loaded()
-			->action( function () use ( $wc_api_debug_log_cache ) {
-				$log = get_option( 'autopay_wpjson_log' );
+			->action( function () {
+				$log = get_option( 'autopay_access_log' );
 
 				if ( ! empty( $log ) && is_string( $log ) ) {
 					blue_media()
-						->get_woocommerce_logger()
+						->get_woocommerce_logger( 'autopay_access_log' )
 						->log_debug( $log );
 				}
 
 				update_option( 'autopay_wpjson_log', false );
-				$wc_api_debug_log_cache->clear();
 			} )
 			->execute();
 	}
 
-	private function get_ip(): string {
+	public function get_ip(): string {
 		$headers = [
 			'HTTP_CF_CONNECTING_IP',
 			'HTTP_X_FORWARDED_FOR',
@@ -148,7 +148,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	 */
 	protected function before_init() {
 		$this->start_output_buffer_on_itn_request();
-		$this->debug_status_change_by_remote();
 
 		if ( $this->resolve_is_autopay_hidden() ) {
 			return;
@@ -323,6 +322,16 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					wp_enqueue_style( $this->get_plugin_prefix() . '_admin_css',
 						$this->get_plugin_css_url() . '/admin.css'
 					);
+
+					wp_enqueue_style( $this->get_plugin_prefix() . '_banner_css',
+						'https://plugins-api.autopay.pl/dokumenty/baner.css'
+					);
+
+					if ( isset( $_GET['bmtab'] ) && $_GET['bmtab'] === 'vas' ) {
+						wp_enqueue_style( $this->get_plugin_prefix() . '_vas_css',
+							'https://plugins-api.autopay.pl/dokumenty/vas.css'
+						);
+					}
 				}
 			}
 		}
@@ -344,7 +353,11 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			->on_wc_before_settings( 'checkout' )
 			->action( function () {
 				if ( isset( $_GET['section'] ) && $_GET['section'] === 'bluemedia' ) {
-					blue_media()->locate_template( 'settings_banner.php' );
+					if ( ! ( isset( $_GET['bmtab'] ) && $_GET['bmtab'] === 'vas' ) ) {
+						$content = ( new Banner() )->get_banner_content();
+						blue_media()->locate_template( 'settings_banner.php',
+							[ 'content' => $content ] );
+					}
 					blue_media()->locate_template( 'settings_tabs.php' );
 				}
 			} )
@@ -406,6 +419,30 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					$editor = new Css_Editor();
 					blue_media()->locate_template( 'settings_status.php',
 						[ 'editor' => $editor ] );
+				}
+			} )
+			->on_wc_before_settings( 'checkout' )
+			->action( function () {
+				if ( isset( $_GET['bmtab'] ) && $_GET['bmtab'] === 'vas' ) {
+					echo wp_kses( "<div class='bm_settings_no_form'>", [
+						'div' => [
+							'class' => [],
+						],
+					] );
+					add_action( 'woocommerce_after_settings_checkout',
+						function () {
+							echo wp_kses( "<!--bm_settings_no_form--></div>", [
+								'div' => [
+								],
+							] );
+						} );
+
+
+					$vas_content = ( new Vas() )->get_vas_content();
+					blue_media()->locate_template( 'settings_vas.php',
+						[ 'vas_content' => $vas_content ] );
+
+
 				}
 			} )
 			->on_wp_init()
@@ -736,8 +773,11 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				$order->add_meta_data( 'autopay_returned_from_payment', '1' );
 				$order->save_meta_data();
 				$finish_url = $order->get_meta( 'autopay_order_received_url' );
-				if ( empty( $finish_url ) ) {
-					$finish_url = $order->get_checkout_order_received_url();
+				if ( empty( $finish_url ) || '#' === $finish_url ) {
+					$finish_url = $order->get_meta( 'autopay_original_order_received_url' );
+					if ( empty( $finish_url ) ) {
+						$finish_url = $order->get_checkout_order_received_url();
+					}
 				}
 
 				blue_media()->get_woocommerce_logger()->log_debug(
@@ -760,7 +800,8 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				$this->get_blue_media_gateway()
 				     ->update_order_status( $order,
 					     'failed',
-					     __( 'Autopay BLIK-0: Timed out while waiting for confirmation.', 'bm-woocommerce' ) );
+					     __( 'Autopay BLIK-0: Timed out while waiting for confirmation.',
+						     'bm-woocommerce' ) );
 				$order->save();
 			}
 		}
