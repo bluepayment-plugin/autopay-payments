@@ -1,5 +1,46 @@
 *** Autopay Changelog ***
 
+## [4.3.4] - 2024-08-12
+
+### Fixed
+- **Checkout Page** - Fixed the issue with redirecting to payment on classic Checkout in case of editing address details.
+
+## [4.3.3] - 2024-08-01
+
+### Added
+- **Settings** - Added a new section: Services for You, aimed at supporting merchants in running an efficient store.
+
+### Changes
+- **Settings** - Redesigned the informational banner.
+
+### Fixed
+- **My Account Page** - Fixed the issue with redirecting to payment for the Blik-0 payment method on the My Account page.
+
+## [4.3.2] - 2024-07-04
+
+### Fixed
+- **Checkout** - Fix purchasing process issues that can occur in specific configurations of the Merchant environments.
+
+## [4.3.1] - 2024-06-24
+
+### Added
+- **Custom CSS Editor** - Now you can add your individual look to our Paywall, tailoring it to your customers' needs.
+- **Option to Override Order Received URL** - Customize the URL customers are redirected to after placing an order.
+- **GA4: Option to Change Conversion Order Status** - You decide when the conversion counts!
+
+### Fixed
+- **BLIK-0 Payment Status** - Payment status now updates properly.
+- **WC Session Initialization** - Fixed initialization issues in some scenarios.
+- **Redirect to Payment** - Resolved issues with redirecting to payment in various situations.
+- **Custom Gateway URL Redirect** - Fixed issues with redirecting when using a custom gateway URL.
+- **Custom Transaction Start Endpoint** - Now works correctly in different scenarios.
+- **Translations** - Improved and updated GA4 field descriptions.
+
+### Improved
+- **Documentation** - Now more comprehensive and user-friendly!
+
+We are excited to bring you these latest updates and improvements. Your feedback is invaluable and helps us continually enhance our products. Thank you for being with us!
+
 ## [4.3.2] - 2024-07-04
 
 ### Fixed
