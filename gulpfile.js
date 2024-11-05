@@ -12,7 +12,6 @@ gulp.task('sass', function () {
   .pipe(autoprefixer())
   .pipe(gulp.dest('assets/css'))
 });
-
 gulp.task('scripts', function() {
 	return gulp.src('app/js/*.js')
   .pipe(uglify())
