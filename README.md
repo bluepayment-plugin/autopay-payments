@@ -162,7 +162,7 @@ Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się
 
 ### Jak zlecać zwroty (z poziomu sklepu czy portalu Autopay)?
 
-Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/portal) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
+Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/panel) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
 
 ### Czy jest możliwość umieszczenia samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
 
