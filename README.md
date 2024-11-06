@@ -157,7 +157,7 @@ Aby włączyć tzn. BLIK 0 (wpisywanie kody BLIK bezpośrednio na stronie sklepu
 ### Czy można dodać inną walutę?
 
 Tak, wtyczka Autopay od wersji `4.1.26` umożliwia dodania innej waluty niż polski złoty. Należy jednak pamiętać, że walutę tę musisz mieć również skonfigurowaną w ramach Twojego konta Autopay. Co zazwyczaj wiąże się z posiadaniem oddzielnych danych uwierzytelniających.
-Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/portal).
+Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/panel).
 Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się z nami przez [formularz](https://developers.autopay.pl/kontakt).
 
 ### Jak zlecać zwroty (z poziomu sklepu czy portalu Autopay)?
