@@ -9,11 +9,11 @@ Autopay is a payment module that enables cashless transactions in a shop based o
 The Autopay payment plugin offers a range of functionalities to support sales on your shop:
 - The most popular payment methods in Poland and Europe
 	- Online transfers ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
-	- Quick bank transfers
-	- BLIK](https://autopay.pl/rozwiazania/blik)
+	- Fast bank transfers
+	- [BLIK](https://autopay.pl/rozwiazania/blik)
 	- Visa Mobile
-	- Google Pay](https://autopay.pl/rozwiazania/google-pay)
-	- Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
+	- [Google Pay](https://autopay.pl/rozwiazania/google-pay)
+	- [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
 	- Instalment payments
 	- Recurring payments
 	- International payments
@@ -69,8 +69,8 @@ Payment methods can be displayed on your shop in several different ways - depend
 - **Direct to Autopay payment page** - In the list of methods, there will be a single button that redirects the customer to the payment page hosted by Autopay, where the payer will see the full list of available payment methods. This mode is minimalistic and at the same time least intrusive to your shop code. If the other modes cause some difficulty on the website or do not display correctly on your shop, it is worth using this mode.
 - **Display each available method separately** - A dedicated button for each available payment method will appear in the list. The payer will therefore find out exactly which methods they can use, already on your shop page. Once the method has been selected, the payer will be redirected directly to the page where he or she can finalise the payment. For example, by clicking on the ‘BLIK’ method, he/she will be taken to the BLIK page and asked to enter the code won at his/her bank.
 	- **BLIK payment mode** - This is a separate setting only active if the ‘Display each available method separately’ mode is activated and refers to the method of paying for the order using the ‘BLIK’ payment method:
-		- ‘transfer to BLIK page’. - when the BLIK payment method is selected, the payer will be taken to the BLIK page and asked to enter the payment code and confirm it in the app. In addition, the payer can remember our shop on the device they are using. This will make it so that in the future, when making a BLIK payment on our shop and on the same device, the payer will no longer be asked to enter the BLIK code, and in his/her banking app the request to confirm the payment will appear as soon as he/she is redirected to the BLIK page.
-		- ‘Enter BLIK code directly at the shop’. - once the BLIK method has been selected, the payer will be shown a dedicated field on your shop where they can enter the BLIK code. The payer will not be redirected anywhere, the payment will take place directly on your shop.
+		- 'transfer to BLIK page' - when the BLIK payment method is selected, the payer will be taken to the BLIK page and asked to enter the payment code and confirm it in the app. In addition, the payer can remember our shop on the device they are using. This will make it so that in the future, when making a BLIK payment on our shop and on the same device, the payer will no longer be asked to enter the BLIK code, and in his/her banking app the request to confirm the payment will appear as soon as he/she is redirected to the BLIK page.
+		- 'Enter BLIK code directly at the shop' - once the BLIK method has been selected, the payer will be shown a dedicated field on your shop where they can enter the BLIK code. The payer will not be redirected anywhere, the payment will take place directly on your shop.
 		  The configuration of the payment statuses directly affects how the order progresses on your shop.
 	- **Payment started** - The payment process has just started - this means that the payer has selected and approved a specific payment method. The order has already been created in your shop. The payment has not yet reached its final status. Set an order status that corresponds to this description.
     - **Payment approved** - The payment initiated by the payer has been successful. You as the seller will receive the funds for it from Autopay. Set an order status that corresponds to this description.
@@ -86,16 +86,16 @@ In order for the plugin to communicate with your Google Analytics account, you m
 
 Once connected to the plugin, the following events will appear in your Google Analytics account:
 
-| Event name | Event key | Description |
-| --------------- | --------------- | ---- |
-| Display product in list | `view_item_list` | Triggered for each product that is listed and visible to the customer while browsing the page. |
-| View product details | `view_item` | Triggered when a user visits a specific product page. Triggered when the page is displayed/loaded. |
-| Click on the product | `add_to_cart` | Triggered when the user adds the product to the basket. |
-| Remove product from cart | `remove_from_cart` | Triggered when the user removes the product from the cart. |
-| Start checkout process | `begin_checkout` | Triggered when the user proceeds to checkout. |
-| completed order data | `set_checkout_option` | Triggered when the user has completed the order data. |
-| Payment method selection | `checkout_progress` | Triggered when the user has proceeded to the second step of the order (payment method selection).
-| Completion of transaction | `purchase` | Triggered when the transaction is successfully completed. It is sent on the server side for the transaction to be marked, even if the customer has not returned to the thank you page. |
+| Event name                | Event key             | Description                                                                                                                                                                            |
+|---------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Display product in list   | `view_item_list`      | Triggered for each product that is listed and visible to the customer while browsing the page.                                                                                         |
+| View product details      | `view_item`           | Triggered when a user visits a specific product page. Triggered when the page is displayed/loaded.                                                                                     |
+| Click on the product      | `add_to_cart`         | Triggered when the user adds the product to the basket.                                                                                                                                |
+| Remove product from cart  | `remove_from_cart`    | Triggered when the user removes the product from the cart.                                                                                                                             |
+| Start checkout process    | `begin_checkout`      | Triggered when the user proceeds to checkout.                                                                                                                                          |
+| completed order data      | `set_checkout_option` | Triggered when the user has completed the order data.                                                                                                                                  |
+| Payment method selection  | `checkout_progress`   | Triggered when the user has proceeded to the second step of the order (payment method selection).                                                                                      |
+| Completion of transaction | `purchase`            | Triggered when the transaction is successfully completed. It is sent on the server side for the transaction to be marked, even if the customer has not returned to the thank you page. |
 
 
 The data required to connect the plugin to your Google Analytics account is:
@@ -135,8 +135,6 @@ This section of the plugin is for troubleshooting problems with the plugin confi
 
 **Add custom CSS styling** - Allows you to upload your own CSS styles for the display of the Autopay method list on your shop. Can be used by an Autopay support staff member to prepare CSS code specifically for your shop. Or, if you are an expert in front-end coding, you can use this feature yourself to change the CSS styles.
 
-## Najczęściej zadawane pytania
-
 ## Frequently asked questions
 
 ### What are ITNs and have they been set up correctly?
@@ -146,10 +144,8 @@ Configuration in the plugin consists of an automatic test in the ‘Authenticati
 
 If you want to ensure that the ITN configuration has run correctly on the Autopay account side:
 1. Ensure that the following fields in the [production administration portal](https://portal.autopay.eu/panel) and/or [test administration portal](https://testportal.autopay.eu/panel) contain the correct shop addresses.
-2. configure the payment return address `{URL of your store}/?bm_gateway_return`.
-3. Example: `https://moj-sklep.com/?bm_gateway_return`
-4. configuration of the address to which the ITN is sent `{URL of your shop}/?wc-api=wc_gateway_bluemedia`.
-5. Example: `https://moj-sklep.com/?wc-api=wc_gateway_bluemedia`
+2. configure the payment return address `{URL of your store}/?bm_gateway_return`. Example: `https://my-shop.com/?bm_gateway_return`
+4. configuration of the address to which the ITN is sent `{URL of your shop}/?wc-api=wc_gateway_bluemedia`. Example: `https://my-shop.com/?wc-api=wc_gateway_bluemedia`
 
 ### Can only selected payment methods be switched on and off?
 
@@ -196,4 +192,3 @@ There are no payment methods available for the currency you have selected. Pleas
   alt="Payment methods available">
   <figcaption>Payment methods available</figcaption>
 </figure>
-	
