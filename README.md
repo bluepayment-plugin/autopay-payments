@@ -44,7 +44,7 @@ W przypadku wtyczki płatniczej Autopay, na stronie [https://wordpress.org](http
 ## Skonfiguruj wtyczkę
 Zaloguj się do panelu i przejdź do zakładki **Płatności** i odnajdź metodę **Autopay**. Wybierz **Konfiguruj**, by rozpocząć konfigurację wtyczki. Lub zaznacz odpowiednią opcję na przełączniku, by **włączyć** / **wyłączyć** działanie wtyczki na sklepie.
 
-Jeżeli spotkałeś się z jakimś problemem podczas instalacji wtyczki odwiedź naszą [sekcję FAQ](#najczesciej-zadawane-pytania).
+Jeżeli spotkałeś się z jakimś problemem podczas instalacji wtyczki odwiedź naszą [sekcję FAQ.](https://developers.autopay.pl/online/wtyczki/woocommerce#najcz%C4%99%C5%9Bciej-zadawane-pytania)
 
 ### Uwierzytelnianie
 
@@ -157,12 +157,12 @@ Aby włączyć tzn. BLIK 0 (wpisywanie kody BLIK bezpośrednio na stronie sklepu
 ### Czy można dodać inną walutę?
 
 Tak, wtyczka Autopay od wersji `4.1.26` umożliwia dodania innej waluty niż polski złoty. Należy jednak pamiętać, że walutę tę musisz mieć również skonfigurowaną w ramach Twojego konta Autopay. Co zazwyczaj wiąże się z posiadaniem oddzielnych danych uwierzytelniających.
-Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/portal).
+Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/panel).
 Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się z nami przez [formularz](https://developers.autopay.pl/kontakt).
 
 ### Jak zlecać zwroty (z poziomu sklepu czy portalu Autopay)?
 
-Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/portal) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
+Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/panel) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
 
 ### Czy jest możliwość umieszczenia samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
 
