@@ -196,3 +196,4 @@ There are no payment methods available for the currency you have selected. Pleas
   alt="Payment methods available">
   <figcaption>Payment methods available</figcaption>
 </figure>
+	
