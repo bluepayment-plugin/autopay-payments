@@ -1,5 +1,14 @@
 *** Autopay Changelog ***
 
+## [4.5.0] - 2025-02-26
+
+### Added
+- **Multi-currency Support** - We have added multi-currency support in a single Autopay plugin, allowing merchants to more easily manage transactions in different currencies.
+	Benefits:
+		Simplicity: Manage all payments in one plugin panel.
+		Wider reach: Support for international transactions.
+		Better customer experience: Ability to pay in local currency.
+
 ## [4.4.0] - 2024-11-06
 
 ### Changes

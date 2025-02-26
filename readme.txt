@@ -2,7 +2,7 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.6.2
+Tested up to: 6.7.2
 Stable tag: 4.4.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -77,6 +77,16 @@ Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla ś
 
 
 == Changelog ==
+
+## [4.5.0] - 2025-02-26
+
+### Added
+- **Multi-currency Support** - We have added multi-currency support in a single Autopay plugin, allowing merchants to more easily manage transactions in different currencies.
+	Benefits:
+		Simplicity: Manage all payments in one plugin panel.
+		Wider reach: Support for international transactions.
+		Better customer experience: Ability to pay in local currency.
+
 
 ## [4.4.0] - 2024-11-06
 
