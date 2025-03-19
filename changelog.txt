@@ -1,5 +1,12 @@
 *** Autopay Changelog ***
 
+## [4.5.1] - 2025-03-19
+
+### Fixed
+- **Checkout** - Validation and UI fixes for Blik field
+- **Multicurrency** - Problems with currency detection in some scenarios
+- **Debugger** - Debug mode optimizations
+
 ## [4.5.0] - 2025-02-26
 
 ### Added
