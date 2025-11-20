@@ -15,7 +15,6 @@ Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzed
 	- [Google Pay](https://autopay.pl/rozwiazania/google-pay)
 	- [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
 	- Płatności ratalne
-	- Płatności cykliczne
 	- Płatności zagraniczne
 - Najpopularniejsze sposoby sprzedaży dla platformy WooCommerce
 - kup jako gość / kup jak zarejestrowany użytkownik
@@ -32,8 +31,8 @@ Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzed
 
 ### Wymagania do instalacji wtyczki
 
-- WordPress – przetestowane na wersjach od `6.0` do `6.8.2`
-- Wtyczka WooCommerce – przetestowano na wersjach od `7.9.0` do `10.0.4`
+- WordPress – przetestowane na wersjach od `6.0` do `6.8.3`
+- Wtyczka WooCommerce – przetestowano na wersjach od `8.1` do `10.2.2`
 - PHP w wersji min. `7.4`
 
 ### Pobierz z Wordpress.org

@@ -236,11 +236,10 @@ class WC_Form_Fields_Integration {
 				'desc_tip'    => false,
 				'bmtab'       => 'authentication',
 			],
-
-			'blik_type_title'                  => [],
-			Settings_Manager::get_currency_option_key( 'blik_type',
-				$current_admin_currency_code ) => [],
-
+            // Placeholders to preserve order; configured for PLN below
+            'blik_type_title'                  => [],
+            Settings_Manager::get_currency_option_key( 'blik_type',
+                $current_admin_currency_code ) => [],
 
 			Settings_Manager::get_currency_option_key( 'service_id',
 				$current_admin_currency_code ) => [
@@ -339,52 +338,34 @@ class WC_Form_Fields_Integration {
 			],
 		];
 
-		if ( 'PLN' === $current_admin_currency_code ) {
-			$return['blik_type_title'] = [
-				'title' => __( 'BLIK payment type',
-					'bm-woocommerce' ),
-
-				'description' => '',
-
-				'type'             => 'autopay_template',
-				'template'         => 'settings_field_extended_title',
-				'template_args'    =>
-					[
-						'tip_url'       => 'https://developers.autopay.pl/online/wtyczki/woocommerce#ustawienia-p%C5%82atno%C5%9Bci',
-						'tip_url_label' => __( 'Learn more',
-							'bm-woocommerce' ),
-					],
-				'template_tr_args' =>
-					[
-						'test1' => 'val1',
-						'test2' => 'val2',
-					],
-
-				'bmtab'    => 'payment_settings',
-				'disabled' => 'no' === $whitelabel_opt_value,
-			];
-
-			$return[ Settings_Manager::get_currency_option_key( 'blik_type',
-				$current_admin_currency_code ) ] = [
-				'title'            => '',
-				'type'             => 'autopay_template',
-				'template'         => 'settings_field_extended_select',
-				'description'      => '',
-				'options'          => [
-					'with_redirect'           => __( 'redirect payer to BLIK’s website',
-						'bm-woocommerce' ),
-					'blik_0_without_redirect' => __( 'enter BLIK code directly on your store',
-						'bm-woocommerce' ),
-				],
-				'default'          => 'with_redirect',
-				'bmtab'            => 'authentication',
-				'template_tr_args' =>
-					[
-						'test1' => 'val1',
-						'test2' => 'val2',
-					],
-				'disabled'         => 'no' === $whitelabel_opt_value,
-			];
+        if ( 'PLN' === $current_admin_currency_code ) {
+            // Remove separate title row; we render title within the select field
+            unset( $return['blik_type_title'] );
+            $return[ Settings_Manager::get_currency_option_key( 'blik_type',
+                $current_admin_currency_code ) ] = [
+                'title'            => __( 'BLIK payment type', 'bm-woocommerce' ),
+                'type'             => 'autopay_template',
+                'template'         => 'settings_field_extended_select',
+                'description'      => '',
+                'options'          => [
+                    'with_redirect'           => __( 'redirect payer to BLIK’s website',
+                        'bm-woocommerce' ),
+                    'blik_0_without_redirect' => __( 'enter BLIK code directly on your store',
+                        'bm-woocommerce' ),
+                ],
+                'default'          => 'with_redirect',
+                'bmtab'            => 'authentication',
+                'template_tr_args' =>
+                    [
+                        'test1' => 'val1',
+                        'test2' => 'val2',
+                    ],
+                'template_args'    => [
+                    'tip_url'       => 'https://developers.autopay.pl/online/wtyczki/woocommerce#ustawienia-p%C5%82atno%C5%9Bci',
+                    'tip_url_label' => __( 'Learn more', 'bm-woocommerce' ),
+                ],
+                'disabled'         => 'no' === $whitelabel_opt_value,
+            ];
 
 		} else {
 			unset( $return['blik_type_title'] );

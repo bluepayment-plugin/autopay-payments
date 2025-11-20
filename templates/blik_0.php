@@ -14,7 +14,7 @@ $generic_error_message = __( 'Payment failed.',
 <div class="bm-blik-code-wrapper">
 	<label
 		for="bm-blik-code"><?php
-		_e( 'Podaj kod BLIK',
+		_e( 'Enter the BLIK code',
 			'bm-woocommerce' ); ?></label>
 	<input id="bluemedia_blik_code" type="text" name="bluemedia_blik_code"
 		   inputmode="numeric" minlength="6" maxlength="6" autocomplete="off">

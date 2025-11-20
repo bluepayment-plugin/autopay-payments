@@ -115,7 +115,7 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 					'bm-woocommerce' ),
 				'no_payment_channel_selected'             => __( 'No payment channel selected.',
 					'bm-woocommerce' ),
-				'enter_the_blik_code'                     => __( 'Enter the BLIK code.',
+				'enter_the_blik_code'                     => __( 'Enter the BLIK code',
 					'bm-woocommerce' ),
 				'the_code_has_6_digits_note'              => __( "You'll find it in your banking app.",
 					'bm-woocommerce' ),

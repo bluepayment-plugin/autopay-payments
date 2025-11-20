@@ -340,7 +340,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					);
 
 					wp_enqueue_style( $this->get_plugin_prefix() . '_banner_css',
-						'https://plugins-api.autopay.pl/dokumenty/baner.css'
+						'https://plugins-api.autopay.pl/dokumenty/autopay.css'
 					);
 
 					if ( isset( $_GET['bmtab'] ) && $_GET['bmtab'] === 'vas' ) {
@@ -383,6 +383,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				    $mapped_status = substr( $mapped_status, 3 );
 			    }
 
+				//todo maping $mapped_status and $event->get_new_status() (logger)
 			    return $event->get_new_status() === $mapped_status;
 		    } )
 		    ->action( function ( Wc_Order_Aware_Interface $order_aware_interface
@@ -558,14 +559,9 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	private function init_payment_gateway() {
 		add_filter( 'woocommerce_payment_gateways',
 			function ( $gateways ) {
-				if ( false === is_admin()
-				     && false === $this->get_currency_manager()
-				                       ->is_currency_selected(
-					                       $this
-						                       ->get_currency_manager()
-						                       ->get_shop_currency()
-						                       ->get_code()
-				                       ) ) {
+				$shop_currency = $this->get_currency_manager()->get_shop_currency();
+
+				if ( false === is_admin() && ( null === $shop_currency || false === $this->get_currency_manager()->is_currency_selected( $shop_currency->get_code() ) ) ) {
 
 					self::$inactive_on_frontend = true;
 
@@ -696,10 +692,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			$currency_tabs = new Currency_Tabs();
 
 			return $currency_tabs->get_active_tab_currency()
-			                     ->get_code();
+			                     ? $currency_tabs->get_active_tab_currency()->get_code()
+			                     : null;
 		}
 
-		return self::get_currency_manager()->get_shop_currency()->get_code();
+		$shop_currency = self::get_currency_manager()->get_shop_currency();
+		return $shop_currency ? $shop_currency->get_code() : null;
 	}
 
 	/**

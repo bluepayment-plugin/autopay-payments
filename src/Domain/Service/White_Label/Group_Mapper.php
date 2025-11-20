@@ -106,8 +106,13 @@ class Group_Mapper {
 	}
 
 	private function check_amount_range( $gateway_obj ) {
+		blue_media()->get_woocommerce_logger('payment gateways debug')->log_debug(
+			sprintf( '[Group mapper] [check_amount_range] [gateway_obj: %s]',
+				print_r( $gateway_obj, true )
+			) );
+
 		if ( ! property_exists( $gateway_obj,
-				'currencyList' ) || ! is_array( $gateway_obj->currencyList ) ) {
+				'currencies' ) || ! is_array( $gateway_obj->currencies ) ) {
 			return true;
 		}
 
@@ -119,7 +124,7 @@ class Group_Mapper {
 		$woocommerce_cart     = WC()->cart;
 		$cart_total           = (float) $woocommerce_cart->get_total( false );
 
-		foreach ( $gateway_obj->currencyList as $currency_info ) {
+		foreach ( $gateway_obj->currencies as $currency_info ) {
 			if ( ! isset( $currency_info->minAmount ) ) {
 				continue;
 			}

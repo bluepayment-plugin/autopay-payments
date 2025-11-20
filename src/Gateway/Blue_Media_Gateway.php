@@ -127,6 +127,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id,
 			[ $this, 'process_admin_options' ] );
 
+		// Clear gateway list cache when language changes
+		add_action( 'update_option_WPLANG', [ $this, 'clear_gateway_list_cache' ] );
+
 		if ( isset( $_GET['autopay_express_payment'] ) || isset( $_GET['autopay_payment_on_account_page'] ) ) {
 			if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
 				if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
@@ -273,7 +276,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $return_filtered;
 	}
 
-	public function setup_variables( ?Currency_Interface $forced_currency = null
+	public function setup_variables( ?Currency_Interface $forced_currency = null,
+		bool $ignore_for_admin = false
 	) {
 		if ( $forced_currency ) {
 			$currency = $forced_currency->get_code();
@@ -281,7 +285,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			$currency = blue_media()->resolve_blue_media_currency_symbol();
 		}
 
-		if ( $this->testmode ) {
+		$use_testmode = $this->testmode;
+		if ( $ignore_for_admin ) {
+			$use_testmode = ( 'yes' === $this->get_option( 'testmode', 'no' ) );
+		}
+
+		if ( $use_testmode ) {
 			$test_gateway_url = $this->get_option( 'test_gateway_url' );
 			if ( Helper::is_string_url( $test_gateway_url ) ) {
 				$test_gateway_url                   = Helper::format_gateway_url( $test_gateway_url );
@@ -1204,26 +1213,29 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	): array {
 		$currency_code     = esc_attr( $currency_code ?: blue_media()->resolve_blue_media_currency_symbol() );
 		$currency_code_opt = strtolower( $currency_code );
+		$language          = $this->get_wordpress_language();
+		$cache_key         = "{$currency_code_opt}_{$language}";
+
 		if ( defined( 'BLUE_MEDIA_DISABLE_CACHE' ) || $force_rebuild_cache || time()
-																			  - (int) get_option( 'bm_gateway_list_cache_time' )
+																			  - (int) get_option( "bm_gateway_list_cache_time_{$cache_key}" )
 																			  > 600//10 minutes cache
 		) {
 			$gateway_list_cache = $this->api_get_gateway_list( $currency_code );
 
 			if ( ! $this->resolve_is_test_mode() ) {
-				update_option( "bm_gateway_list_cache_$currency_code_opt",
+				update_option( "bm_gateway_list_cache_{$cache_key}",
 					$gateway_list_cache );
-				update_option( "bm_gateway_list_cache_time_$currency_code_opt",
+				update_option( "bm_gateway_list_cache_time_{$cache_key}",
 					time() );
 			}
 
 		} else {
-			$gateway_list_cache = get_option( "bm_gateway_list_cache_$currency_code_opt" );
+			$gateway_list_cache = get_option( "bm_gateway_list_cache_{$cache_key}" );
 			if ( empty( $gateway_list_cache ) ) {
 				$gateway_list_cache = $this->api_get_gateway_list( $currency_code );
-				update_option( "bm_gateway_list_cache_$currency_code_opt",
+				update_option( "bm_gateway_list_cache_{$cache_key}",
 					$gateway_list_cache );
-				update_option( "bm_gateway_list_cache_time_$currency_code_opt",
+				update_option( "bm_gateway_list_cache_time_{$cache_key}",
 					time() );
 			}
 		}
@@ -1242,11 +1254,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$service_id = $this->service_id;
 		$message_id = substr( bin2hex( random_bytes( 32 ) ), 32 );
 		$currencies = $currency_code ?: blue_media()->resolve_blue_media_currency_symbol();
+		$language = $this->get_wordpress_language();
 
 		$params = [
 			'ServiceID'  => $service_id,
 			'MessageID'  => $message_id,
 			'Currencies' => $currencies,
+			'Language'   => $language,
 		];
 
 
@@ -1266,8 +1280,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		];
 
 		blue_media()->get_woocommerce_logger()->log_debug(
-			sprintf( '[api_get_gateway_list request] [url: %s] [args: %s]',
+			sprintf( '[api_get_gateway_list request] [url: %s] [params: %s] [args: %s]',
 				$url,
+				print_r( $params, true ),
 				print_r( $wp_remote_post_args, true )
 			) );
 
@@ -1334,6 +1349,84 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				serialize( $result )
 			) );
 		throw new Exception( $message );
+	}
+
+	/**
+	 * Get WordPress language code for API requests
+	 *
+	 * @return string Language code (e.g., 'PL', 'EN', 'DE', 'ES', 'IT')
+	 */
+	private function get_wordpress_language(): string {
+		$locale = get_locale();
+
+		// Map WordPress locales to Autopay supported language codes (2 characters)
+		$language_map = [
+			'pl_PL' => 'PL',
+			'en_US' => 'EN',
+			'en_GB' => 'EN',
+			'de_DE' => 'DE',
+			'de_AT' => 'DE',
+			'de_CH' => 'DE',
+			'es_ES' => 'ES',
+			'es_MX' => 'ES',
+			'es_AR' => 'ES',
+			'it_IT' => 'IT',
+			'fr_FR' => 'FR',
+			'fr_CA' => 'FR',
+			'pt_PT' => 'PT',
+			'pt_BR' => 'PT',
+			'ru_RU' => 'RU',
+			'uk' => 'UK',
+			'cs_CZ' => 'CS',
+			'sk_SK' => 'SK',
+			'hu_HU' => 'HU',
+			'ro_RO' => 'RO',
+			'bg_BG' => 'BG',
+			'hr' => 'HR',
+			'sl_SI' => 'SL',
+			'et' => 'ET',
+			'lv' => 'LV',
+			'lt' => 'LT',
+			'fi' => 'FI',
+			'sv_SE' => 'SV',
+			'da_DK' => 'DA',
+			'nl_NL' => 'NL',
+			'nl_BE' => 'NL',
+			'el' => 'EL',
+			'tr_TR' => 'TR',
+		];
+
+		$language_code = $language_map[$locale] ?? 'PL';
+
+		// Log language detection for debugging
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[get_wordpress_language] [WordPress locale: %s] [Mapped language: %s]',
+				$locale,
+				$language_code
+			)
+		);
+
+		return $language_code;
+	}
+
+	/**
+	 * Clear gateway list cache when language changes
+	 */
+	public function clear_gateway_list_cache(): void {
+		global $wpdb;
+
+		// Delete all gateway list cache options
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				'bm_gateway_list_cache_%',
+				'bm_gateway_list_cache_time_%'
+			)
+		);
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			'[clear_gateway_list_cache] Gateway list cache cleared due to language change'
+		);
 	}
 
 	/**

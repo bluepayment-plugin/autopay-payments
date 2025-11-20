@@ -478,9 +478,11 @@ class Auditor {
 					"bm-woocommerce" ) );
 		}
 
+		$main_currency_code = array_key_first( $active_currencies );
+
 		foreach ( $active_currencies as $currency ) {
 			$currency_manager->reconfigure( $currency->get_code() );
-			$bm_gateway->setup_variables( $currency );
+			$bm_gateway->setup_variables( $currency, true );
 			$service_id = $bm_gateway->get_service_id();
 			$hash       = $bm_gateway->get_private_key();
 
@@ -494,10 +496,13 @@ class Auditor {
 
 			if ( empty( $service_id ) ) {
 				$currency_manager->reconfigure( $currency->get_code() );
-				$bm_gateway->setup_variables();
+				$bm_gateway->setup_variables( null, true );
 
-				return new Log_Entry( Log_Entry::LEVEL_CRITICAL,
-					Log_Entry::get_header_critical(),
+				$level  = $currency->get_code() === $main_currency_code ? Log_Entry::LEVEL_CRITICAL : Log_Entry::LEVEL_WARNING;
+				$header = $currency->get_code() === $main_currency_code ? Log_Entry::get_header_critical() : Log_Entry::get_header_warning();
+
+				return new Log_Entry( $level,
+					$header,
 					sprintf( __( "ServiceID was not provided for currency: %s",
 						"bm-woocommerce" ),
 						$currency->get_code() ) );
@@ -505,10 +510,13 @@ class Auditor {
 
 			if ( ! is_numeric( $service_id ) ) {
 				$currency_manager->reconfigure( $currency->get_code() );
-				$bm_gateway->setup_variables();
+				$bm_gateway->setup_variables( null, true );
 
-				return new Log_Entry( Log_Entry::LEVEL_CRITICAL,
-					Log_Entry::get_header_critical(),
+				$level  = $currency->get_code() === $main_currency_code ? Log_Entry::LEVEL_CRITICAL : Log_Entry::LEVEL_WARNING;
+				$header = $currency->get_code() === $main_currency_code ? Log_Entry::get_header_critical() : Log_Entry::get_header_warning();
+
+				return new Log_Entry( $level,
+					$header,
 					sprintf( __( "An invalid ServiceID was provided for currency: %s",
 						"bm-woocommerce" ),
 						$currency->get_code() ) );
@@ -516,10 +524,13 @@ class Auditor {
 
 			if ( empty( $hash ) ) {
 				$currency_manager->reconfigure( $currency->get_code() );
-				$bm_gateway->setup_variables();
+				$bm_gateway->setup_variables( null, true );
 
-				return new Log_Entry( Log_Entry::LEVEL_CRITICAL,
-					Log_Entry::get_header_critical(),
+				$level  = $currency->get_code() === $main_currency_code ? Log_Entry::LEVEL_CRITICAL : Log_Entry::LEVEL_WARNING;
+				$header = $currency->get_code() === $main_currency_code ? Log_Entry::get_header_critical() : Log_Entry::get_header_warning();
+
+				return new Log_Entry( $level,
+					$header,
 					sprintf( __( "API secret key (Hash) was not provided for currency: %s",
 						"bm-woocommerce" ),
 						$currency->get_code() ) );
@@ -527,7 +538,7 @@ class Auditor {
 		}
 
 		$currency_manager->reconfigure( $currency->get_code() );
-		$bm_gateway->setup_variables();
+		$bm_gateway->setup_variables( null, true );
 
 		return null;
 	}
@@ -561,7 +572,7 @@ class Auditor {
 
 		foreach ( $active_currencies as $currency ) {
 			$currency_manager->reconfigure( $currency->get_code() );
-			$bm_gateway->setup_variables( $currency );
+			$bm_gateway->setup_variables( $currency, true );
 
 			try {
 				$channels = $bm_gateway->gateway_list( true,
@@ -586,8 +597,8 @@ class Auditor {
 
 			if ( empty( $channels ) ) {
 				return new Log_Entry(
-					Log_Entry::LEVEL_CRITICAL,
-					Log_Entry::get_header_critical(),
+					Log_Entry::LEVEL_WARNING,
+					Log_Entry::get_header_warning(),
 					sprintf( __( "Failed to download payment channel list for currency: %s. Check the validity of the provided key (hash) and serviceID",
 						"bm-woocommerce" ),
 						$currency->get_code(),
