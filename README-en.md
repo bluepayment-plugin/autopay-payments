@@ -24,7 +24,11 @@ The Autopay payment plugin offers a range of functionalities to support sales on
 - test environment support (implementation of test transactions for correct installation and configuration of the plug-in)
 - deferred and instalment payments
 - native integration into Google Analytics 4 from within the Autopay payment plug-in
-- automatic verification of the correct configuration of authorisation data in the plug-in
+- automatic verification of the correct configuration of authorization data in the plug-in
+- multilingual support – automatic adaptation to the store language (EN,
+  DE, IT, ES); for other languages, the interface is displayed in English
+- ability to manually change the order of Autopay payment methods in the
+  WooCommerce panel using drag & drop
 
 [Register your shop!](https://autopay.pl/oferta/platnosci-online?utm_campaign=woocommerce&utm_source=woocommerce_description&utm_medium=offer_cta#kalkulator)
 
@@ -32,8 +36,8 @@ The Autopay payment plugin offers a range of functionalities to support sales on
 
 ### Requirements for installing the plug-in
 
-- WordPress - tested on versions `6.0` to `6.6`
-- WooCommerce plugin - tested on versions `7.9.0` to `8.9.3`
+- WordPress - tested on versions `6.0` to `6.9`
+- WooCommerce plugin - tested on versions `7.9.0` to `10.4.3`
 - PHP version min. `7.4`
 
 ### Download from wordpress.org
@@ -76,6 +80,11 @@ Payment methods can be displayed on your shop in several different ways - depend
     - **Payment approved** - The payment initiated by the payer has been successful. You as the seller will receive the funds for it from Autopay. Set an order status that corresponds to this description.
     - **Payment approved for a basket containing only virtual products** - Payment initiated by the payer has been successful. You as the seller will receive funds for it from Autopay. This is a dedicated status for the sale of digital products - enabling you to have the order shipped immediately to the payer. Set an order status that matches this description.
     - **Payment unsuccessful** - The payment initiated by the payer has failed. You as the merchant will not receive funds from Autopay. Set an order status that corresponds to this description.
+    - **Changing the display order of payment methods** - In the plugin’s admin panel, go to the tab: **Settings → Payments.**
+	  In the list of payment methods available in the store, you can drag & drop
+	  Autopay methods to arrange them in your preferred order.
+	  The saved order will be visible to customers during checkout, in the payment
+	  method selection section.
 
 
 ### Analytics
@@ -176,6 +185,15 @@ Unfortunately, this is not possible. The plug-in only allows you to:
 
 There are no payment methods available for the currency you have selected. Please contact us using [this form](https://developers.autopay.pl/kontakt) and ask the Autopay team to check your account configuration.
 
+### Does the plugin support multiple languages and how can they be configured?
+
+Yes. The Autopay plugin automatically adapts to the store language set
+in WordPress/WooCommerce.
+Translations are available in English, German, Italian, and Spanish.
+If the store operates in one of these languages, the plugin interface will
+be displayed in the appropriate translation and requires no additional configuration.
+If a different language is used, the interface will automatically switch
+to English and also requires no additional configuration.
 
 ## Screenshots
 
