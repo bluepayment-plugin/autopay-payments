@@ -194,14 +194,14 @@ W panelu WooCommerce, w zakładce ustawień płatności Autopay, użyj funkcji d
 
 <figure>
   <img
-  src="assets/img/screenshot_1.png"
+  src="assets/img/screenshot-1.jpg"
   alt="Widok pól do uzupełnienia">
   <figcaption>Widok pól do uzupełnienia</figcaption>
 </figure>
 
 <figure>
   <img
-  src="assets/img/screenshot_2.png"
+  src="assets/img/screenshot-2.jpg"
   alt="Dostępne metody płatności">
   <figcaption>Dostępne metody płatności</figcaption>
 </figure>
