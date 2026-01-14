@@ -199,14 +199,14 @@ to English and also requires no additional configuration.
 
 <figure>
   <img
-  src="assets/img/screenshot-1.jpg"
+  src="assets/img/screenshot-1-en.jpg"
   alt="View of the fields to be completed">
   <figcaption>View of the fields to be completed</figcaption>
 </figure>
 
 <figure>
   <img
-  src="assets/img/screenshot-2.jpg"
+  src="assets/img/screenshot-2-en.jpg"
   alt="Payment methods available">
   <figcaption>Payment methods available</figcaption>
 </figure>
