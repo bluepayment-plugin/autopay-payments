@@ -114,7 +114,8 @@ class WC_Form_Fields_Integration {
 					[
 						'bottom_description' => __( 'See how you can run straightforward campaigns with us!',
 								'bm-woocommerce' )
-						                        . ' ' . '<a target="_blank" href="https://autopay.pl/oferta/reklama-produktow-w-google-i-meta">'
+						                        . ' ' . '<a target="_blank" href="' . esc_url( __( 'https://autopay.eu/products/data/ads',
+									'bm-woocommerce' ) ) . '">'
 						                        . ' ' . __( 'Launch in 5 minutes!',
 								'bm-woocommerce' ) . '</a>',
 
@@ -177,7 +178,8 @@ class WC_Form_Fields_Integration {
 						'status_type'        => 'info',
 						'bottom_description' => __( 'In order to get access to the sandbox environment contact Autopay using',
 								'bm-woocommerce' )
-						                        . ' ' . '<a target="_blank" href="https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link">'
+						                        . ' ' . '<a target="_blank" href="' . esc_url( __( 'https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link',
+									'bm-woocommerce' ) ) . '">'
 						                        . ' ' . __( 'this form',
 								'bm-woocommerce' ) . '</a>',
 						'on_hook' => 'autopay_settings_before_table_authentication',
@@ -212,7 +214,8 @@ class WC_Form_Fields_Integration {
 				'template'      => 'settings_field_extended_title',
 				'template_args' =>
 					[
-						'tip_url'       => 'https://developers.autopay.pl/online/wtyczki/woocommerce#ustawienia-p%C5%82atno%C5%9Bci',
+						'tip_url'       => __( 'https://developers.autopay.pl/en/online/plugins/woocomerce#692d97171d07c',
+							'bm-woocommerce' ),
 						'tip_url_label' => __( 'Learn more',
 							'bm-woocommerce' ),
 					],
@@ -253,7 +256,8 @@ class WC_Form_Fields_Integration {
 				'template'      => 'settings_field_extended_text',
 				'template_args' =>
 					[
-						'tip_url'              => 'https://developers.autopay.pl/online/portal-autopay?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link#serwis',
+						'tip_url'              => __( 'https://developers.autopay.pl/en/online/portal-autopay-en',
+							'bm-woocommerce' ),
 						'tip_url_label'        => __( 'where to find?',
 							'bm-woocommerce' ),
 						'input_field_type_arg' => 'number',
@@ -275,7 +279,8 @@ class WC_Form_Fields_Integration {
 				'template'      => 'settings_field_extended_password',
 				'template_args' =>
 					[
-						'tip_url'       => 'https://developers.autopay.pl/online/portal-autopay?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link#serwis',
+						'tip_url'       => __( 'https://developers.autopay.pl/en/online/portal-autopay-en',
+							'bm-woocommerce' ),
 						'tip_url_label' => __( 'where to find?',
 							'bm-woocommerce' ),
 					],
@@ -295,7 +300,8 @@ class WC_Form_Fields_Integration {
 				'template'      => 'settings_field_extended_text',
 				'template_args' =>
 					[
-						'tip_url'              => 'https://developers.autopay.pl/online/portal-autopay?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link#serwis',
+						'tip_url'              => __( 'https://developers.autopay.pl/en/online/portal-autopay-en',
+							'bm-woocommerce' ),
 						'tip_url_label'        => __( 'where to find?',
 							'bm-woocommerce' ),
 						'input_field_type_arg' => 'number',
@@ -315,7 +321,8 @@ class WC_Form_Fields_Integration {
 				'template'      => 'settings_field_extended_password',
 				'template_args' =>
 					[
-						'tip_url'       => 'https://developers.autopay.pl/online/portal-autopay?utm_campaign=help&utm_source=woocommerce_panel&utm_medium=text_link#serwis',
+						'tip_url'       => __( 'https://developers.autopay.pl/en/online/portal-autopay-en',
+							'bm-woocommerce' ),
 						'tip_url_label' => __( 'where to find?',
 							'bm-woocommerce' ),
 					],
@@ -361,7 +368,8 @@ class WC_Form_Fields_Integration {
                         'test2' => 'val2',
                     ],
                 'template_args'    => [
-                    'tip_url'       => 'https://developers.autopay.pl/online/wtyczki/woocommerce#ustawienia-p%C5%82atno%C5%9Bci',
+                    'tip_url'       => __( 'https://developers.autopay.pl/en/online/plugins/woocomerce#692d97171d07c',
+	                    'bm-woocommerce' ),
                     'tip_url_label' => __( 'Learn more', 'bm-woocommerce' ),
                 ],
                 'disabled'         => 'no' === $whitelabel_opt_value,
@@ -397,6 +405,42 @@ class WC_Form_Fields_Integration {
 
 		$return = [
 
+			'payment_method_header' => [
+				'title'       => __( 'Header and description at checkout', 'bm-woocommerce' ),
+				'type'        => 'autopay_template',
+				'template'    => 'settings_field_extended_title',
+				'bmtab'       => 'payment_settings',
+			],
+
+			'payment_method_title' => [
+				'title'         => __( 'Payment method title', 'bm-woocommerce' ),
+				'type'          => 'autopay_template',
+				'template'      => 'settings_field_title_with_counter',
+				'bmtab'         => 'payment_settings',
+				'template_args' => [
+					'max_length' => 80,
+				],
+			],
+
+			'payment_method_description' => [
+				'title'         => __( 'Payment method description', 'bm-woocommerce' ),
+				'type'          => 'autopay_template',
+				'template'      => 'settings_field_description_with_counter',
+				'bmtab'         => 'payment_settings',
+				'template_args' => [
+					'max_length'  => 500,
+					'tip_url'     => __( 'https://developers.autopay.pl/en/online/plugins/woocomerce#692d97171d07c',
+						'bm-woocommerce' ),
+					'tip_url_label'=> __( 'where to find?', 'bm-woocommerce' ),
+				],
+			],
+
+			// Simple divider line under the section
+			'payment_method_divider' => [
+				'type'     => 'autopay_template',
+				'template' => 'settings_field_section_divider',
+				'bmtab'    => 'payment_settings',
+			],
 
 			'currency_tabs' => [
 				'title'         => '',
@@ -412,94 +456,30 @@ class WC_Form_Fields_Integration {
 					],
 			],
 
-			'custom_button' => [
-				'title'         => __( 'Allowed payment method list',
-					'bm-woocommerce' ),
-				'type'          => 'autopay_template',
-				'description'   => "",
-				'desc_tip'      => false,
-				'default'       => __( 'Import now',
-					'bm-woocommerce' ),
-				'template'      => 'settings_field_channels',
-				'template_args' => [
-					'channels' => function () use ( $admin_currency_code ) {
-						try {
-							$channels_opt_value = blue_media()
-								->get_blue_media_gateway()
-								->gateway_list( true, $admin_currency_code );
+					'custom_button' => [
+			'title'         => __( 'Allowed payment method list',
+				'bm-woocommerce' ),
+			'type'          => 'autopay_template',
+			'description'   => "",
+			'desc_tip'      => false,
+			'default'       => __( 'Import now',
+				'bm-woocommerce' ),
+			                'template'      => 'settings_field_channels',
+			'template_args' => [
+				'channels' => function () use ( $admin_currency_code ) {
+					try {
+						$channels_opt_value = blue_media()
+							->get_blue_media_gateway()
+							->gateway_list( true, $admin_currency_code );
 
-						} catch ( Exception $exception ) {
-							$channels_opt_value = $exception;
-						}
+					} catch ( Exception $exception ) {
+						$channels_opt_value = $exception;
+					}
 
-						return $channels_opt_value;
-					},
-				],
+					return $channels_opt_value;
+				},
 			],
-
-			'wc_payment_statuses'                     => [
-				'title' => __( 'Payment statuses',
-					'bm-woocommerce' ),
-
-				'description' => __( 'Choose how your order statuses will change depending on the status payment has in Autopay.',
-					'bm-woocommerce' ),
-
-				'type'          => 'autopay_template',
-				'template'      => 'settings_field_extended_title',
-				'template_args' =>
-					[
-						'tip_url'       => 'https://developers.autopay.pl/online/wtyczki/woocommerce#ustawienia-p%C5%82atno%C5%9Bci',
-						'tip_url_label' => __( 'Learn more',
-							'bm-woocommerce' ),
-					],
-				'bmtab'         => 'payment_settings',
-			],
-			'wc_payment_status_on_bm_pending'         => [
-				'title'       => __( 'Payment started',
-					'bm-woocommerce' ),
-				'description' => __( '',
-					'bm-woocommerce' ),
-				'type'        => 'autopay_template',
-				'template'    => 'settings_field_extended_select',
-				'options'     => wc_get_order_statuses(),
-				'default'     => 'wc-pending',
-				'bmtab'       => 'payment_settings',
-			],
-			'wc_payment_status_on_bm_success'         => [
-				'title'       => __( 'Payment accepted',
-					'bm-woocommerce' ),
-				'description' => __( '',
-					'bm-woocommerce' ),
-				'type'        => 'autopay_template',
-				'template'    => 'settings_field_extended_select',
-				'options'     => wc_get_order_statuses(),
-				'default'     => 'wc-completed',
-				'bmtab'       => 'payment_settings',
-			],
-			'wc_payment_status_on_bm_success_virtual' => [
-				'title'       => __( 'Payment accepted for purchase of ONLY digital products',
-					'bm-woocommerce' ),
-				'description' => __( '',
-					'bm-woocommerce' ),
-				'type'        => 'autopay_template',
-				'template'    => 'settings_field_extended_select',
-				'options'     => wc_get_order_statuses(),
-				'default'     => 'wc-completed',
-				'bmtab'       => 'payment_settings',
-			],
-			'wc_payment_status_on_bm_failure'         => [
-				'title'       => __( 'Payment rejected',
-					'bm-woocommerce' ),
-				'description' => __( '',
-					'bm-woocommerce' ),
-				'type'        => 'autopay_template',
-				'template'    => 'settings_field_extended_select',
-				'options'     => wc_get_order_statuses(),
-				'default'     => 'wc-failed',
-				'bmtab'       => 'payment_settings',
-			],
-
-
+		],
 		];
 
 
@@ -597,6 +577,70 @@ class WC_Form_Fields_Integration {
 
 	public function get_advanced_settings_fields(): array {
 		$fields = [
+			'wc_payment_statuses'                     => [
+				'title' => __( 'Payment statuses',
+					'bm-woocommerce' ),
+
+				'description' => __( 'Choose how your order statuses will change depending on the status payment has in Autopay.',
+					'bm-woocommerce' ),
+
+				'type'          => 'autopay_template',
+				'template'      => 'settings_field_extended_title',
+				'template_args' =>
+					[
+						'tip_url'       => __( 'https://developers.autopay.pl/en/online/plugins/woocomerce#692d97171d07c',
+							'bm-woocommerce' ),
+						'tip_url_label' => __( 'Learn more',
+							'bm-woocommerce' ),
+					],
+				'bmtab'         => 'payment_settings',
+			],
+			'wc_payment_status_on_bm_pending'         => [
+				'title'       => __( 'Payment started',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'autopay_template',
+				'template'    => 'settings_field_extended_select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-pending',
+				'bmtab'       => 'payment_settings',
+			],
+			'wc_payment_status_on_bm_success'         => [
+				'title'       => __( 'Payment accepted',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'autopay_template',
+				'template'    => 'settings_field_extended_select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-completed',
+				'bmtab'       => 'payment_settings',
+			],
+			'wc_payment_status_on_bm_success_virtual' => [
+				'title'       => __( 'Payment accepted for purchase of ONLY digital products',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'autopay_template',
+				'template'    => 'settings_field_extended_select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-completed',
+				'bmtab'       => 'payment_settings',
+			],
+			'wc_payment_status_on_bm_failure'         => [
+				'title'       => __( 'Payment rejected',
+					'bm-woocommerce' ),
+				'description' => __( '',
+					'bm-woocommerce' ),
+				'type'        => 'autopay_template',
+				'template'    => 'settings_field_extended_select',
+				'options'     => wc_get_order_statuses(),
+				'default'     => 'wc-failed',
+				'bmtab'       => 'payment_settings',
+			],
+
+
 			'debug_mode'                              => [
 				'title'    => __( 'Debug mode',
 					'bm-woocommerce' ),

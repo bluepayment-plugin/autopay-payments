@@ -2,10 +2,14 @@
 Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
-Tested up to: 6.8.3
-Stable tag: 4.7.1
+Tested up to: 6.9
+Stable tag: 4.8
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
+
+Autopay to moduł płatności umożliwiający realizację transakcji bezgotówkowych w sklepie opartym na platformie WordPress (WooCommerce).
+
+== Description ==
 
 Autopay to moduł płatności umożliwiający realizację transakcji bezgotówkowych w sklepie opartym na platformie WordPress (WooCommerce). Jeżeli jeszcze nie masz wtyczki, możesz ją pobrać [tutaj](https://github.com/bluepayment-plugin/autopay-payments/releases).
 
@@ -28,14 +32,16 @@ Autopay to moduł płatności umożliwiający realizację transakcji bezgotówko
 - płatności odroczone i ratalne
 - natywna integracja z Google Analytics 4 z poziomu wtyczki płatniczej Autopay
 - automatyczna weryfikacja poprawności konfiguracji danych autoryzacyjnych we wtyczce
+- wielojęzyczność – automatyczne dopasowanie do języka sklepu (EN, DE, IT, ES), a w przypadku innych języków – interfejs w języku angielskim
+- możliwość ręcznej zmiany kolejności metod płatności Autopay w panelu WooCommerce metodą drag & drop
 
 [Zarejestruj swój sklep!](https://autopay.pl/oferta/platnosci-online?utm_campaign=woocommerce&utm_source=woocommerce_description&utm_medium=offer_cta#kalkulator)
 
 
 **Wymagania**
 
-- WordPress – przetestowane na wersjach od 6.0 do 6.8.3
-- Wtyczka WooCommerce – przetestowano na wersjach od 8.1 do 10.2.2
+- WordPress – przetestowane na wersjach od 6.0 do 6.9
+- Wtyczka WooCommerce – przetestowano na wersjach od 8.1 do 10.4.3
 
 == Installation	 ==
 
@@ -76,6 +82,14 @@ Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla ś
 
 
 == Changelog ==
+
+### 4.8.0 (14 January 2026) ###
+* Translations of the plugin into Spanish, Italian and German have been added.
+* The ability to edit the name and description of payment methods in the administration panel and their presentation on the checkout page has been added.
+* Support for saving and reading the display order of payment methods on the checkout page has been added.
+* The frontend layer has been adjusted to present payment methods according to the configured order on checkout.
+* Paywall v3 – better support for payment option grouping.
+* The ‘Test Connection’ function has been expanded with additional verification of the shop configuration on the customer's side.
 
 ### 4.7.1 (20 November 2025) ###
 * Changes to messages for test connection for the new supported version of PHP 8.3

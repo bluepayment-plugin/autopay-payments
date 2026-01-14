@@ -102,6 +102,16 @@ class Auditor {
 		$id          = substr( $unique, 0, 10 );
 		$obj         = new self( $id );
 		$obj->status = $obj->build_status();
+
+		// Pretty, human-readable configuration snapshot and plugin inventory
+		try {
+			$obj->log_config_snapshot();
+			$obj->log_installed_plugins();
+		} catch ( \Throwable $e ) {
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[Auditor] [snapshot_error] %s', (string) $e->getMessage() )
+			);
+		}
 		$obj->save();
 
 		return $obj;
@@ -751,5 +761,137 @@ class Auditor {
 
 	public function is_zip_not_found(): bool {
 		return $this->zip_not_found;
+	}
+
+	/**
+	 * Produce a readable Autopay configuration snapshot in logs.
+	 */
+	private function log_config_snapshot(): void {
+		$settings = get_option( 'woocommerce_bluemedia_settings' );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		$currency_manager         = blue_media()->get_currency_manager();
+		$shop_currency_code       = method_exists( $currency_manager, 'get_shop_currency' ) && $currency_manager->get_shop_currency()
+			? $currency_manager->get_shop_currency()->get_code()
+			: '';
+		$active_currencies        = $currency_manager->get_selected_currencies();
+		$active_currency_code_map = array_keys( $active_currencies );
+
+		$testmode         = isset( $settings['testmode'] ) && $settings['testmode'] === 'yes' ? 'yes' : 'no';
+		$whitelabel       = isset( $settings['whitelabel'] ) && $settings['whitelabel'] === 'yes' ? 'yes' : 'no';
+		$blik_type        = isset( $settings['blik_type'] ) ? (string) $settings['blik_type'] : '';
+		$ga4_has_tracking = empty( $settings['ga4_tracking_id'] ) ? 'no' : 'yes';
+		$debug_mode       = isset( $settings['debug_mode'] ) && $settings['debug_mode'] === 'yes' ? 'yes' : 'no';
+		$sandbox_admins   = isset( $settings['sandbox_for_admins'] ) && $settings['sandbox_for_admins'] === 'yes' ? 'yes' : 'no';
+		$gateway_url      = isset( $settings['gateway_url'] ) ? (string) $settings['gateway_url'] : '';
+		$test_gateway_url = isset( $settings['test_gateway_url'] ) ? (string) $settings['test_gateway_url'] : '';
+
+		$per_currency_lines = [];
+		foreach ( $active_currencies as $currency ) {
+			$code = $currency->get_code();
+			$lc   = strtolower( $code );
+			$prod_service = $this->mask_id( $settings[ 'service_id_' . $lc ] ?? ( $settings['service_id'] ?? '' ) );
+			$prod_hash    = $this->mask_secret( $settings[ 'private_key_' . $lc ] ?? ( $settings['private_key'] ?? '' ) );
+			$test_service = $this->mask_id( $settings[ 'test_service_id_' . $lc ] ?? ( $settings['test_service_id'] ?? '' ) );
+			$test_hash    = $this->mask_secret( $settings[ 'test_private_key_' . $lc ] ?? ( $settings['test_private_key'] ?? '' ) );
+			$per_currency_lines[] = sprintf( '%s: prod{service_id=%s, hash=%s} test{service_id=%s, hash=%s}',
+				$code,
+				$prod_service,
+				$prod_hash,
+				$test_service,
+				$test_hash
+			);
+		}
+
+		$header = '[Auditor] [snapshot] Autopay Config Snapshot';
+		$body   = sprintf( "\n  shop_currency: %s\n  active_currencies: %s\n  testmode: %s\n  whitelabel: %s\n  blik_type: %s\n  ga4_tracking_present: %s\n  debug_mode: %s\n  sandbox_for_admins: %s\n  gateway_url: %s\n  test_gateway_url: %s\n  per_currency:\n    - %s",
+			(string) $shop_currency_code,
+			implode( ',', $active_currency_code_map ),
+			$testmode,
+			$whitelabel,
+			$blik_type,
+			$ga4_has_tracking,
+			$debug_mode,
+			$sandbox_admins,
+			$gateway_url,
+			$test_gateway_url,
+			implode( "\n    - ", $per_currency_lines )
+		);
+
+		blue_media()->get_woocommerce_logger()->log_debug( $header . $body );
+
+		// Raw settings (masked) for full visibility
+		$masked_settings = $this->mask_settings_recursive( $settings );
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[Auditor] [snapshot] Autopay Raw Settings (masked): %s', print_r( $masked_settings, true ) )
+		);
+	}
+
+	/**
+	 * Log all installed plugins with versions (active status marked).
+	 */
+	private function log_installed_plugins(): void {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		$plugins = function_exists( 'get_plugins' ) ? get_plugins() : [];
+		if ( empty( $plugins ) ) {
+			return;
+		}
+
+		$lines = [];
+		foreach ( $plugins as $plugin_file => $plugin_data ) {
+			$name    = isset( $plugin_data['Name'] ) ? $plugin_data['Name'] : $plugin_file;
+			$version = isset( $plugin_data['Version'] ) ? $plugin_data['Version'] : '';
+			$active  = function_exists( 'is_plugin_active' ) && is_plugin_active( $plugin_file ) ? 'active' : 'inactive';
+			$lines[] = sprintf( '%s (v%s) - %s', $name, $version, $active );
+		}
+
+		$header = '[Auditor] [snapshot] Installed plugins';
+		$body   = "\n  - " . implode( "\n  - ", $lines );
+		blue_media()->get_woocommerce_logger()->log_debug( $header . $body );
+	}
+
+	private function mask_secret( string $value ): string {
+		$len = strlen( $value );
+		if ( $len <= 8 ) {
+			return $len ? str_repeat( '*', max( 0, $len - 2 ) ) . substr( $value, -2 ) : '';
+		}
+
+		return substr( $value, 0, 4 ) . str_repeat( '*', $len - 8 ) . substr( $value, -4 );
+	}
+
+	private function mask_id( $value ): string {
+		$value = (string) $value;
+		$len   = strlen( $value );
+		if ( $len <= 6 ) {
+			return $len ? substr( $value, 0, 1 ) . str_repeat( '*', max( 0, $len - 2 ) ) . substr( $value, -1 ) : '';
+		}
+
+		return substr( $value, 0, 3 ) . str_repeat( '*', $len - 6 ) . substr( $value, -3 );
+	}
+
+	private function mask_settings_recursive( array $settings ): array {
+		$masked = [];
+		foreach ( $settings as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$masked[ $key ] = $this->mask_settings_recursive( $value );
+				continue;
+			}
+			$lk = strtolower( (string) $key );
+			if ( strpos( $lk, 'hash' ) !== false
+			     || strpos( $lk, 'secret' ) !== false
+			     || ( strpos( $lk, 'key' ) !== false && strpos( $lk, 'whitelabel' ) === false )
+			     || strpos( $lk, 'token' ) !== false
+			     || strpos( $lk, 'password' ) !== false ) {
+				$masked[ $key ] = $this->mask_secret( (string) $value );
+			} else if ( strpos( $lk, 'service_id' ) !== false ) {
+				$masked[ $key ] = $this->mask_id( (string) $value );
+			} else {
+				$masked[ $key ] = $value;
+			}
+		}
+
+		return $masked;
 	}
 }

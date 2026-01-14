@@ -390,15 +390,6 @@ class Currency {
 
 	private function handle() {
 
-		if ( isset( $_GET['reset'] ) ) {
-			blue_media()
-				->update_autopay_option( self::SELECTED_CURRENCIES_OPT_KEY,
-					[] );
-
-			return;
-		}
-
-
 		if ( isset( $_POST['autopay_currency_edit'] ) && is_array( $_POST['autopay_currency_edit'] ) ) {
 
 			$params = $_POST['autopay_currency_edit'];

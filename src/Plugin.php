@@ -258,6 +258,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			blue_media()->get_plugin_version(),
 			true );
 
+
 		$ga4_tracking_id = ( new Ga4_Service_Client() )->get_tracking_id();
 
 		if ( $ga4_tracking_id ) {
@@ -291,6 +292,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				);
 			}
 		}
+
 	}
 
 	/**
@@ -383,7 +385,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				    $mapped_status = substr( $mapped_status, 3 );
 			    }
 
-				//todo maping $mapped_status and $event->get_new_status() (logger)
+			    //todo maping $mapped_status and $event->get_new_status() (logger)
 			    return $event->get_new_status() === $mapped_status;
 		    } )
 		    ->action( function ( Wc_Order_Aware_Interface $order_aware_interface
@@ -559,9 +561,11 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	private function init_payment_gateway() {
 		add_filter( 'woocommerce_payment_gateways',
 			function ( $gateways ) {
-				$shop_currency = $this->get_currency_manager()->get_shop_currency();
+				$shop_currency = $this->get_currency_manager()
+				                      ->get_shop_currency();
 
-				if ( false === is_admin() && ( null === $shop_currency || false === $this->get_currency_manager()->is_currency_selected( $shop_currency->get_code() ) ) ) {
+				if ( false === is_admin() && ( null === $shop_currency || false === $this->get_currency_manager()
+				                                                                         ->is_currency_selected( $shop_currency->get_code() ) ) ) {
 
 					self::$inactive_on_frontend = true;
 
@@ -610,7 +614,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 
 				blue_media()->get_woocommerce_logger()->log_debug(
 					sprintf( '[return_redirect_handler] [order: %s]',
-						$order
+						$order->get_id()
 					) );
 
 
@@ -692,11 +696,12 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			$currency_tabs = new Currency_Tabs();
 
 			return $currency_tabs->get_active_tab_currency()
-			                     ? $currency_tabs->get_active_tab_currency()->get_code()
-			                     : null;
+				? $currency_tabs->get_active_tab_currency()->get_code()
+				: null;
 		}
 
 		$shop_currency = self::get_currency_manager()->get_shop_currency();
+
 		return $shop_currency ? $shop_currency->get_code() : null;
 	}
 
@@ -830,7 +835,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 			     ->update_option( $key, $value );
 		} else {
 			$settings = get_option( 'woocommerce_bluemedia_settings' );
-			if ( is_array( $settings ) && ! empty( $settings[ $key ] ) ) {
+			if ( is_array( $settings ) ) {
 				$settings[ $key ] = $value;
 				update_option( 'woocommerce_bluemedia_settings', $settings );
 			}

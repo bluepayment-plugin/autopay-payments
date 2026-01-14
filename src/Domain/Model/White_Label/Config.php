@@ -160,13 +160,14 @@ class Config {
 		return $blik0_html;
 	}
 
-	private function get_card_html_info(): string {
+	private function get_gpay_html_info(): string {
 		ob_start();
-		blue_media()->locate_template( 'card.php' );
-		$card_html = ob_get_contents();
+		blue_media()->locate_template( 'google_pay.php',
+			[ 'response_data' => $this->gpay_form_data ] );
+		$html = ob_get_contents();
 		ob_end_clean();
 
-		return $card_html;
+		return $html;
 	}
 
 	private function get_alior_html_info(): string {

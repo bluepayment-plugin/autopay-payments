@@ -51,7 +51,12 @@ class Group_Mapper {
 				$result[]                  = $group;
 				$unspecified_ids_group_key = array_keys( $result )[ count( $result ) - 1 ];
 			} else {
-				foreach ( $this->raw_channels_from_bm_api as $raw_channel ) {
+				foreach ( $this->raw_channels_from_bm_api as $raw_channel_data ) {
+					$raw_channel = $this->normalize_channel_item( $raw_channel_data );
+					if ( null === $raw_channel ) {
+						continue;
+					}
+
 					if ( ! $this->check_amount_range( $raw_channel ) ) {
 						continue;
 					}
@@ -65,16 +70,17 @@ class Group_Mapper {
 							$instance_created = true;
 						}
 
-						$gateway_name = $config_item['extra_html'] ?? $raw_channel->name;
-						$extra_class  = $config_item['extra_class'] ?? null;
-						$extra_script = $config_item['extra_script'] ?? null;
+						$gateway_name       = $raw_channel->description ?? $config_item['extra_html'] ?? null;
+						$block_gateway_name = $raw_channel->description ?? null;
+						$extra_class        = $config_item['extra_class'] ?? null;
+						$extra_script       = $config_item['extra_script'] ?? null;
 
 						$group->push_item( ( new Item( $raw_channel->name,
 							$raw_channel->gatewayID,
 							$raw_channel->iconUrl, $extra_class,
 							$extra_script,
 							$gateway_name,
-							null ) ) );
+							$block_gateway_name ) ) );
 					} elseif ( ! in_array( $raw_channel->gatewayID,
 						$ids_from_config ) ) {
 						$unknown_raw_channels[ $raw_channel->gatewayID ] = $raw_channel;
@@ -106,11 +112,10 @@ class Group_Mapper {
 	}
 
 	private function check_amount_range( $gateway_obj ) {
-		blue_media()->get_woocommerce_logger('payment gateways debug')->log_debug(
-			sprintf( '[Group mapper] [check_amount_range] [gateway_obj: %s]',
-				print_r( $gateway_obj, true )
-			) );
-
+		$gateway_obj = $this->normalize_channel_item( $gateway_obj );
+		if ( null === $gateway_obj ) {
+			return true;
+		}
 		if ( ! property_exists( $gateway_obj,
 				'currencies' ) || ! is_array( $gateway_obj->currencies ) ) {
 			return true;
@@ -177,7 +182,11 @@ class Group_Mapper {
 				$result[]                  = $group;
 				$unspecified_ids_group_key = array_keys( $result )[ count( $result ) - 1 ];
 			} else {
-				foreach ( $this->raw_channels_from_bm_api as $raw_channel ) {
+				foreach ( $this->raw_channels_from_bm_api as $raw_channel_data ) {
+					$raw_channel = $this->normalize_channel_item( $raw_channel_data );
+					if ( null === $raw_channel ) {
+						continue;
+					}
 
 					if ( in_array( $raw_channel->gatewayID,
 						$config_item['ids'] ) ) {
@@ -256,7 +265,12 @@ class Group_Mapper {
 				$result[]                  = $group;
 				$unspecified_ids_group_key = array_keys( $result )[ count( $result ) - 1 ];
 			} else {
-				foreach ( $this->raw_channels_from_bm_api as $raw_channel ) {
+				foreach ( $this->raw_channels_from_bm_api as $raw_channel_data ) {
+					$raw_channel = $this->normalize_channel_item( $raw_channel_data );
+					if ( null === $raw_channel ) {
+						continue;
+					}
+
 					if ( ! $this->check_amount_range( $raw_channel ) ) {
 						continue;
 					}
@@ -318,5 +332,26 @@ class Group_Mapper {
 		}
 
 		return $result_arr;
+	}
+
+	/**
+	 * Convert incoming channel data (array/object) into stdClass or null.
+	 *
+	 * @param mixed $channel
+	 *
+	 * @return object|null
+	 */
+	private function normalize_channel_item( $channel ): ?object {
+		if ( is_object( $channel ) ) {
+			return $channel;
+		}
+
+		if ( is_array( $channel ) ) {
+			$decoded = json_decode( wp_json_encode( $channel ) );
+
+			return is_object( $decoded ) ? $decoded : null;
+		}
+
+		return null;
 	}
 }

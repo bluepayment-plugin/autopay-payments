@@ -1,5 +1,13 @@
 *** Autopay Changelog ***
 
+### [4.8.0] 2026-01-14 ###
+- Translations of the plugin into Spanish, Italian and German have been added.
+- The ability to edit the name and description of payment methods in the administration panel and their presentation on the checkout page has been added.
+- Support for saving and reading the display order of payment methods on the checkout page has been added.
+- The frontend layer has been adjusted to present payment methods according to the configured order on checkout.
+- Paywall v3 – better support for payment option grouping.
+- The ‘Test Connection’ function has been expanded with additional verification of the shop configuration on the customer's side.
+
 ### [4.7.1] 2025-11-20 ###
 - Changes to messages for test connection for the new supported version of PHP 8.3
 - Changes to the text of the plugin configuration instructions

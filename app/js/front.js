@@ -54,17 +54,17 @@ function addCurrentClass(el) {
 
 var bm_global_update_checkout_in_progress = 1;
 var bm_global_timer = null;
-
+var bm_checkout_locked_by = '';
 
 
 jQuery(document).ready(function () {
-  jQuery('body').on('update_checkout', function() {
+  jQuery('body').on('update_checkout', function () {
     bm_global_update_checkout_in_progress = 1;
     const bm_payment_channel_items = document.querySelectorAll(".bm-payment-channels-wrapper .bm-payment-channel-item > label > input[type='radio']");
     const bm_gateway_bank_group = document.querySelector("#bm-gateway-bank-group");
 
-    if(bm_gateway_bank_group && bm_gateway_bank_group.checked) {
-      const checkUpdateComplete = setInterval(function() {
+    if (bm_gateway_bank_group && bm_gateway_bank_group.checked) {
+      const checkUpdateComplete = setInterval(function () {
         if (bm_global_update_checkout_in_progress === 0) {
           const bm_payment_channel_group_item = document.querySelector(".bm-group-przelew-internetowy .bm-payment-channel-group-item");
           const bm_group_expandable_wrapper = document.querySelector(".bm-group-przelew-internetowy  .bm-group-expandable-wrapper");
@@ -83,7 +83,7 @@ jQuery(document).ready(function () {
     if (bm_payment_channel_items) {
       bm_payment_channel_items.forEach((element) => {
         if (element.checked) {
-          const checkUpdateComplete = setInterval(function() {
+          const checkUpdateComplete = setInterval(function () {
             if (bm_global_update_checkout_in_progress === 0) {
               clearInterval(checkUpdateComplete);
 

@@ -5,8 +5,12 @@ namespace Ilabs\BM_Woocommerce\Gateway;
 use Exception;
 use Ilabs\BM_Woocommerce\Data\Remote\Blue_Media\Client;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group;
-use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Expandable_Group_Interface;
+use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway as View_Model_Gateway;
+use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway_List_Response_Factory;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\Group;
+use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway_List_Response;
+use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\View_Model\View_Model_Group;
+use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\View_Model\View_Model_Group_Factory;
 use Ilabs\BM_Woocommerce\Domain\Service\Currency\Interfaces\Currency_Interface;
 use Ilabs\BM_Woocommerce\Domain\Service\Legacy\Importer;
 use Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Manager;
@@ -20,7 +24,6 @@ use SimpleXMLElement;
 use WC_Order;
 use WC_Payment_Gateway;
 use Ilabs\BM_Woocommerce\Gateway\Hooks\Payment_On_Account_Page;
-use function GuzzleHttp\Psr7\str;
 
 class Blue_Media_Gateway extends WC_Payment_Gateway {
 
@@ -30,6 +33,8 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 	const BLIK_0_CHANNEL = 509;
 
+	const GPAY_CHANNEL = 1512;
+
 	const CARD_CHANNEL = 1500;
 
 	const ITN_SUCCESS_STATUS_ID = 'SUCCESS';
@@ -37,6 +42,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	const ITN_PENDING_STATUS_ID = 'PENDING';
 
 	const ITN_FAILURE_STATUS_ID = 'FAILURE';
+
+	private const SPLIT_GROUP_SLUGS = [
+		'wallet',   // Apple Pay / Google Pay
+		'bnpl',     // Kup teraz, zapłać później / PayPo
+		'fr',       // Volkswagen / SGB / Other banks
+	];
 
 	/**
 	 * @var string
@@ -71,7 +82,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	private $payment_on_account_page = false;
 
 	private Settings_Manager $settings_manager;
+	private \Ilabs\BM_Woocommerce\Assets\AssetManager $asset_manager;
 
+	/**
+	 * Cached HTML snippet for inline BLIK-0 form.
+	 *
+	 * @var string|null
+	 */
+	private ?string $blik_inline_template = null;
 
 	/**
 	 *
@@ -106,11 +124,16 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$this->init_form_fields();
 		$this->init_settings();
 
-		$this->title = __( 'Autopay gateway',
-			'bm-woocommerce' );
+		$this->title = $this->get_option(
+			'payment_method_title',
+			__( 'Autopay gateway', 'bm-woocommerce' )
+		);
 
-		$this->description = __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
-			'bm-woocommerce' );
+		$this->description = $this->get_option(
+			'payment_method_description',
+			__( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
+				'bm-woocommerce' )
+		);
 		$this->enabled     = $this->get_option( 'enabled' );
 		$this->testmode    = $this->resolve_is_test_mode();
 
@@ -124,17 +147,31 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		$this->setup_variables();
 
+		// Initialize dependencies
+		$plugin_base_file    = dirname( __DIR__,
+				2 ) . '/bluemedia-woocommerce.php';
+		$this->asset_manager = new \Ilabs\BM_Woocommerce\Assets\AssetManager(
+			blue_media()->get_plugin_version(),
+			$plugin_base_file
+		);
+
+		// Initialize asset loading
+		$this->asset_manager->init();
+
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id,
 			[ $this, 'process_admin_options' ] );
 
 		// Clear gateway list cache when language changes
-		add_action( 'update_option_WPLANG', [ $this, 'clear_gateway_list_cache' ] );
+		add_action( 'update_option_WPLANG',
+			[ $this, 'clear_gateway_list_cache' ] );
 
 		if ( isset( $_GET['autopay_express_payment'] ) || isset( $_GET['autopay_payment_on_account_page'] ) ) {
 			if ( is_object( WC()->session ) && ! wp_doing_ajax() ) {
 				if ( ! empty( WC()->session->get( 'bm_order_payment_params' ) ) ) {
 					$params
 						= WC()->session->get( 'bm_order_payment_params' )['params'];
+
+					$order_id = (int) $params['OrderID'];
 
 					if ( $this->can_redirect_to_payment_gateway( (int) $params['OrderID'] ) ) {
 						WC()->session->set( 'bm_order_payment_params', null );
@@ -211,6 +248,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 								serialize( $params ),
 								$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
 							) );
+
+						$this->redirect_to_3ds( $order_id );
+
 					}
 				} else {
 					blue_media()->get_woocommerce_logger()->log_debug(
@@ -241,6 +281,12 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$wc_order = wc_get_order( $order_id );
 
 		if ( ! $wc_order ) {
+			return false;
+		}
+
+		$_3ds_redirect_url = $wc_order->get_meta( 'bm_3ds_redirect_url' );
+
+		if ( ! empty( $_3ds_redirect_url ) ) {
 			return false;
 		}
 
@@ -276,8 +322,35 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $return_filtered;
 	}
 
-	public function setup_variables( ?Currency_Interface $forced_currency = null,
-		bool $ignore_for_admin = false
+
+	private function redirect_to_3ds( int $order_id ) {
+		$wc_order = wc_get_order( $order_id );
+
+		if ( ! $wc_order ) {
+			return;
+		}
+
+		$_3ds_redirect_url = $wc_order->get_meta( 'bm_3ds_redirect_url' );
+
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf( '[_3ds_redirect_url: %s]',
+				$_3ds_redirect_url )
+		);
+
+		if ( ! empty( $_3ds_redirect_url ) ) {
+			$wc_order->delete_meta_data( 'bm_3ds_redirect_url' );
+			$wc_order->add_meta_data( 'bm_transaction_init_params',
+				[ '3ds' ] );
+
+			$wc_order->save_meta_data();
+
+			wp_redirect( $_3ds_redirect_url );
+			exit;
+		}
+	}
+
+	public function setup_variables( ?Currency_Interface $forced_currency = null
 	) {
 		if ( $forced_currency ) {
 			$currency = $forced_currency->get_code();
@@ -285,12 +358,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			$currency = blue_media()->resolve_blue_media_currency_symbol();
 		}
 
-		$use_testmode = $this->testmode;
-		if ( $ignore_for_admin ) {
-			$use_testmode = ( 'yes' === $this->get_option( 'testmode', 'no' ) );
-		}
-
-		if ( $use_testmode ) {
+		if ( $this->testmode ) {
 			$test_gateway_url = $this->get_option( 'test_gateway_url' );
 			if ( Helper::is_string_url( $test_gateway_url ) ) {
 				$test_gateway_url                   = Helper::format_gateway_url( $test_gateway_url );
@@ -363,20 +431,34 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return 'yes' === $whitelabel;
 	}
 
+
 	/**
 	 * @return void
 	 * @throws Exception
 	 */
 	public function payment_fields() {
 		if ( $this->is_whitelabel_mode_enabled() ) {
+			$gpay_form_data = [];
 			try {
+				$gateway_list_data = $this->gateway_list();
 
-				$gateway_list = $this->gateway_list();
+				if ( empty( $gateway_list_data ) ) {
+					throw new Exception( 'Gateway list data is empty.' );
+				}
+
+				$gateway_list_response        = ( new Gateway_List_Response_Factory() )->create( $gateway_list_data );
+
+				$this->render_channels_v3( $gateway_list_response,
+					$gpay_form_data );
+
 			} catch ( Exception $exception ) {
-				$gateway_list = [];
+				blue_media()->get_woocommerce_logger()->log_error(
+					sprintf( '[payment_fields] Could not render payment channels. Error: %s',
+						$exception->getMessage() )
+				);
+				echo __( 'Payment methods are currently unavailable. Please try again later.',
+					'bm-woocommerce' );
 			}
-
-			$this->render_channels( $gateway_list );
 		} else {
 			echo wpautop( wptexturize( $this->description ) );
 		}
@@ -423,6 +505,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			$payment_channel = (int) $_POST['autopay_numeric_channel_id'] ?? null;
 		}
 		$is_blik_0 = false;
+		$is_gpay   = false;
 
 		if ( 0 === $payment_channel && $this->is_whitelabel_mode_enabled() ) {
 			if ( isset( $_POST['bm-payment-channel'] ) ) {//nie pokazuj błędu w module blokowym w opcji z przekierowaniem
@@ -483,7 +566,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				print_r( wc_get_order_statuses(), true )
 			) );
 
-		if ( ! $is_blik_0 ) {
+		if ( ! $is_blik_0 && ! $is_gpay ) {
 			$this->update_order_status( $order, 'pending' );
 			$order->add_order_note( __( 'Autopay: Payment process started for order ID:',
 					'bm-woocommerce' ) . $order_id );
@@ -620,7 +703,6 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
-
 	private function process_blik_0_payment(
 		WC_Order $order,
 		string $blik_authorization_code,
@@ -739,10 +821,22 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 	private function schedule_remove_unpaid_orders( int $order_id ) {
-		$woocommerce_hold_stock_minutes = (int) get_option( 'woocommerce_hold_stock_minutes' );
+		$woocommerce_hold_stock_minutes     = (int) get_option( 'woocommerce_hold_stock_minutes' );
+		$woocommerce_hold_stock_minutes_old = $woocommerce_hold_stock_minutes;
+
 
 		if ( $woocommerce_hold_stock_minutes > 0 ) {
 			$woocommerce_hold_stock_minutes *= 60;
+			blue_media()
+				->get_woocommerce_logger( 'schedule_remove_unpaid_orders' )
+				->log_debug( sprintf( '[webhook] [%s]',
+					print_r( [
+						'order_id'                             => $order_id,
+						'old woocommerce_hold_stock_minutes: ' => $woocommerce_hold_stock_minutes_old,
+						'new woocommerce_hold_stock_minutes: ' => $woocommerce_hold_stock_minutes,
+					], true )
+				) );
+
 			if ( ! wp_next_scheduled( 'bm_cancel_failed_pending_order_after_one_hour',
 				[ $order_id ] ) ) {
 				wp_schedule_single_event( time() + $woocommerce_hold_stock_minutes,
@@ -1246,15 +1340,14 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	/**
 	 * @throws Exception
 	 */
-	private
-	function api_get_gateway_list(
+	private function api_get_gateway_list(
 		?string $currency_code = null
 
 	): ?array {
 		$service_id = $this->service_id;
 		$message_id = substr( bin2hex( random_bytes( 32 ) ), 32 );
 		$currencies = $currency_code ?: blue_media()->resolve_blue_media_currency_symbol();
-		$language = $this->get_wordpress_language();
+		$language   = $this->get_wordpress_language();
 
 		$params = [
 			'ServiceID'  => $service_id,
@@ -1295,21 +1388,21 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 
 		if ( is_wp_error( $result ) ) {
 			blue_media()->get_woocommerce_logger()->log_error(
-				sprintf( '[gatewayList/v2] [error message: %s]',
+				sprintf( '[gatewayList/v3] [error message: %s]',
 					$result->get_error_message()
 				) );
 		}
 
-		$result_decoded = json_decode( wp_remote_retrieve_body( $result ) );
+		$result_decoded = json_decode( wp_remote_retrieve_body( $result ),
+			true );
 
 
-		if ( is_object( $result_decoded )
-			 && property_exists( $result_decoded,
-				'result' )
-			 && $result_decoded->result === 'ERROR' ) {
+		if ( is_array( $result_decoded )
+			 && isset( $result_decoded['result'] )
+			 && $result_decoded['result'] === 'ERROR' ) {
 
 			blue_media()->get_woocommerce_logger()->log_error( $message =
-				sprintf( '[gatewayList/v2] [URL: %s] [Error: %s]',
+				sprintf( '[gatewayList/v3] [URL: %s] [Error: %s]',
 					$url,
 					print_r( $result_decoded, true )
 				) );
@@ -1317,12 +1410,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			throw new Exception( $message );
 		}
 
-		if ( is_object( $result_decoded ) && property_exists( $result_decoded,
-				'gatewayList' ) ) {
+		if ( is_array( $result_decoded ) && isset( $result_decoded['gatewayList'] ) ) {
 
-			if ( empty( $result_decoded->gatewayList ) ) {
+			if ( empty( $result_decoded['gatewayList'] ) ) {
 				blue_media()->get_woocommerce_logger()->log_error( $message =
-					sprintf( '[gatewayList/v2] [URL: %s] [Empty results: %s]',
+					sprintf( '[gatewayList/v3] [URL: %s] [Empty results: %s]',
 						$url,
 						serialize( $result_decoded )
 					) );
@@ -1330,7 +1422,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				throw new Exception( $message );
 			}
 
-			blue_media()->get_woocommerce_logger('paywall_v3')->log_debug(
+			blue_media()->get_woocommerce_logger( 'paywall_v3' )->log_debug(
 				sprintf( '[api_get_gateway_list] [%s]',
 					print_r(
 						[
@@ -1340,11 +1432,11 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			);
 
 
-			return $result_decoded->gatewayList;
+			return $result_decoded;
 		}
 
 		blue_media()->get_woocommerce_logger()->log_error( $message =
-			sprintf( '[gatewayList/v2] [URL: %s] [Failed decode results: %s]',
+			sprintf( '[gatewayList/v3] [URL: %s] [Failed decode results: %s]',
 				$url,
 				serialize( $result )
 			) );
@@ -1376,27 +1468,27 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			'pt_PT' => 'PT',
 			'pt_BR' => 'PT',
 			'ru_RU' => 'RU',
-			'uk' => 'UK',
+			'uk'    => 'UK',
 			'cs_CZ' => 'CS',
 			'sk_SK' => 'SK',
 			'hu_HU' => 'HU',
 			'ro_RO' => 'RO',
 			'bg_BG' => 'BG',
-			'hr' => 'HR',
+			'hr'    => 'HR',
 			'sl_SI' => 'SL',
-			'et' => 'ET',
-			'lv' => 'LV',
-			'lt' => 'LT',
-			'fi' => 'FI',
+			'et'    => 'ET',
+			'lv'    => 'LV',
+			'lt'    => 'LT',
+			'fi'    => 'FI',
 			'sv_SE' => 'SV',
 			'da_DK' => 'DA',
 			'nl_NL' => 'NL',
 			'nl_BE' => 'NL',
-			'el' => 'EL',
+			'el'    => 'EL',
 			'tr_TR' => 'TR',
 		];
 
-		$language_code = $language_map[$locale] ?? 'PL';
+		$language_code = $language_map[ $locale ] ?? 'PL';
 
 		// Log language detection for debugging
 		blue_media()->get_woocommerce_logger()->log_debug(
@@ -1429,30 +1521,31 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		);
 	}
 
-	/**
-	 * @param array $channels
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
+
 	public
-	function render_channels(
-		array $channels
+	function render_channels_v3(
+		Gateway_List_Response $gateway_list_response,
+		array $temporary_ignore_this_param = []
 	) {
+		$group_arr = ( new View_Model_Group_Factory() )->create( $gateway_list_response );
+		$group_arr = $this->sort_groups_by_saved_order( $group_arr );
+		$group_arr = $this->apply_special_gateway_descriptions( $group_arr );
 
-
-		$group_arr = ( new Group_Mapper( $channels ) )->map();
 
 		$payment_names = [];
 		foreach ( $group_arr as $group ) {
-			$payment_names[] = $group->get_name();
+			$payment_names[] = $group->getTitle();
 		}
 
 		echo '<div class="payment_box payment_method_bacs">';
-		echo '<p>' . __( implode( ', ', $payment_names ),
-				'bm-woocommerce' ) . '</p>';
-		echo '<p>' . __( 'Select the payment method you want to use.',
-				'bm-woocommerce' ) . '</p>';
+		// Use configured description. If it contains {methods} token, replace with available methods list.
+		$description_text = $this->description;
+		if ( false !== strpos( (string) $description_text, '{methods}' ) ) {
+			$description_text = str_replace( '{methods}',
+				implode( ', ', $payment_names ),
+				(string) $description_text );
+		}
+		echo wpautop( wptexturize( $description_text ) );
 		echo '</div>';
 		echo '<div class="payment_box payment_method_bacs">';
 		echo '<div class="bm-payment-channels-wrapper">';
@@ -1460,23 +1553,23 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			rand( 0, 1000 ) );
 
 		/**
-		 * @var Group[] $group_arr
+		 * @var View_Model_Group[] $group_arr
 		 */
 		foreach ( $group_arr as $group ) {
-			$expandable_Group = $group instanceof Expandable_Group;
+			$group_slug       = $this->get_group_slug( $group );
+			$expandable_Group = $group->isToggled();
 
-			if ( empty( $group->get_items() ) ) {
+			if ( empty( $group->getGateways() ) ) {
 				continue;
 			}
 
-			printf( "<div class='bm-group-%s%s'><li><ul>",
-				$group->get_slug(),
-				$expandable_Group ? ' bm-group-expandable' : '' );
+			printf( "<div class='bm-group-%s%s' data-slug='%s'><li><ul>",
+				$group_slug,
+				$expandable_Group ? ' bm-group-expandable' : '',
+				$group_slug );
 
 
 			if ( $expandable_Group ) {
-				// add radio before "PRZELEW INTERNETOWY" logo to add possibility
-				// show-hide list of banks
 				printf( '<li class="bm-payment-channel-group-item">
 							<label for="bm-gateway-bank-group">
 								<input type="radio" name="bm-payment-channel-group" id="bm-gateway-bank-group" >
@@ -1489,16 +1582,16 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							</span>
                         </span>
 						</li>',
-					$group->get_icon(),
-					$group->get_name(),
-					$group->get_subtitle()
+					$group->getIconUrl(),
+					$group->getTitle(),
+					$group->getShortDescription()
 				);
 
 				echo '<div class="bm-group-expandable-wrapper">';
 			}
 
 
-			foreach ( $group->get_items() as $item ) {
+			foreach ( $group->getGateways() as $item ) {
 				printf( '<li class="bm-payment-channel-item %s">
 							<label class="bm-payment-channel-label" for="bm-gateway-id-%s">
 								<input type="radio" name="bm-payment-channel" onclick="addCurrentClass(this)" data-index="0" id="bm-gateway-id-%s" value="%s" class="%s">
@@ -1507,19 +1600,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 							</label>
 							<span class="bm-payment-channel-method-desc">%s</span>
                         </li>',
-					(string) $item->get_class(),
-					$item->get_id(),
-					$item->get_id(),
-					$item->get_id(),
+					'',
+					$item->getGatewayID(),
+					$item->getGatewayID(),
+					$item->getGatewayID(),
 					$expandable_Group ? 'bm-payment-channel-group-in-group' : '',
-					$item->get_icon(),
-					$item->get_name(),
-					$item->get_description()
+					$item->getIconUrl(),
+					$item->getName(),
+					$item->getDescription()
 				);
-				$script = $item->get_script();
-				if ( $script ) {
-					echo $item->get_script();
-				}
 			}
 			if ( $expandable_Group ) {
 				echo '</div>';
@@ -1607,40 +1696,77 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 
-	public
-	function render_channels_for_admin_panel(
-		array $channels
+	public function render_channels_for_admin_panel(
+		Gateway_List_Response $gateway_list_response
 	) {
-		$group_arr = ( new Group_Mapper( $channels ) )->map_for_admin_panel();
+		$group_arr = ( new View_Model_Group_Factory() )->create( $gateway_list_response );
+		$group_arr = $this->sort_groups_by_saved_order( $group_arr );
 
 		echo '<ul id="shipping_method" class="woocommerce-shipping-methods payment_box payment_box_wpadmin payment_method_bacs bm-payment-channels__wrapper">';
 
 		/**
-		 * @var Group[] $group_arr
+		 * @var View_Model_Group[] $group_arr
 		 */
 		foreach ( $group_arr as $group ) {
 
-			$expandable_Group = $group instanceof Expandable_Group;
+			$expandable_Group = $group->isToggled();
+			$group_slug       = $this->get_group_slug( $group );
 
-			if ( empty( $group->get_items() ) ) {
+			if ( empty( $group->getGateways() ) ) {
 				continue;
 			}
 
-			printf( "<li class='bm-payment-channel bm-group-%s%s'><ul class='bm-payment-channel__wrapper'>",
-				$group->get_slug(),
-				$expandable_Group ? ' bm-group-expandable' : '' );
+			if ( $this->is_split_group( $group ) ) {
+				foreach ( $group->getGateways() as $gateway ) {
+					if ( ! $gateway instanceof View_Model_Gateway ) {
+						continue;
+					}
+
+					$gateway_slug = $this->get_gateway_slug( $gateway );
+
+					printf(
+						"<li class='bm-payment-channel bm-group-%s' data-slug='%s'><ul class='bm-payment-channel__wrapper'>",
+						esc_attr( $gateway_slug ),
+						esc_attr( $gateway_slug )
+					);
+
+					printf(
+						'<li class="bm-payment-channel__item bm-inside-single-item">
+							<img class="bm-payment-channel__logo" src="%s" alt="%s">
+							<p class="bm-payment-channel__desc bm-inside-single-item">%s</p>
+						</li>',
+						esc_url( $gateway->getIconUrl() ),
+						esc_attr( $gateway->getName() ),
+						esc_html( $gateway->getName() )
+					);
+
+					echo '</ul></li>';
+				}
+
+				continue;
+			}
+
+			printf( "<li class='bm-payment-channel bm-group-%s%s' data-slug='%s'><ul class='bm-payment-channel__wrapper'>",
+				esc_attr( $group_slug ),
+				$expandable_Group ? ' bm-group-expandable' : '',
+				esc_attr( $group_slug ) );
 
 			if ( $expandable_Group ) {
 				printf( "<p class='bm-group-name'>%s</p>",
-					$group->get_name() );
+					esc_html( $group->getTitle() ) );
 			}
 
-			foreach ( $group->get_items() as $item ) {
-				printf( '<li class="bm-payment-channel__item %s"><img class="bm-payment-channel__logo" src="%s"><p class="bm-payment-channel__desc %s">%s</p></li>',
-					(string) $item->get_class(),
-					$item->get_icon(),
+			foreach ( $group->getGateways() as $item ) {
+				if ( ! $item instanceof View_Model_Gateway ) {
+					continue;
+				}
+
+				printf( '<li class="bm-payment-channel__item %s"><img class="bm-payment-channel__logo" src="%s" alt="%s"><p class="bm-payment-channel__desc %s">%s</p></li>',
+					'',
+					esc_url( $item->getIconUrl() ),
+					esc_attr( $item->getName() ),
 					$expandable_Group ? 'bm-inside-expandable-group' : 'bm-inside-single-item',
-					$item->get_name(),
+					esc_html( $item->getName() )
 				);
 			}
 
@@ -1650,6 +1776,244 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		}
 
 		echo '</ul>';
+	}
+
+	/**
+	 * Apply saved drag-and-drop ordering to view-model groups.
+	 *
+	 * @param View_Model_Group[] $groups
+	 *
+	 * @return View_Model_Group[]
+	 */
+	private function sort_groups_by_saved_order( array $groups ): array {
+		$saved_order = $this->get_saved_group_order();
+
+		if ( empty( $saved_order ) || empty( $groups ) ) {
+			return $groups;
+		}
+
+		$slug_to_group      = [];
+		$gateway_pref_order = [];
+
+		foreach ( $groups as $group ) {
+			if ( ! $group instanceof View_Model_Group ) {
+				continue;
+			}
+
+			$group_slug                   = $this->get_group_slug( $group );
+			$slug_to_group[ $group_slug ] = $group;
+
+			if ( $this->is_split_group( $group ) ) {
+				foreach ( $group->getGateways() as $gateway ) {
+					if ( ! $gateway instanceof View_Model_Gateway ) {
+						continue;
+					}
+					$slug_to_group[ $this->get_gateway_slug( $gateway ) ] = $group;
+				}
+			}
+		}
+
+		$sorted = [];
+		$added  = [];
+
+		foreach ( $saved_order as $slug ) {
+			if ( isset( $slug_to_group[ $slug ] ) ) {
+				$group      = $slug_to_group[ $slug ];
+				$group_slug = $this->get_group_slug( $group );
+
+				if ( $this->is_split_group( $group ) && 0 === strpos( $slug,
+						'gateway-' ) ) {
+					$gateway_pref_order[ $group_slug ][] = $slug;
+				}
+
+				if ( isset( $added[ $group_slug ] ) ) {
+					continue;
+				}
+
+				$sorted[]             = $group;
+				$added[ $group_slug ] = true;
+			}
+		}
+
+		foreach ( $groups as $group ) {
+			if ( ! $group instanceof View_Model_Group ) {
+				continue;
+			}
+			$group_slug = $this->get_group_slug( $group );
+			if ( isset( $added[ $group_slug ] ) ) {
+				continue;
+			}
+			$sorted[]             = $group;
+			$added[ $group_slug ] = true;
+		}
+
+		// Reorder gateways inside split groups according to saved preferences
+		foreach ( $sorted as $group ) {
+			if ( ! $group instanceof View_Model_Group ) {
+				continue;
+			}
+			if ( ! $this->is_split_group( $group ) ) {
+				continue;
+			}
+
+			$gateways = $group->getGateways();
+			if ( empty( $gateways ) ) {
+				continue;
+			}
+
+			$gateway_map = [];
+			foreach ( $gateways as $gateway ) {
+				if ( ! $gateway instanceof View_Model_Gateway ) {
+					continue;
+				}
+				$gateway_map[ $this->get_gateway_slug( $gateway ) ] = $gateway;
+			}
+
+			$ordered    = [];
+			$group_slug = $this->get_group_slug( $group );
+
+			if ( isset( $gateway_pref_order[ $group_slug ] ) ) {
+				foreach ( $gateway_pref_order[ $group_slug ] as $slug ) {
+					if ( isset( $gateway_map[ $slug ] ) ) {
+						$ordered[] = $gateway_map[ $slug ];
+						unset( $gateway_map[ $slug ] );
+					}
+				}
+			}
+
+			foreach ( $gateways as $gateway ) {
+				if ( ! $gateway instanceof View_Model_Gateway ) {
+					continue;
+				}
+				$slug = $this->get_gateway_slug( $gateway );
+				if ( isset( $gateway_map[ $slug ] ) ) {
+					$ordered[] = $gateway_map[ $slug ];
+					unset( $gateway_map[ $slug ] );
+				}
+			}
+
+			$group->setGateways( $ordered );
+		}
+
+		return $sorted;
+	}
+
+	/**
+	 * Attach legacy inline HTML snippets (e.g. BLIK-0 form) to selected gateways.
+	 *
+	 * @param View_Model_Group[] $groups
+	 *
+	 * @return View_Model_Group[]
+	 */
+	private function apply_special_gateway_descriptions( array $groups
+	): array {
+		if ( ! $this->is_inline_blik_enabled() ) {
+			return $groups;
+		}
+
+		$blik_html = $this->get_blik_inline_template();
+		if ( '' === $blik_html ) {
+			return $groups;
+		}
+
+		foreach ( $groups as $group ) {
+			if ( ! $group instanceof View_Model_Group ) {
+				continue;
+			}
+
+			foreach ( $group->getGateways() as $gateway ) {
+				if ( ! $gateway instanceof View_Model_Gateway ) {
+					continue;
+				}
+
+				if ( (int) $gateway->getGatewayID() !== self::BLIK_0_CHANNEL ) {
+					continue;
+				}
+
+				$gateway->setDescription( $blik_html );
+			}
+		}
+
+		return $groups;
+	}
+
+	private function is_inline_blik_enabled(): bool {
+		return 'blik_0_without_redirect' === $this->get_option( 'blik_type',
+				'with_redirect' );
+	}
+
+	private function get_blik_inline_template(): string {
+		if ( null !== $this->blik_inline_template ) {
+			return $this->blik_inline_template;
+		}
+
+		ob_start();
+		blue_media()->locate_template( 'blik_0.php' );
+		$this->blik_inline_template = (string) ob_get_clean();
+
+		return $this->blik_inline_template;
+	}
+
+	/**
+	 * Build stable identifier for group ordering / CSS hooks.
+	 */
+	private function get_group_slug( View_Model_Group $group ): string {
+		$source = $group->getType() ?: $group->getTitle();
+		$slug   = sanitize_title( $source );
+
+		if ( '' === $slug ) {
+			$slug = 'group-' . substr( md5( $group->getTitle() . '|' . $group->getOrder() ),
+					0,
+					8 );
+		}
+
+		return $slug;
+	}
+
+	private function is_split_group( View_Model_Group $group ): bool {
+		return in_array( $this->get_group_slug( $group ),
+			self::SPLIT_GROUP_SLUGS,
+			true );
+	}
+
+	/**
+	 * Build slug for individual gateway.
+	 */
+	private function get_gateway_slug( View_Model_Gateway $gateway ): string {
+		return 'gateway-' . (int) $gateway->getGatewayID();
+	}
+
+	/**
+	 * Retrieve normalized list of saved slugs from the admin UI.
+	 *
+	 * @return string[]
+	 */
+	private function get_saved_group_order(): array {
+		$saved = (string) get_option( 'bm_payment_methods_order', '' );
+
+		if ( '' === $saved ) {
+			return [];
+		}
+
+		$parts      = array_filter( array_map( 'trim',
+			explode( ',', $saved ) ) );
+		$normalized = [];
+
+		foreach ( $parts as $slug ) {
+			$slug = strtolower( $slug );
+
+			if ( 0 === strpos( $slug, 'bm-group-' ) ) {
+				$slug = substr( $slug, 9 );
+			}
+
+			$slug = sanitize_title( $slug );
+
+			if ( '' !== $slug ) {
+				$normalized[] = $slug;
+			}
+		}
+
+		return array_unique( $normalized );
 	}
 
 	/**
@@ -1698,10 +2062,86 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $result;
 	}
 
+	public function process_admin_options() {
+		// Enforce max lengths for custom fields before saving
+		if ( isset( $_POST[ $this->get_field_key( 'payment_method_title' ) ] ) ) {
+			$title = sanitize_text_field( wp_unslash( $_POST[ $this->get_field_key( 'payment_method_title' ) ] ) );
+			if ( mb_strlen( $title ) > 80 ) {
+				$title                                                   = mb_substr( $title,
+					0,
+					80 );
+				$_POST[ $this->get_field_key( 'payment_method_title' ) ] = $title;
+				\WC_Admin_Settings::add_error( __( 'Payment method title has been truncated to 80 characters.',
+					'bm-woocommerce' ) );
+			}
+		}
+		if ( isset( $_POST[ $this->get_field_key( 'payment_method_description' ) ] ) ) {
+			$desc = sanitize_textarea_field( wp_unslash( $_POST[ $this->get_field_key( 'payment_method_description' ) ] ) );
+			if ( mb_strlen( $desc ) > 500 ) {
+				$desc                                                          = mb_substr( $desc,
+					0,
+					500 );
+				$_POST[ $this->get_field_key( 'payment_method_description' ) ] = $desc;
+				\WC_Admin_Settings::add_error( __( 'Payment method description has been truncated to 500 characters.',
+					'bm-woocommerce' ) );
+			}
+		}
+
+		// Call parent to preserve default behaviour (save WooCommerce settings)
+		$result = parent::process_admin_options();
+
+		// Save custom order of payment methods if present
+		if ( isset( $_POST['bm_reset_order'] ) && '1' === $_POST['bm_reset_order'] ) {
+			// Remove custom ordering – revert to default
+			delete_option( 'bm_payment_methods_order' );
+
+			// Also reset custom title & description to defaults
+			$defaults_title = __( 'Autopay gateway', 'bm-woocommerce' );
+			$defaults_desc  = __( 'Instant payment, BLIK, credit card, Google Pay, Apple Pay',
+				'bm-woocommerce' );
+			$settings_key   = $this->get_option_key();
+			$settings_arr   = get_option( $settings_key, [] );
+			if ( ! is_array( $settings_arr ) ) {
+				$settings_arr = [];
+			}
+			$settings_arr['payment_method_title']       = $defaults_title;
+			$settings_arr['payment_method_description'] = $defaults_desc;
+			update_option( $settings_key, $settings_arr );
+			\WC_Admin_Settings::add_message( __( 'Title and description have been reset to defaults.',
+				'bm-woocommerce' ) );
+		} elseif ( isset( $_POST['bm_payment_methods_order'] ) ) {
+			$order = sanitize_text_field( wp_unslash( $_POST['bm_payment_methods_order'] ) );
+			update_option( 'bm_payment_methods_order', $order );
+		}
+
+		return $result;
+	}
+
 	public function admin_options() {
+		$active_tab_id = ( new \Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Tabs() )->get_active_tab_id();
+
+		// Hide Woo default save button on Payment settings tab; we will render our own row
+		if ( $active_tab_id === \Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Tabs::PAYMENT_SETTINGS_TAB_ID ) {
+			$GLOBALS['hide_save_button'] = true;
+		}
+
 		$this->settings_manager->render_settings(
 			$this->generate_settings_html( $this->get_form_fields(), false )
 		);
+
+		// Render custom submit row only on Payment settings tab (with flex spacing)
+		if ( $active_tab_id === \Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Tabs::PAYMENT_SETTINGS_TAB_ID ) {
+			echo '<p class="submit autopay-submit-row" style="display:flex;justify-content:space-between;align-items:center;text-align:center">';
+			echo '<button name="save" class="woocommerce-save-button components-button is-primary" type="submit" value="' . esc_attr__( 'Save changes',
+					'woocommerce' ) . '">' . esc_html__( 'Save changes',
+					'woocommerce' ) . '</button>';
+			echo '<button type="submit" name="bm_reset_order" value="1" id="bm-reset-order" style="background:none!important;border:0!important;box-shadow:none!important;text-shadow:none!important;padding:0!important;margin-left:8px!important;display:inline-flex!important;align-items:center!important;justify-content:right!important;text-align:center!important;color:#2271b1!important;text-decoration:underline!important">' . esc_html__( 'Reset to default',
+					'bm-woocommerce' ) . '</button>';
+			wp_nonce_field( 'woocommerce-settings' );
+			echo '</p>';
+		} else {
+			unset( $GLOBALS['hide_save_button'] );
+		}
 	}
 
 	public function get_gateway_url(): string {
