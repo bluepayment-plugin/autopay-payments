@@ -183,7 +183,7 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	}
 
 	public function woocommerce_block_support() {
-		$current_url   = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+		$current_url = ($_SERVER['HTTP_HOST'] ?? '') . ($_SERVER['REQUEST_URI'] ?? '');
 		$search_phrase = "order-received";
 		if ( strpos( $current_url, $search_phrase ) !== false ) {
 			return;
