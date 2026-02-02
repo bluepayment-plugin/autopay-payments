@@ -1,5 +1,13 @@
 *** Autopay Changelog ***
 
+### [4.8.1] 2026-02-02 ###
+- Added support for additional currencies: USD (US Dollar) and GBP (British Pound).
+- Improvements in ITN processing
+- Updated library versions (php-ga4-mp, GuzzleHTTP)
+- Fixed handling of unsupported currencies
+- Fixed in the “Login during checkout” flow
+- Minor fixes and improvements
+
 ### [4.8.0] 2026-01-14 ###
 - Translations of the plugin into Spanish, Italian and German have been added.
 - The ability to edit the name and description of payment methods in the administration panel and their presentation on the checkout page has been added.

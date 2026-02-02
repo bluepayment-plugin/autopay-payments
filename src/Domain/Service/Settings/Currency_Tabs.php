@@ -63,12 +63,14 @@ class Currency_Tabs {
 		if ( empty( self::$active_tab_currency ) ) {
 
 			$default = $this->get_default_tab_currency();
+
 			$default_code = $default ? $default->get_code() : \Ilabs\BM_Woocommerce\Domain\Service\Currency\Interfaces\Currency_Interface::CODE_PLN;
 
 			self::$active_tab_currency = $this->currency_manager->get_currency_by_el_id(
 				$this->get_active_tab_id(),
 				$default_code );
 		}
+
 
 
 		return self::$active_tab_currency;
@@ -92,11 +94,13 @@ class Currency_Tabs {
 
 	private function get_default_tab_currency(): ?Currency_Interface {
 		$shop_currency = $this->currency_manager->get_shop_currency();
+
 		if ( $shop_currency ) {
 			return $shop_currency;
 		}
 
 		$selected = $this->currency_manager->get_selected_currencies();
+
 		if ( ! empty( $selected ) ) {
 			return $selected[ array_key_first( $selected ) ];
 		}

@@ -671,17 +671,35 @@ class Auditor {
 		$bm_gateway->setup_variables( $pln );
 
 
+		$expected_itn_url = add_query_arg(
+			[ 'wc-api' => 'wc_gateway_bluemedia' ],
+			home_url( '/' )
+		);
+
 		blue_media()->get_woocommerce_logger()->log_debug(
-			sprintf( '[Auditor] [test_create_test_order] [ServiceID: %s]',
+			sprintf( '[Auditor] [test_create_test_order] [ServiceID: %s] [Expected ITN URL: %s]',
 				print_r( $bm_gateway->get_service_id(), true ),
+				$expected_itn_url
 			) );
 
 		$transaction_testing_controller = new Transaction_Testing_Controller();
 		if ( ! isset( $this->data['test_order_id'] ) ) {
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[Auditor] [test_create_test_order] [initialize] [No test_order_id in state] [Creating test order + starting transaction]' )
+			);
+
 			$order_id = $transaction_testing_controller->execute_request_initialize();
 
 			$current_time          = time();
 			$this->itn_expiry_time = $current_time + 30;
+
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[Auditor] [test_create_test_order] [initialize] [Created test order id: %s] [itn_expiry_time: %s] [seconds_to_expiry: %s]',
+					print_r( $order_id, true ),
+					(string) $this->itn_expiry_time,
+					(string) ( $this->itn_expiry_time - $current_time )
+				)
+			);
 
 			if ( $order_id instanceof Log_Entry ) {
 				return null;
@@ -698,6 +716,16 @@ class Auditor {
 		} else {
 			$order_id = $this->data['test_order_id'];
 
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[Auditor] [test_create_test_order] [verify_itn] [test_order_id: %s] [now: %s] [itn_expiry_time: %s] [seconds_left: %s] [expected_itn_url: %s]',
+					print_r( $order_id, true ),
+					(string) time(),
+					(string) $this->itn_expiry_time,
+					(string) max( 0, $this->itn_expiry_time - time() ),
+					$expected_itn_url
+				)
+			);
+
 			if ( time() > $this->itn_expiry_time ) {
 
 				if ( (int) $order_id > 0 ) {
@@ -713,6 +741,11 @@ class Auditor {
 				blue_media()->get_woocommerce_logger()->log_debug(
 					sprintf( '[Auditor] [test_create_test_order] [During the test transaction, the ITN (Instant Transaction Notification) message was not received within 30 seconds. Please verify the correctness of the URL where the ITN is sent. You can find it in the Autopay merchant panel.]',
 					) );
+				blue_media()->get_woocommerce_logger()->log_debug(
+					sprintf( '[Auditor] [test_create_test_order] [ITN expected at: %s] [Tip: endpoint must be publicly reachable and match Autopay panel config]',
+						$expected_itn_url
+					)
+				);
 
 				return null;
 			}
@@ -720,6 +753,12 @@ class Auditor {
 
 			$test_itn_result               = $transaction_testing_controller->execute_request_verify_itn( $order_id );
 			$this->data['test_itn_result'] = $test_itn_result ? 1 : 0;
+			blue_media()->get_woocommerce_logger()->log_debug(
+				sprintf( '[Auditor] [test_create_test_order] [verify_itn] [test_itn_result: %s] [test_order_id: %s]',
+					$test_itn_result ? '1' : '0',
+					print_r( $order_id, true )
+				)
+			);
 			$this->save();
 		}
 

@@ -3,7 +3,7 @@ Contributors: inspirelabs
 Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 4.8
+Stable tag: 4.8.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -82,6 +82,14 @@ Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla ś
 
 
 == Changelog ==
+
+### 4.8.1 (2 February 2026) ###
+* Added support for additional currencies: USD (US Dollar) and GBP (British Pound).
+* Improvements in ITN processing
+* Updated library versions (php-ga4-mp, GuzzleHTTP)
+* Fixed handling of unsupported currencies
+* Fixed in the “Login during checkout” flow
+* Minor fixes and improvements
 
 ### 4.8.0 (14 January 2026) ###
 * Translations of the plugin into Spanish, Italian and German have been added.

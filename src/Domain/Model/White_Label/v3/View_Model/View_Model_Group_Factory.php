@@ -7,13 +7,9 @@ use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway_List_Response;
 
 class View_Model_Group_Factory {
 
-
-	/**
-	 * @param Gateway_List_Response $gateway_list_response
-	 *
-	 * @return View_Model_Group[]
-	 */
-	public function create( Gateway_List_Response $gateway_list_response
+	public function create(
+		Gateway_List_Response $gateway_list_response,
+		bool $filter_for_cart = false
 	): array {
 		/** @var View_Model_Group[] $groups */
 		$groups = [];
@@ -41,6 +37,11 @@ class View_Model_Group_Factory {
 
 		if ( $gateway_list_response->getGatewayList() ) {
 			foreach ( $gateway_list_response->getGatewayList() as $gateway ) {
+				if ( $filter_for_cart ) {
+					if ( ! self::check_amount_range( $gateway ) ) {
+						continue;
+					}
+				}
 				$groupType = $gateway->getGroupType();
 				if ( isset( $groups[ $groupType ] ) ) {
 					$groups[ $groupType ]->addGateway( $gateway );
@@ -78,5 +79,42 @@ class View_Model_Group_Factory {
 		} );
 
 		return array_values( $groups );
+	}
+
+
+	private function check_amount_range( Gateway $gateway_obj ): bool {
+		if ( ! WC()->cart ) {
+			return true;
+		}
+
+		$woocommerce_currency = get_woocommerce_currency();
+		$woocommerce_cart     = WC()->cart;
+		$cart_total           = (float) $woocommerce_cart->get_total( false );
+
+		foreach ( $gateway_obj->getCurrencies() as $currency_info ) {
+
+			if ( $currency_info->getCurrency() === $woocommerce_currency ) {
+
+				$min_amount = $currency_info->getMinAmount();
+				$max_amount = $currency_info->getMaxAmount();
+
+
+				if ( $min_amount ) {
+					if ( $cart_total < $min_amount ) {
+						return false;
+					}
+				}
+
+				if ( $max_amount ) {
+					if ( $cart_total > $max_amount ) {
+						return false;
+					}
+				}
+
+				return true;
+			}
+		}
+
+		return true;
 	}
 }

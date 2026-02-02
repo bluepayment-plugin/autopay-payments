@@ -193,8 +193,8 @@ class Config {
 		);
 	}
 
-	private function get_applepay_check_script(): string {
-		return "<script>if (window.ApplePaySession) {
-    jQuery('.bm-group-apple-pay').css('display', 'initial')}</script>";
+	public static function get_applepay_check_script(): string {
+		return "<script>if (!window.ApplePaySession) {
+    jQuery('.bm-apple-pay').css('display', 'none')}</script>";
 	}
 }
