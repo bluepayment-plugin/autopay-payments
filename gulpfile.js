@@ -3,7 +3,6 @@
 const autoprefixer = require('gulp-autoprefixer');
 const gulp = require('gulp');
 const sass = require('gulp-sass')(require('sass'));
-sass.compiler = require('node-sass');
 const uglify = require('gulp-uglify');
 
 gulp.task('sass', function () {
