@@ -1,194 +1,224 @@
-# Instrukcja dla wtyczki WooCommerce: bramka płatności Autopay
+# Bramka płatności Autopay dla WooCommerce
 
 ## Podstawowe informacje
 
-Autopay to moduł płatności umożliwiający realizację transakcji bezgotówkowych w sklepie opartym na platformie WordPress (WooCommerce). Jeżeli jeszcze nie masz wtyczki, możesz ją pobrać [tutaj](https://github.com/bluepayment-plugin/autopay-payments/releases).
+Autopay to bramka płatnicza dla sklepów opartych na WordPressie i WooCommerce. Najnowszą wersję wtyczki możesz pobrać z [GitHub Releases](https://github.com/bluepayment-plugin/autopay-payments/releases) lub z oficjalnego katalogu WordPress.org.
 
 ## Co oferuje wtyczka płatnicza Autopay?
 
-Wtyczka płatnicza Autopay oferuje szereg funkcjonalności wspierających sprzedaż na Twoim sklepie:
-- Najpopularniejsze metody płatności w Polsce i Europie
-	- Przelewy online ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
-	- Szybkie przelewy bankowe
-	- [BLIK](https://autopay.pl/rozwiazania/blik)
-	- Visa Mobile
-	- [Google Pay](https://autopay.pl/rozwiazania/google-pay)
-	- [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
-	- Płatności ratalne
-	- Płatności zagraniczne
-- Najpopularniejsze sposoby sprzedaży dla platformy WooCommerce
-- kup jako gość / kup jak zarejestrowany użytkownik
-- checkout krokowy lub checkout blokowy
-- przetwarzanie płatności z przekierowaniem do zewnętrznej strony płatności lub pozostając bezpośrednio na sklepie (wybrane metody: karty, BLIK)
-- wsparcie środowiska testowego (realizacja testowych transakcji w celu poprawnej instalacji i konfiguracji wtyczki)
+Wtyczka Autopay oferuje między innymi:
+
+- najpopularniejsze metody płatności w Polsce i Europie:
+  - przelewy online ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
+  - szybkie przelewy bankowe
+  - karty płatnicze, w tym opcjonalny formularz karty wbudowany bezpośrednio w checkout (widżet Autopay); dodatkowa autoryzacja bankowa, np. 3DS, może wymagać przekierowania
+  - [BLIK](https://autopay.pl/rozwiazania/blik)
+  - Visa Mobile
+  - [Google Pay](https://autopay.pl/rozwiazania/google-pay)
+  - [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
+  - płatności ratalne
+  - cykliczne płatności kartą dla subskrypcji
+  - płatności zagraniczne
+- obsługę zakupów bez rejestracji oraz przez zalogowanych klientów
+- obsługę klasycznego i blokowego checkoutu WooCommerce
+- płatności z przekierowaniem oraz płatności realizowane bezpośrednio w sklepie dla wybranych metod, między innymi kart i BLIK-a
+- środowisko testowe do weryfikacji instalacji i konfiguracji
 - płatności odroczone i ratalne
-- natywna integracja z Google Analytics 4 z poziomu wtyczki płatniczej Autopay
-- automatyczna weryfikacja poprawności konfiguracji danych autoryzacyjnych we wtyczce
-- wielojęzyczność – automatyczne dopasowanie do języka sklepu (EN, DE, IT, ES), a w przypadku innych języków – interfejs w języku angielskim
-- możliwość ręcznej zmiany kolejności metod płatności Autopay w panelu WooCommerce metodą drag & drop.
+- natywna integracja z Google Analytics 4
+- automatyczna weryfikacja danych uwierzytelniających Autopay wprowadzonych we wtyczce
+- wielojęzyczność - automatyczne dopasowanie do języka sklepu (PL, EN, DE, IT, ES), a w przypadku innych języków interfejs w języku angielskim
+- ręczne ustawianie kolejności metod płatności Autopay metodą drag & drop w panelu WooCommerce
+- natywna integracja z wtyczką [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) (WP Desk) dla WooCommerce - płatności kartą za produkty subskrypcyjne, automatyczne odnowienia, ręczna zapłata za zaległe odnowienie oraz dezaktywacja instrumentu płatniczego po anulowaniu subskrypcji
 
 [Zarejestruj swój sklep!](https://autopay.pl/oferta/platnosci-online?utm_campaign=woocommerce&utm_source=woocommerce_description&utm_medium=offer_cta#kalkulator)
 
 ## Instalacja
 
-### Wymagania do instalacji wtyczki
+### Wymagania
 
-- WordPress – przetestowane na wersjach od `6.0` do `7.0`
-- Wtyczka WooCommerce – przetestowano na wersjach od `7.9.0` do `10.8.1`
-- PHP w wersji min. `7.4`
+- WordPress - przetestowane na wersjach od `6.0` do `7.1`
+- WooCommerce - przetestowane na wersjach od `7.9.0` do `11.0`
+- PHP `7.4` lub nowszy
+- opcjonalnie: [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) - wymagane wyłącznie do obsługi produktów subskrypcyjnych z cyklicznymi płatnościami kartą
 
-### Pobierz z Wordpress.org
+### Pobierz z WordPress.org
 
-Platforma [Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/) skupia różnego rodzaju rozszerzenia kompatybilne ze stronami zbudowanymi w oparciu o WordPress / WooCommerce.
-W przypadku wtyczki płatniczej Autopay, na stronie [https://wordpress.org](https://wordpress.org) znajdują się różne (oficjalne i nieoficjalne) wersje wtyczek. Najnowszą wersję wtyczki tworzonej bezpośrednio przez Autopay możesz znaleźć w [marketplacie Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/).
+W katalogu WordPress.org znajdują się różne oficjalne i nieoficjalne integracje z Autopay. Wtyczkę rozwijaną bezpośrednio przez Autopay znajdziesz w [oficjalnym katalogu WordPress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/).
 
-## Skonfiguruj wtyczkę
-Zaloguj się do panelu i przejdź do zakładki **Płatności** i odnajdź metodę **Autopay**. Wybierz **Konfiguruj**, by rozpocząć konfigurację wtyczki. Lub zaznacz odpowiednią opcję na przełączniku, by **włączyć** / **wyłączyć** działanie wtyczki na sklepie.
+## Konfiguracja wtyczki
 
-Jeżeli spotkałeś się z jakimś problemem podczas instalacji wtyczki odwiedź naszą [sekcję FAQ.](https://developers.autopay.pl/online/wtyczki/woocommerce#najcz%C4%99%C5%9Bciej-zadawane-pytania)
+Zaloguj się do panelu WordPressa i przejdź do **WooCommerce → Ustawienia → Płatności**. Znajdź metodę **Autopay**, a następnie wybierz **Konfiguruj**. Na liście metod płatności możesz również włączyć lub wyłączyć bramkę Autopay.
+
+Jeżeli podczas instalacji lub konfiguracji pojawi się problem, sprawdź [sekcję FAQ](https://developers.autopay.pl/online/wtyczki/woocommerce#najcz%C4%99%C5%9Bciej-zadawane-pytania).
 
 ### Uwierzytelnianie
 
-Zakładka "Uwierzytelnianie" umożliwi Ci wprowadzenie danych dostępowych Twojego konta w Autopay do wtyczki, a także ustalenie, czy płatności Autopay mają działać na środowisku testowym czy produkcyjnym.
+W zakładce **Uwierzytelnianie** wprowadź dane dostępowe do serwisu Autopay i wybierz środowisko, z którym ma komunikować się wtyczka.
+
 1. **Środowisko testowe**
-	- ustawione na **tak** - Służy do przetestowania integracji i konfiguracji wtyczki Autopay na Twoim sklepie. Na środowisku testowym płatnik nie zostanie obciążony za żaden zakup, a Ty nie otrzymasz wpłaty za żadną sprzedaż. Transakcje będą jedynie wirtualne. Pamiętaj, aby nigdy nie wysyłać transakcji za transakcje opłacone w trybie testowym!
-	- ustawione na **nie** - Wtyczka działa na środowisku produkcyjnym. Innymi słowy, transakcje i płatności odbywają się naprawdę. Płatnik zostaje obciążony finansowo za zaku, a sprzedawca otrzymuje środki od Autopay za prowadzoną sprzedaż.
-2. **Identyfikator serwisu** - Jest to identyfikator Twojego konta Autopay. Znajdziesz go po zalogowaniu się na swoje konto, wybierz z menu "Ustawienia serwisu" a następnie dla sekcji "Konfiguracja techniczna serwisu" kliknij na guzik "Wybierz". ID serwisu to wartość "Identyfikatora serwisu"
-3. **Klucz konfiguracyjny (hash)** - Jest to wartość dedykowana dla Twojej strony na Twoim koncie Autopay. Znajdziesz go po zalogowaniu się na swoje konto, wybierz z menu "**Ustawienia serwisu**", a następnie dla sekcji "Konfiguracja techniczna serwisu" kliknij na guzik "Wybierz". Podpisany jest jako Klucz konfiguracyjny (hash)
-> Środowisko testowe a Identyfikator serwisu i Klucz konfiguracyjny (hash)
-Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla środowiska testowego i produkcyjnego. Jeżeli założyłeś nowe konto Autopay i nie masz jeszcze dostępu do środowiska testowego możesz je uzyskać [wysyłając prośbę o dostęp](https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_documentation&utm_medium=text_link).
->
-> Wybierz kategorię weryfikacje, uzupełnij dane, a w treści wiadomości podaj id swojego obecnego serwisu i poproś o utworzenie środowiska testowego dla Twojego sklepu.
+   - **Tak** - wtyczka korzysta ze środowiska testowego. Transakcje są symulowane: klient nie jest obciążany, a sprzedawca nie otrzymuje środków. Zamówień opłaconych w tym trybie nie należy realizować.
+   - **Nie** - wtyczka korzysta ze środowiska produkcyjnego. Transakcje powodują rzeczywiste obciążenia i rozliczenia.
+2. **Identyfikator serwisu** - identyfikator ServiceID przypisany do serwisu Autopay. Znajdziesz go w portalu Autopay w sekcji **Ustawienia serwisu → Konfiguracja techniczna serwisu**.
+3. **Klucz konfiguracyjny (hash)** - klucz przypisany do danego serwisu, używany do podpisywania komunikacji. Znajdziesz go w tej samej sekcji konfiguracji technicznej.
+
+> **Ważne:** środowiska testowe i produkcyjne korzystają z różnych identyfikatorów serwisu oraz kluczy konfiguracyjnych. Jeżeli nie masz dostępu do środowiska testowego, [wyślij prośbę o jego utworzenie](https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_documentation&utm_medium=text_link). W zgłoszeniu wybierz kategorię dotyczącą weryfikacji i podaj identyfikator istniejącego serwisu.
 
 ### Powiadomienia o statusie transakcji
 
-Autopay komunikuje się z wtyczką za pomocą ITN (Instant Transaction Notification) - czyli specjalnych wiadomości zawierających obecny status rozpoczętej płatności (np. oczekuje na dokonanie płatności, zakup został poprawnie opłacony). W przypadku wystąpienia problemu z połączeniem się Autopay do sklepu, statusy płatności oraz zamówień nie będą aktualizowane. Przykładowo, klient może dokonać płatności za zamówienie, ale sklep nadal będzie wskazywał, że płatność nie została rozpoczęta.
+Autopay przekazuje zmiany statusu transakcji za pomocą komunikatów ITN (Instant Transaction Notification). Na ich podstawie wtyczka aktualizuje płatność i status zamówienia w WooCommerce. Jeżeli Autopay nie może połączyć się ze sklepem albo sklep nie odpowiada prawidłowo, zamówienie może pozostać w statusie oczekującym mimo poprawnego zakończenia płatności.
+
+### Płatności cykliczne dla subskrypcji (integracja z Flexible Subscriptions)
+
+Od wersji `5.1.0` wtyczka Autopay integruje się z wtyczką [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) (WP Desk) dla WooCommerce, umożliwiając opłacanie produktów subskrypcyjnych kartą z automatycznym odnawianiem płatności.
+
+Integracja działa w klasycznym checkoucie oraz w checkoucie blokowym WooCommerce.
+
+**Jak to działa:**
+- Przy pierwszym zakupie klient wybiera cykliczną płatność kartą (kanał 1503), a następnie zostaje przekierowany do hostowanego przez Autopay formularza aktywacji. Nie jest to widżet kartowy kanału 1500.
+- Po poprawnej aktywacji Autopay przesyła komunikat RPAN z identyfikatorem `ClientHash`. Wtyczka zapisuje go przy konkretnej subskrypcji Flexible Subscriptions. WordPress nie przechowuje numeru karty ani innych danych karty.
+- Kolejne zamówienia odnowieniowe są obciążane automatycznie na podstawie `ClientHash` i kwoty danego zamówienia odnowieniowego.
+- Zaległe zamówienie odnowieniowe można opłacić ręcznie. Jeżeli zapisany instrument jest aktywny, wtyczka korzysta z niego; jeżeli nie jest dostępny, zamówienie można opłacić jak zwykłe zamówienie jednorazowe.
+- Wstrzymanie subskrypcji zatrzymuje planowanie kolejnych odnowień, a wznowienie przywraca harmonogram. Anulowanie subskrypcji zleca dezaktywację powiązanego instrumentu recurring w Autopay.
+
+**Jak włączyć:**
+1. Upewnij się, że dla używanego ServiceID i waluty po stronie Autopay jest dostępny kanał płatności cyklicznej kartą 1503.
+2. Zainstaluj i skonfiguruj wtyczkę Flexible Subscriptions oraz utwórz w niej produkt subskrypcyjny.
+3. W ustawieniach Autopay przejdź do zakładki **Uwierzytelnianie**, ustaw opcję **"Cykliczne płatności kartą za subskrypcje"** na **"Tak"** (`bm_recurring_card_enabled`, domyślnie wyłączona).
+
+> **Uwaga:** ta opcja kontroluje wyłącznie oferowanie cyklicznej płatności kartą przy **nowych** zakupach subskrypcji. Jej wyłączenie nie zatrzymuje już aktywnych subskrypcji i nie blokuje obsługi ich odnowień ani dezaktywacji.
+
+**Obsługiwany zakres:**
+- Obsługiwany jest **jeden odrębny plan rozliczeniowy subskrypcji** w koszyku, opcjonalnie razem z produktami jednorazowymi (mixed cart). Pierwsza płatność obejmuje pełną kwotę zamówienia, natomiast kolejne odnowienia obejmują wyłącznie kwotę zamówienia odnowieniowego utworzonego przez Flexible Subscriptions.
+- Liczba produktów lub pozycji nie wyznacza liczby planów. Kilka produktów może należeć do jednego planu, jeżeli Flexible Subscriptions grupuje je według tego samego harmonogramu.
+- Koszyk zawierający więcej niż jeden odrębny plan lub harmonogram subskrypcji nie jest obsługiwany. Płatność przez Autopay zostanie zablokowana, a klient zobaczy odpowiedni komunikat.
+- Pierwsza płatność musi mieć kwotę większą od zera. Sam okres próbny bez opłaty początkowej nie może zostać aktywowany tą integracją.
+- Integracja dotyczy Flexible Subscriptions i cyklicznych płatności kartą. Nie obejmuje WooCommerce Subscriptions ani BLIK Recurring.
+
+**Informacje dla deweloperów:**
+- Aktywacja korzysta z `GatewayID=1503` i `RecurringAction=INIT_WITH_PAYMENT`. Odpowiedź przedtransakcji dostarcza adres przekierowania do formularza aktywacyjnego Autopay.
+- RPAN wiąże `ClientHash` z subskrypcją, ITN aktualizuje wynik transakcji, a RPDN potwierdza zewnętrzną dezaktywację instrumentu.
+- Automatyczne odnowienie używa `RecurringAction=AUTO`, a ręczna zapłata zapisanym instrumentem - `RecurringAction=MANUAL`.
+- Każda próba obciążenia otrzymuje własny `OrderID` w formacie `<renewal_order_id>-<attempt_number>`, co pozwala powiązać odpowiedź i ITN z właściwym zamówieniem oraz odróżnić ponowienie od kolejnego okresu rozliczeniowego.
+- Diagnostyka integracji jest dostępna w logu WooCommerce `bm_woocommerce_recurring`, gdy włączony jest istniejący tryb debugowania bramki.
 
 ### Ustawienia płatności
 
-Metody płatności mogą być wyświetlane na Twoim sklepie na kilka różnych sposób - w zależności od tego jak sklep został zbudowany lub co osobiście preferujesz, uważasz za bardziej skuteczne. Każdy taki sposób określamy mianem "Trybu płatności". Poniższa tabela pomoże Ci zapoznać się z oferowanymi trybami i dokonać wyboru takiego, które najlepiej pasuje do Twojego sklepu.
-- **Przenieś na stronę płatności Autopay** - Na liście metod pojawi się jeden guzik przekierowujący klienta do strony płatności hostowanej przez Autopay, gdzie płatnik zobaczy pełną listę dostępnych metod płatności. Tryb ten jest minimalistyczny i jednocześnie w najmniejszym stopniu ingeruje kod Twojego sklepu. Jeżeli inne tryby sprawiają pewne trudności na stronie lub nie wyświetlają się w poprawny sposób na Twoim sklepie, warto skorzystać z tego trybu.
-- **Wyświetl każdą dostępną metodę osobno** - Na liście pojawi się dedykowany guzik dla każdej z dostępnych metod płatności. Płatnik dowie się więc z jakich dokładnie metod może skorzystać, już na stronie Twoje sklepu. Po wybraniu metody, płatnik zostanie przekierowany bezpośrednio na stronę, na której będzie mógł sfinalizować płatność. Na przykład klikając na metodę "BLIK" przeniesiony zostanie na stronę BLIK i poproszony o podanie kod wygnerowanego w swoim banku.
-	- **Tryb płatności BLIK** - Jest to osobne ustawienie aktywne tylko jeżeli uruchomiony zostanie tryb "Wyświetl każdą dostępną metodę osobno" i dotyczy sposobu opłacania zamówienia z wykorzystaniem metody płatności "BLIK":
-		- "przenieś na stronę BLIK" - po wyborze metody płatności BLIK płatnik zostanie przeniesiony na stronę BLIK i poproszony o podanie kodu płatności oraz zatwierdzenie go w aplikacji. Dodatkowo, płatnik może zapamiętać nasz sklep na urządzeniu, z którego korzysta. Sprawi to, że w przyszłości przy płatności BLIK na naszym sklepie i tym samym urządzeniu nie będzie już pytany o podanie kodu BLIK, a w jego aplikacji bankowej prośba o potwierdzenie płatności pojawi się od razu po przekierowaniu go na stronę BLIK.
-		- "wprowadź kod BLIK bezpośrednio na sklepie" - po wyborze metody BLIK płatnikowi wyświetli się dedykowane pole na Twoim sklepie, w które będzie mógł wpisać kod BLIK. Płatnik nie zostanie nigdzie przekierowywany, płatność odbędzie się bezpośrednio na Twoim sklepie.
-		  Konfiguracja statusów płatności wpływa bezpośrednio na to jak przebiega zamówienie na Twoim sklepie.
-	- **Płatność rozpoczęta** - Proces płatności właśnie się rozpoczął - oznacza to, że płatnik wybrał i zatwierdził konkretną metodę płatności. Zamówienie zostało już utworzone w Twoim sklepie. Płatność nie osiągnęła jeszcze swojego finalnego statusu. Ustaw status zamówienia, który odpowiada temu opisowi.
-	- **Płatność zatwierdzona** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
-	- **Płatność zatwierdzona dla koszyka zawierającego tylko produkty wirtualne** - Płatność rozpoczęta przez płatnika powiodła się. Ty jako sprzedawca otrzymasz za nią środki od Autopay. Jest to status dedykowany dla sprzedaży produktów cyfrowych - umożliwiający zlecenie natychmiastowej wysyłki zamówienia do płatnika. Ustaw status zamówienia, który odpowiada temu opisowi.
-	- **Płatność nieudana** - Rozpoczęta przez płatnika płatność nie powiodła się. Ty jako sprzedawca nie otrzymasz środków od Autopay. Ustaw status zamówienia, który odpowiada temu opisowi.
-- **Zmiana kolejności wyświetlania metod płatności** - W panelu administracyjnym wtyczki przejdź do zakładki:  → Ustawienia  Płatności.  
-  Na liście metod płatności dostępnych w sklepie możesz przeciągać (drag & drop) metody Autopay, aby ustawić ich kolejność według własnych preferencji.  
-  Zapisana kolejność będzie widoczna dla klientów podczas składania zamówienia, w sekcji wyboru metody płatności.
+Wtyczka udostępnia dwa sposoby prezentowania metod płatności:
+
+- **Przenieś na stronę płatności Autopay** - w checkoucie wyświetlany jest jeden przycisk. Po jego wybraniu klient przechodzi na stronę Autopay, na której wybiera jedną z dostępnych metod płatności. Ten tryb najmniej ingeruje w wygląd i działanie checkoutu.
+- **Wyświetl każdą dostępną metodę osobno** - w checkoucie wyświetlane są osobne pozycje dla metod dostępnych dla danego serwisu i waluty. Dalszy przebieg płatności zależy od wybranej metody i jej konfiguracji.
+
+Dodatkowe ustawienia:
+
+- **Tryb płatności BLIK** - dostępny przy osobnym wyświetlaniu metod:
+  - **Przenieś na stronę BLIK** - klient podaje kod i zatwierdza płatność na stronie BLIK. Może również zapamiętać sklep na używanym urządzeniu, aby przy kolejnych płatnościach szybciej przejść do zatwierdzenia w aplikacji bankowej.
+  - **Wprowadź kod BLIK bezpośrednio na sklepie** - pole na kod BLIK jest wyświetlane w checkoucie, bez przekierowania klienta przed rozpoczęciem płatności.
+- **Tryb płatności Google Pay** - dostępny przy osobnym wyświetlaniu metod:
+  - **Przekierowanie na stronę Google Pay** - klient kontynuuje płatność poza checkoutem sklepu.
+  - **Płatność Google Pay bezpośrednio na sklepie** - klient płaci bez opuszczania checkoutu.
+- **Statusy zamówień** - można wskazać status przypisywany po rozpoczęciu, zatwierdzeniu lub niepowodzeniu płatności. Osobne ustawienie jest dostępne dla zatwierdzonych zamówień zawierających wyłącznie produkty wirtualne.
+- **Kolejność metod płatności** - metody Autopay można ułożyć metodą drag & drop w ustawieniach płatności WooCommerce. Zapisana kolejność jest używana w checkoucie.
+- **Logo Autopay w checkoucie** - można wybrać ciemny wariant logo dla jasnego tła albo jasny wariant dla ciemnego tła.
 
 ### Analityka
-Wtyczka Autopay umożliwia wysyłanie bezpośrednio do Google Analytics informacji o dokonaniu płatności. Umożliwia to m.in. śledzenie konwersji sprzedażowej w ramach platformy Google Analytics. Komunikacja z Google Analytics jest opcjonalną funkcją wtyczki i nie jest wymagana do poprawnego działania wtyczki.
-Aby nawiązać komunikację wtyczki z kontem Google Analytics należy podać poprawne dane konta Google Analytics.
+Wtyczka może wysyłać zdarzenia e-commerce bezpośrednio do Google Analytics 4. Integracja jest opcjonalna i nie jest wymagana do obsługi płatności. Do jej uruchomienia potrzebne są dane strumienia Google Analytics.
 
-**UWAGA!** Wtyczka rejestruje zdarzenie "purchase" w oparciu o osiągnięcie przez zamówienie statusu "Completed". Możesz zmienić status wyswalający zdarzenie w Google Analytics korzystając z opcji **Status zamówienia wyzwalający zdarzenie “Zakończenie transakcji”**.
+> **Uwaga:** domyślnie zdarzenie `purchase` jest rejestrowane po osiągnięciu przez zamówienie statusu `Completed`. Status wyzwalający zdarzenie można zmienić w ustawieniu **Status zamówienia wyzwalający zdarzenie "Zakończenie transakcji"**.
 
-Po połączeniu z wtyczką, w koncie Google Analytics pojawią się następujące zdarzenia:
+Wtyczka obsługuje następujące zdarzenia:
 
 | Nazwa zdarzenia | Klucz zdarzenia | Opis |
 | --------------- | --------------- | ---- |
-| Wyświetl produkt na liście | `view_item_list` |  Wyzwalane dla każdego produktu, który znajduje się na liście i jest widoczny dla klienta podczas przeglądania strony. |
-| Zobacz szczegóły produktu | `view_item` | Wyzwalane, gdy użytkownik odwiedzi stronę określonego produktu. Wyzwalane podczas wyświetlania/ładowania strony. |
-| Kliknij na produkt | `add_to_cart` | Wyzwalane, gdy użytkownik doda produkt do koszyka. |
+| Wyświetl produkt na liście | `view_item_list` | Wyzwalane dla każdego produktu, który znajduje się na liście i jest widoczny dla klienta podczas przeglądania strony. |
+| Zobacz szczegóły produktu | `view_item` | Wyzwalane po otwarciu strony produktu. |
+| Dodaj produkt do koszyka | `add_to_cart` | Wyzwalane po dodaniu produktu do koszyka. |
 | Usuń produkt z koszyka | `remove_from_cart` | Wyzwalane, gdy użytkownik usunie produkt z koszyka. |
 | Rozpocznij proces realizacji zamówienia | `begin_checkout` | Wyzwalane, gdy użytkownik przejdzie do kasy. |
-| Wypełnione dane zamówienia | `set_checkout_option` | Wyzwalane, gdy użytkownik uzupełnił dane zamówienia. |
-| Wybór metody płatności | `checkout_progress` | Wyzwalane, gdy użytkownik przeszedł do drugiego kroku zamówienia (wybór metody płatności).|
+| Wypełnione dane zamówienia | `set_checkout_option` | Wyzwalane po uzupełnieniu danych zamówienia. |
+| Wybór metody płatności | `checkout_progress` | Wyzwalane po przejściu do kroku wyboru metody płatności. |
 | Zakończenie transakcji | `purchase` | Wyzwalane po pomyślnym zakończeniu transakcji. Wysyłane jest po stronie serwera, by transakcja została oznaczona, nawet jeśli klient nie powrócił do strony z podziękowaniem. |
 
-Dane wymagane do połączenia wtyczki z Twoim kontem Google Analytics to:
-- **Identyfikator pomiaru**, który znajdziesz w Google Analytics:
-	1. Zaloguj się do panelu Google Analytics i klnij do "Administrator" w lewym dolnym rogu.
-	2. W sekcji "Zbieranie i modyfikowanie danych" kliknij "Strumienie danych".
-	3.  Kliknij nazwę strumienia danych.
-		4.Twój identyfikator pomiaru znajduje się w prawym górnym rogu (np. G-QCX4K9GSPC).
-- **Identyfikator strumienia danych**, który znajdziesz w Google Anlytics:
-	1. Zaloguj się do panelu Google Analytics i kliknij "Administracja".
-	2. W sekcji "Usługi" kliknij "Strumienie danych".
-	3.  Kliknij nazwę strumienia danych.
-	4.  Skopiuj identyfikator strumienia danych z pola "Szczegóły strumienia".
-- **Tajny klucz API**, który znajdziesz w Google Analytics:
-	1. Przejdź do "Administrator" w lewym dolnym rogu.
-	2. W sekcji „Usługi” kliknij „Strumienie danych”.
-	3. Kliknij nazwę strumienia danych.
-	4. Następnie kliknij "Utwórz" w sekcji "Measurement Protocol"
+Do konfiguracji potrzebne są:
+
+- **Identyfikator pomiaru**
+  1. Zaloguj się do Google Analytics i otwórz sekcję **Administrator**.
+  2. Przejdź do **Zbieranie i modyfikowanie danych → Strumienie danych**.
+  3. Wybierz odpowiedni strumień danych.
+  4. Skopiuj identyfikator pomiaru widoczny w prawym górnym rogu, np. `G-QCX4K9GSPC`.
+- **Identyfikator strumienia danych**
+  1. Otwórz szczegóły tego samego strumienia danych.
+  2. Skopiuj wartość pola **Identyfikator strumienia**.
+- **Tajny klucz API**
+  1. Otwórz szczegóły strumienia danych.
+  2. Przejdź do sekcji **Measurement Protocol**.
+  3. Wybierz **Utwórz** i skopiuj wygenerowany klucz.
 
 ### Ustawienia zaawansowane
-Ta sekcja wtyczki służy rozwiązywaniu problemów z konfiguracją wtyczki. Jeżeli Twoja wtyczka działa poprawnie, nie ma potrzeby abyś korzystał z tej sekcji.
 
-**Tryb debudowania** - Uruchamia tryb rozwiązywania błędów na Twoim sklepie. Włączaj go tylko po konsultacji ze wsparciem technicznym Autopay. Tryb ten umożliwia zbieranie szczegółowych informacji dotyczących działania Twojej wtyczki na sklepie, które następnie przesyłane są do deweloperów Autopay pracujących nad rozwiązaniem zgłoszonego przez Ciebie problemu.
+Ta sekcja zawiera ustawienia przeznaczone głównie do diagnostyki i rozwiązywania problemów. Jeżeli integracja działa poprawnie, zwykle nie trzeba ich zmieniać.
 
-**Tryb Sandbox dla Zalogowanego Administratora** - Umożliwia on aby użytkownik zalogowany na Twoim sklepie jako administrator, korzystał z wtyczki Autopay w trybie testowym; podczas gdy pozostali klienci będą cały czas korzystać z płatności Autopay w trybie produkcyjnym.
-
-**Pokazuj metody płatności Autopay na sklepie tylko zalogowanym administratorom** - Tryb umożliwia dostęp do płatności Autopay na Twoim sklepie jedynie użytkownikom zalogowanym jako administrator. Pozostali klienci nie będą mieli dostępu do przeprowadzenia płatności metodami Autopay.
-
-**Wyświetl ekran odliczania przed przekierowaniem w celu zwiększenia kompatybilności** - Ustawienie pomoże pomóc rozwiązać problemy wywołane instalacją na sklepie wybranych wtyczek od innych dostawców (np. wtyczek do analityki, wtyczek do realizacji zamówień kurierskich, itp.).
-
-**Tryb kompatybilności z wtyczkami trzecimi, które przeładowują fragmenty checkout** - Tryb zgodności z wtyczkami innych firm umożliwiający przeładowanie elementów kodu checkoutu.
-
-**Alternatywny produkcyjny adres startu transakcji** - opcja umożliwia skorzystanie z innego adresu rozpoczęcia transakcji, jeżeli taki zostanie uzgodniony z Autopay.
-
-**Zamień domyślny adres potwierdzenia zamówienia** - opcja umożliwia skorzystanie z innego adresu potwierdzenia transakcji, jeżeli taki zostanie uzgodniony z Autopay.
-
-**Nadaj własne stylowanie CSS** - Umożliwia wgranie własnych stylów CSS dla wyświetlania listy metod Autopay na Twoim sklepie. Może być wykorzystany przez pracownika wsparcia technicznego Autopay, aby przygotować kod CSS specjalnie dla Twojego sklepu. Lub, jeżeli jesteś ekspertem w kodowaniu front-end, możesz wykorzystać tę funkcję samodzielnie, aby zmienić style CSS.
+- **Tryb debugowania** - zapisuje szczegółowe informacje o działaniu wtyczki w logach WooCommerce. Włączaj go tymczasowo, najlepiej po konsultacji ze wsparciem technicznym Autopay. Przed przekazaniem logów upewnij się, że nie zawierają danych, których nie należy udostępniać.
+- **Tryb Sandbox dla zalogowanego administratora** - zalogowany administrator korzysta z Autopay w trybie testowym, podczas gdy pozostali klienci nadal korzystają ze środowiska produkcyjnego.
+- **Pokazuj metody płatności Autopay na sklepie tylko zalogowanym administratorom** - metody Autopay są widoczne wyłącznie dla zalogowanych administratorów. Pozostali klienci nie mogą z nich korzystać.
+- **Wyświetl ekran odliczania przed przekierowaniem w celu zwiększenia kompatybilności** - dodaje ekran pośredni przed przekierowaniem. Może pomóc w przypadku konfliktów z innymi wtyczkami, np. integracjami analitycznymi lub kurierskimi.
+- **Tryb kompatybilności z wtyczkami trzecimi, które przeładowują fragmenty checkoutu** - ponownie inicjalizuje elementy Autopay po przeładowaniu fragmentów checkoutu przez inną wtyczkę.
+- **Alternatywny produkcyjny adres startu transakcji** - pozwala użyć innego adresu rozpoczęcia transakcji, jeżeli został on wcześniej uzgodniony z Autopay.
+- **Zamień domyślny adres potwierdzenia zamówienia** - pozwala użyć innego adresu potwierdzenia transakcji, jeżeli został on wcześniej uzgodniony z Autopay.
+- **Nadaj własne stylowanie CSS** - umożliwia dodanie własnych reguł CSS zmieniających wygląd listy metod Autopay. Z tej opcji może skorzystać deweloper sklepu lub pracownik wsparcia technicznego Autopay.
 
 ## Najczęściej zadawane pytania
 
-### Co to są ITN i czy zostały poprawnie skonfigurowane?
-ITN (z ang. Instant Payment Notification) to komunikat wysyłany do Twojego sklepu przez Autopay każdorazowo w sytuacji, gdy status transakcji się zmieni. Wykorzystanie ITN umożliwia sklepowi odpowiednią obsługę zamówienia (n.p., wysłanie zamówienia dopiero, kiedy zostanie opłacone; zablokowanie zwrotu środków do zamówienia, które nie zostało jeszcze opłacone; itp.).
-Konfigurację ITN sprawdzić na dwa sposoby: bezpośrednio we wtyczce; oraz na swoim koncie Autopay.
-Konfiguracja we wtyczce polega na przeprowadzeniu automatycznego testu w zakładce "Uwierzytelnianie" (wymaga zainstalowania wtyczki Autopay).
+### Czym są komunikaty ITN i jak sprawdzić ich konfigurację?
 
-Jeżeli chcesz upewnić się, że konfiguracja ITN przebiegła poprawnie po stronie konta Autopay:
-1. Upewnij się, że w [produkcyjny portalu administracyjnym](https://portal.autopay.eu/panel) i/lub [testowym portalu administracyjnym](https://testportal.autopay.eu/panel) poniższe pola zawierają poprawne adresy sklepu.
-2. Konfiguracja adresu powrotu do płatności `{URL Twojego sklepu}/?bm_gateway_return`
-3. Przykład: `https://moj-sklep.com/?bm_gateway_return`
-4. Konfiguracja adresu, na który jest wysyłany ITN `{URL Twojego sklepu}/?wc-api=wc_gateway_bluemedia`
-5. Przykład: `https://moj-sklep.com/?wc-api=wc_gateway_bluemedia`
+ITN (Instant Transaction Notification) to komunikat wysyłany przez Autopay po zmianie statusu transakcji. Dzięki niemu WooCommerce może między innymi oznaczyć zamówienie jako opłacone i uruchomić dalszą realizację.
+
+Konfigurację ITN można sprawdzić automatycznym testem w zakładce **Uwierzytelnianie** oraz w portalu Autopay.
+
+W [portalu produkcyjnym](https://portal.autopay.eu/panel) lub [portalu testowym](https://testportal.autopay.eu/panel) sprawdź następujące adresy:
+
+- adres powrotu po płatności: `{URL Twojego sklepu}/?bm_gateway_return`, np. `https://moj-sklep.com/?bm_gateway_return`
+- adres odbierający ITN: `{URL Twojego sklepu}/?wc-api=wc_gateway_bluemedia`, np. `https://moj-sklep.com/?wc-api=wc_gateway_bluemedia`
 
 ### Czy można włączać i wyłączać jedynie wybrane metody płatności?
 
-Niestety, w przypadku Płatności dla WooCommerce nie ma takiej możliwości. Jeżeli metody Autopay są uruchomione na sklepie, to wszystkie dostępne dla merchanta pojawią się również na sklepie.
+Nie. Jeżeli Autopay jest włączone, wtyczka pobiera i wyświetla metody dostępne dla danego serwisu, waluty i bieżącego kontekstu zamówienia.
 
 ### Jak włączyć BLIK 0 (wpisanie kodu BLIK bezpośrednio na stronie sklepu, bez przekierowania płatnika na stronę BLIK)?
 
-Aby włączyć tzn. BLIK 0 (wpisywanie kody BLIK bezpośrednio na stronie sklepu, bez konieczności przekierowania płatnika) należy wejść do konfiguracji wtyczki, wybrać sekcję Ustawienia. Następnie wybrać tryb płatności "Wyświetl każdą dostępną metodę osobno" i w ramach "Trybu płatności BLIK" wybrać "wprowadź kod BLIK bezpośrednio na sklepie".
+Aby włączyć BLIK 0, przejdź do ustawień płatności Autopay, wybierz tryb **Wyświetl każdą dostępną metodę osobno**, a następnie w polu **Tryb płatności BLIK** ustaw **Wprowadź kod BLIK bezpośrednio na sklepie**.
 
 ### Czy można dodać inną walutę?
 
-Tak, wtyczka Autopay od wersji `4.1.26` umożliwia dodania innej waluty niż polski złoty. Należy jednak pamiętać, że walutę tę musisz mieć również skonfigurowaną w ramach Twojego konta Autopay. Co zazwyczaj wiąże się z posiadaniem oddzielnych danych uwierzytelniających.
-Walutę wspieraną na Twoim koncie Autopay możesz sprawdzić w konfiguracji serwisu w [Portalu](https://portal.autopay.eu/portal).
-Aby dodać do swojego konta Autopay kolejną walutę, należy skontaktować się z nami przez [formularz](https://developers.autopay.pl/kontakt).
+Tak. Od wersji `4.1.26` wtyczka obsługuje waluty inne niż PLN. Każda waluta musi być jednak skonfigurowana również po stronie Autopay i może wymagać osobnych danych uwierzytelniających.
+
+Obsługiwane waluty możesz sprawdzić w konfiguracji serwisu w [Portalu Autopay](https://portal.autopay.eu/panel). Aby dodać kolejną walutę, skontaktuj się z Autopay przez [formularz kontaktowy](https://developers.autopay.pl/kontakt).
 
 ### Jak zlecać zwroty (z poziomu sklepu czy portalu Autopay)?
 
-Aktualnie zwroty należy zlecać z poziomu portalu Autopay. Zaloguj się do [Portalu](https://portal.autopay.eu/portal) i wejdź w zakładkę "Transakcje", po czym kliknij "Zleć zwrot" w szczegółach zwracanej transakcji.
+Zwroty należy obecnie zlecać w [Portalu Autopay](https://portal.autopay.eu/panel). Otwórz zakładkę **Transakcje**, przejdź do szczegółów właściwej transakcji i wybierz **Zleć zwrot**.
 
-### Czy jest możliwość umieszczenia samego BLIK-a na whitelabel (wyświetlenia metody BLIK bezpośrednio na liście dostępnych w sklepie metod płatności)?
+### Czy w trybie whitelabel można wyświetlić wyłącznie BLIK?
 
-Niestety nie ma takiej możliwości. Wtyczka umożliwia jedynie:
-- wyświetlenie wszystkich dostępnych metod płatności bezpośrednio na liście metod (w tym również BLIK)
-  albo
-- wyświetlenie jednego zbiorczego przycisku "Zapłać", który po przekierowaniu przekierowuje na dedykowaną stronę Autopay zawierającą listę wszystkich dostępnych dla płatnika metod płatności
+Nie można wyświetlić wyłącznie BLIK-a i ukryć pozostałych metod udostępnionych dla serwisu. Wtyczka pozwala:
 
-### Podczas konfiguracji wtyczki w ustawieniach płatności zamiast wyświetlić listę dostępnych metod płatności pojawia mi się komunikat - brak dostępnych metod płatności dla tej waluty - co mam zrobić?
+- wyświetlić osobno wszystkie dostępne metody, w tym BLIK, albo
+- wyświetlić jeden zbiorczy przycisk, który prowadzi do strony Autopay z listą dostępnych metod.
 
-Dla wybranej przez Ciebie waluty nie ma dostępnych żadnych metod płatności. Skontaktuj się z nami z wykorzystaniem [tego formularza](https://developers.autopay.pl/kontakt) i poproś zespół Autopay o sprawdzenie konfiguracji Twojego konta.
+### Co zrobić, gdy pojawia się komunikat o braku metod płatności dla wybranej waluty?
+
+Dla wybranej waluty Autopay nie zwróciło żadnej dostępnej metody płatności. Skontaktuj się z Autopay przez [formularz kontaktowy](https://developers.autopay.pl/kontakt) i poproś o sprawdzenie konfiguracji serwisu.
 
 ### Czy wtyczka obsługuje różne języki i jak je skonfigurować?
 
-Tak. Wtyczka Autopay automatycznie dostosowuje się do języka sklepu ustawionego w WordPress/WooCommerce.  
-Dostępne są tłumaczenia w języku angielskim, niemieckim, włoskim i hiszpańskim.  
-Jeśli sklep działa w jednym z tych języków – interfejs wtyczki zostanie wyświetlony w odpowiednim tłumaczeniu i nie wymaga dodatkowej konfiguracji.  
-W przypadku innego języka, interfejs automatycznie przełączy się na język angielski i nie wymaga dodatkowej konfiguracji.
+Tak. Wtyczka automatycznie korzysta z języka ustawionego w WordPressie i WooCommerce. Dostępne są wersje polska, angielska, niemiecka, włoska i hiszpańska. Dla pozostałych języków używany jest angielski. Nie wymaga to dodatkowej konfiguracji.
 
 ### Jak zmienić kolejność metod płatności Autopay w sklepie?
 
-W panelu WooCommerce, w zakładce ustawień płatności Autopay, użyj funkcji drag & drop, aby przeciągnąć metody w pożądanej kolejności.
+W ustawieniach płatności Autopay przeciągnij metody za pomocą drag & drop i zapisz zmiany. Ta sama kolejność zostanie zastosowana w checkoucie.
+
+### Czy da się opłacić kartą kilka różnych planów subskrypcji w jednym koszyku?
+
+Nie. Jeżeli koszyk zawiera więcej niż jeden odrębny plan lub harmonogram Flexible Subscriptions, płatność przez Autopay zostanie zablokowana. Obsługiwany jest jeden plan rozliczeniowy, opcjonalnie razem z produktami jednorazowymi. Ograniczenie dotyczy liczby odrębnych harmonogramów, a nie samej liczby produktów lub pozycji w koszyku.
 
 ## Zrzuty ekranu
 

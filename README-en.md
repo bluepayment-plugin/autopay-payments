@@ -1,199 +1,213 @@
-# Instructions for WooCommerce plug-in: Autopay payment gateway
+# Autopay payment gateway for WooCommerce
 
 ## Basic information
 
-Autopay is a payment module that enables cashless transactions in a shop based on the WordPress platform (WooCommerce). If you do not already have the plugin, you can download it [here](https://github.com/bluepayment-plugin/autopay-payments/releases).
+Autopay is a payment gateway for stores powered by WordPress and WooCommerce. Download the latest version from [GitHub Releases](https://github.com/bluepayment-plugin/autopay-payments/releases) or the official WordPress.org plugin directory.
 
 ## What does the Autopay payment plugin offer?
 
-The Autopay payment plugin offers a range of functionalities to support sales on your shop:
-- The most popular payment methods in Poland and Europe
-	- Online transfers ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
-	- Fast bank transfers
-	- [BLIK](https://autopay.pl/rozwiazania/blik)
-	- Visa Mobile
-	- [Google Pay](https://autopay.pl/rozwiazania/google-pay)
-	- [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
-	- Instalment payments
-	- Recurring payments
-	- International payments
-- The most popular sales methods for the WooCommerce platform
-- buy as a guest / buy as a registered user
-- step checkout or block checkout
-- payment processing with redirection to an external payment page or remaining directly on the shop (selected methods: cards, BLIK)
-- test environment support (implementation of test transactions for correct installation and configuration of the plug-in)
+The Autopay plugin provides:
+
+- popular payment methods in Poland and Europe:
+  - online transfers ([Pay By Link](https://autopay.pl/baza-wiedzy/blog/ecommerce/platnosc-pay-by-link-na-czym-polega-i-co-mozesz-dzieki-niej-zyskac))
+  - fast bank transfers
+  - card payments, including an optional card entry form embedded directly in checkout (Autopay widget); additional bank authentication, such as 3DS, may require a redirect
+  - [BLIK](https://autopay.pl/rozwiazania/blik)
+  - Visa Mobile
+  - [Google Pay](https://autopay.pl/rozwiazania/google-pay)
+  - [Apple Pay](https://autopay.pl/rozwiazania/apple-pay)
+  - instalment payments
+  - recurring card payments for subscriptions
+  - international payments
+- guest checkout and checkout for registered customers
+- classic WooCommerce checkout and Checkout Blocks
+- redirect-based and on-site payments for selected methods, including cards and BLIK
+- a test environment for verifying the installation and configuration
 - deferred and instalment payments
-- native integration into Google Analytics 4 from within the Autopay payment plug-in
-- automatic verification of the correct configuration of authorization data in the plug-in
-- multilingual support – automatic adaptation to the store language (EN,
-  DE, IT, ES); for other languages, the interface is displayed in English
-- ability to manually change the order of Autopay payment methods in the
-  WooCommerce panel using drag & drop
+- native Google Analytics 4 integration
+- automatic validation of the Autopay credentials entered in the plugin
+- multilingual support - automatic adaptation to the store language (PL, EN, DE, IT, ES), with English used as the fallback
+- manual ordering of Autopay payment methods by drag and drop in WooCommerce settings
+- native integration with the [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) WooCommerce extension by WP Desk - card payments for subscription products, automatic renewals, manual payment of overdue renewals, and payment-instrument deactivation after subscription cancellation
 
 [Register your shop!](https://autopay.pl/oferta/platnosci-online?utm_campaign=woocommerce&utm_source=woocommerce_description&utm_medium=offer_cta#kalkulator)
 
 ## Installation
 
-### Requirements for installing the plug-in
+### Requirements
 
-- WordPress - tested on versions `6.0` to `7.0`
-- WooCommerce plugin - tested on versions `7.9.0` to `10.8.1`
-- PHP version min. `7.4`
+- WordPress - tested on versions `6.0` to `7.1`
+- WooCommerce - tested on versions `7.9.0` to `11.0`
+- PHP `7.4` or later
+- optional: [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) - required only for subscription products with recurring card payments
 
-### Download from wordpress.org
+### Download from WordPress.org
 
-The [Wordpress](https://pl.wordpress.org/plugins/platnosci-online-blue-media/) platform brings together various types of extensions compatible with sites built on WordPress / WooCommerce.
-In the case of the Autopay payment plugin, various (official and unofficial) plugin versions are available at [https://wordpress.org](https://wordpress.org). You can find the latest version of the plugin created directly by Autopay at [wordpress marketplace](https://pl.wordpress.org/plugins/platnosci-online-blue-media/).
+The WordPress.org directory contains several official and unofficial Autopay integrations. The plugin maintained directly by Autopay is available in the [WordPress plugin directory](https://wordpress.org/plugins/platnosci-online-blue-media/).
 
-## Configure the plugin
-Log in to the dashboard and go to the **Payments** tab and find the **Autopay** method. Select **Configure** to start configuring the plugin. Or select the appropriate option on the toggle to **enable** / **disable** the operation of the plugin on your shop.
+## Plugin configuration
 
-If you encountered a problem while installing the plugin, visit our [FAQ section.](https://developers.autopay.pl/online/wtyczki/woocommerce#najcz%C4%99%C5%9Bciej-zadawane-pytania)
+Log in to WordPress and go to **WooCommerce → Settings → Payments**. Find **Autopay** and select **Manage** or **Configure**. You can also enable or disable the gateway from the payment methods list.
+
+If you encounter a problem during installation or configuration, see the [FAQ](https://developers.autopay.pl/online/wtyczki/woocommerce#najcz%C4%99%C5%9Bciej-zadawane-pytania).
 
 ### Authentication
 
-The ‘Authentication’ tab will allow you to enter your Autopay account credentials into the plugin, as well as determine whether you want Autopay payments to work on a test or production environment.
-1. **Test environment**.
-	- set to **yes** - This is used to test the integration and configuration of the Autopay plugin on your shop. In the test environment, the payer will not be charged for any purchases and you will not receive payment for any sales. Transactions will only be virtual. Remember never to send transactions for transactions paid in test mode!
-	- set to **no** - The plugin runs on a production environment. In other words, transactions and payments are really happening. The payer is financially charged for the purchase and the merchant receives funds from Autopay for the sales made.
-2. **Service ID** - This is the ID of your Autopay account. You will find it when you log into your account, select ‘Service Settings’ from the menu and then for the ‘Service Technical Configuration’ section click on the ‘Select’ button. The service ID is the value of the ‘Service ID’.
-3. **Configuration key (hash)** - This is the value dedicated to your site in your Autopay account. You will find it when you log into your account, select ‘**Site Settings**’ from the menu and then for the ‘Site Technical Configuration’ section click on the ‘Select’ button. It is signed as Configuration key (hash)
-> Test environment a Service identifier and Configuration key (hash)
-The values of the Service ID and Configuration Key are different for the test and production environment. If you have set up a new Autopay account and do not yet have access to the test environment you can obtain it [by sending an access request](https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_documentation&utm_medium=text_link).
->
-> Select the verification category, fill in your details and in the body of the message provide the id of your current service and request the creation of a test environment for your shop.
+Use the **Authentication** tab to enter the credentials assigned to your Autopay service and select the environment used by the plugin.
+
+1. **Test environment**
+   - **Yes** - the plugin uses the test environment. Transactions are simulated: the customer is not charged and the merchant does not receive funds. Do not fulfil orders paid in this mode.
+   - **No** - the plugin uses the production environment. Transactions result in real charges and settlements.
+2. **Service ID** - the ServiceID assigned to your Autopay service. You can find it in the Autopay portal under **Service settings → Technical configuration**.
+3. **Configuration key (hash)** - the key assigned to the service and used to sign communication. It is available in the same technical configuration section.
+
+> **Important:** test and production environments use different ServiceIDs and configuration keys. If you do not have access to the test environment, [request it from Autopay](https://developers.autopay.pl/kontakt?utm_campaign=help&utm_source=woocommerce_documentation&utm_medium=text_link). Select the verification category and include the ServiceID of your existing service.
 
 ### Transaction status notifications
 
-Autopay communicates with the plug-in by means of ITN (Instant Transaction Notification) - i.e. special messages containing the current status of the initiated payment (e.g. payment pending, purchase successfully paid). If there is a problem with Autopay's connection to the shop, the payment and order statuses will not be updated. For example, a customer may make a payment for an order, but the shop will still indicate that the payment has not been started.
+Autopay reports transaction status changes through ITN (Instant Transaction Notification) messages. The plugin uses them to update the payment and order status in WooCommerce. If Autopay cannot reach the store or the store does not return a valid response, an order may remain pending even after the payment has completed successfully.
+
+### Recurring card payments for subscriptions (Flexible Subscriptions integration)
+
+As of version `5.1.0`, the Autopay plugin integrates with the [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) (WP Desk) WooCommerce extension, enabling card payments for subscription products with automatic renewal.
+
+The integration supports both the classic WooCommerce checkout and Checkout Blocks.
+
+**How it works:**
+- On the first purchase, the customer selects recurring card payment (channel 1503) and is redirected to the activation form hosted by Autopay. This is separate from the channel 1500 card widget.
+- After a successful activation, Autopay sends an RPAN notification containing a `ClientHash`. The plugin stores it on the corresponding Flexible Subscriptions subscription. WordPress does not store the card number or other card details.
+- Subsequent renewal orders are charged automatically using the `ClientHash` and the total of the specific renewal order.
+- An overdue renewal order can also be paid manually. If the stored instrument is active, the plugin uses it; otherwise, the order can be paid like an ordinary one-off order.
+- Putting a subscription on hold stops future renewals from being scheduled, and reactivating it restores the schedule. Cancelling a subscription requests deactivation of its recurring payment instrument in Autopay.
+
+**How to enable it:**
+1. Make sure that recurring card payment channel 1503 is available in Autopay for the ServiceID and currency in use.
+2. Install and configure Flexible Subscriptions and create a subscription product.
+3. In the Autopay settings, open the **Authentication** tab and set **"Recurring card payments for subscriptions"** to **"Yes"** (`bm_recurring_card_enabled`, disabled by default).
+
+> **Note:** this option only controls whether recurring card payment is offered for **new** subscription purchases. Disabling it does not stop active subscriptions or prevent their renewals and deactivation from being processed.
+
+**Supported scope:**
+- A cart may contain **one distinct subscription billing plan**, optionally together with one-off products (a mixed cart). The initial payment uses the full order total, while subsequent renewals use only the total of the renewal order generated by Flexible Subscriptions.
+- The number of products or line items does not determine the number of plans. Multiple products may belong to one plan when Flexible Subscriptions groups them under the same schedule.
+- A cart containing more than one distinct subscription plan or schedule is not supported. Payment through Autopay is blocked and the customer sees an appropriate message.
+- The initial payment total must be greater than zero. A free trial without an initial fee cannot be activated through this integration.
+- The integration supports Flexible Subscriptions and recurring card payments. It does not support WooCommerce Subscriptions or BLIK Recurring.
+
+**Developer notes:**
+- Activation uses `GatewayID=1503` and `RecurringAction=INIT_WITH_PAYMENT`. The pretransaction response provides the redirect URL for the activation form hosted by Autopay.
+- RPAN associates the `ClientHash` with the subscription, ITN updates the transaction result, and RPDN confirms external instrument deactivation.
+- Automatic renewals use `RecurringAction=AUTO`; a manual charge using the stored instrument uses `RecurringAction=MANUAL`.
+- Each charge attempt receives its own `OrderID` in the `<renewal_order_id>-<attempt_number>` format. This associates the response and ITN with the correct renewal order and distinguishes a retry from the next billing period.
+- Integration diagnostics are written to the WooCommerce `bm_woocommerce_recurring` log when the gateway's existing debug mode is enabled.
 
 ### Payment settings
 
-Payment methods can be displayed on your shop in several different ways - depending on how the shop has been built or what you personally prefer, you find more effective. We refer to each such method as a ‘Payment Mode’. The table below will help you to familiarise yourself with the modes on offer and make a choice of one that best suits your shop.
-- **Direct to Autopay payment page** - In the list of methods, there will be a single button that redirects the customer to the payment page hosted by Autopay, where the payer will see the full list of available payment methods. This mode is minimalistic and at the same time least intrusive to your shop code. If the other modes cause some difficulty on the website or do not display correctly on your shop, it is worth using this mode.
-- **Display each available method separately** - A dedicated button for each available payment method will appear in the list. The payer will therefore find out exactly which methods they can use, already on your shop page. Once the method has been selected, the payer will be redirected directly to the page where he or she can finalise the payment. For example, by clicking on the ‘BLIK’ method, he/she will be taken to the BLIK page and asked to enter the code won at his/her bank.
-	- **BLIK payment mode** - This is a separate setting only active if the ‘Display each available method separately’ mode is activated and refers to the method of paying for the order using the ‘BLIK’ payment method:
-		- 'transfer to BLIK page' - when the BLIK payment method is selected, the payer will be taken to the BLIK page and asked to enter the payment code and confirm it in the app. In addition, the payer can remember our shop on the device they are using. This will make it so that in the future, when making a BLIK payment on our shop and on the same device, the payer will no longer be asked to enter the BLIK code, and in his/her banking app the request to confirm the payment will appear as soon as he/she is redirected to the BLIK page.
-		- 'Enter BLIK code directly at the shop' - once the BLIK method has been selected, the payer will be shown a dedicated field on your shop where they can enter the BLIK code. The payer will not be redirected anywhere, the payment will take place directly on your shop.
-		  The configuration of the payment statuses directly affects how the order progresses on your shop.
-	- **Payment started** - The payment process has just started - this means that the payer has selected and approved a specific payment method. The order has already been created in your shop. The payment has not yet reached its final status. Set an order status that corresponds to this description.
-    - **Payment approved** - The payment initiated by the payer has been successful. You as the seller will receive the funds for it from Autopay. Set an order status that corresponds to this description.
-    - **Payment approved for a basket containing only virtual products** - Payment initiated by the payer has been successful. You as the seller will receive funds for it from Autopay. This is a dedicated status for the sale of digital products - enabling you to have the order shipped immediately to the payer. Set an order status that matches this description.
-    - **Payment unsuccessful** - The payment initiated by the payer has failed. You as the merchant will not receive funds from Autopay. Set an order status that corresponds to this description.
-    - **Changing the display order of payment methods** - In the plugin’s admin panel, go to the tab: **Settings → Payments.**
-	  In the list of payment methods available in the store, you can drag & drop
-	  Autopay methods to arrange them in your preferred order.
-	  The saved order will be visible to customers during checkout, in the payment
-	  method selection section.
+The plugin supports two ways of presenting payment methods:
 
+- **Redirect to the Autopay payment page** - checkout displays a single Autopay option. After placing the order, the customer is redirected to an Autopay-hosted page and selects one of the methods available for the service and currency.
+- **Display each available method separately** - checkout displays a separate option for every available method. Depending on the selected method and its configuration, the customer either completes the payment in the store or is redirected to the appropriate payment page.
+
+Additional settings:
+
+- **BLIK payment mode** - available when payment methods are displayed separately:
+  - **Redirect to the BLIK page** - the customer enters and confirms the BLIK code on the Autopay-hosted page. If supported, the customer can also remember the store on the current device.
+  - **Enter the BLIK code directly in the store** - the customer enters the code in checkout without leaving the store.
+- **Google Pay payment mode** - available when payment methods are displayed separately:
+  - **Redirect to Google Pay** - the customer is redirected to the Google Pay payment page.
+  - **Pay with Google Pay directly in the store** - the customer completes the payment without leaving checkout.
+- **Order statuses** - separate settings determine the WooCommerce status assigned when a payment starts, succeeds, succeeds for an order containing only virtual products, or fails.
+- **Payment method order** - when methods are displayed separately, you can arrange them by drag and drop in the Autopay payment settings.
+- **Autopay logo in checkout** - choose a dark logo for a light background or a light logo for a dark background.
 
 ### Analytics
-The Autopay plugin allows you to send payment information directly to Google Analytics. Among other things, this makes it possible to track sales conversions within the Google Analytics platform. Communication with Google Analytics is an optional feature of the plugin and is not required for the plugin to function correctly.
-In order for the plugin to communicate with your Google Analytics account, you must provide correct Google Analytics account details.
+The plugin can send e-commerce events directly to Google Analytics 4. This integration is optional and is not required to process payments.
 
-**NOTE!** The plugin registers a ‘purchase’ event based on the order reaching the ‘Completed’ status. You can change the status that triggers the event in Google Analytics using the **Purchase order status triggering event ‘Completed transaction ’** option.
+> **Note:** by default, the `purchase` event is sent when the order reaches the `Completed` status. You can change the triggering status in the **Order status triggering the "Purchase" event** setting.
 
-Once connected to the plugin, the following events will appear in your Google Analytics account:
+The following events are supported:
 
-| Event name                | Event key             | Description                                                                                                                                                                            |
-|---------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Display product in list   | `view_item_list`      | Triggered for each product that is listed and visible to the customer while browsing the page.                                                                                         |
-| View product details      | `view_item`           | Triggered when a user visits a specific product page. Triggered when the page is displayed/loaded.                                                                                     |
-| Click on the product      | `add_to_cart`         | Triggered when the user adds the product to the basket.                                                                                                                                |
-| Remove product from cart  | `remove_from_cart`    | Triggered when the user removes the product from the cart.                                                                                                                             |
-| Start checkout process    | `begin_checkout`      | Triggered when the user proceeds to checkout.                                                                                                                                          |
-| completed order data      | `set_checkout_option` | Triggered when the user has completed the order data.                                                                                                                                  |
-| Payment method selection  | `checkout_progress`   | Triggered when the user has proceeded to the second step of the order (payment method selection).                                                                                      |
-| Completion of transaction | `purchase`            | Triggered when the transaction is successfully completed. It is sent on the server side for the transaction to be marked, even if the customer has not returned to the thank you page. |
+| Event name | Event key | Description |
+|---|---|---|
+| Display product list | `view_item_list` | Sent for products visible in a product list. |
+| View product details | `view_item` | Sent when a product page is opened. |
+| Add product to cart | `add_to_cart` | Sent when a product is added to the cart. |
+| Remove product from cart | `remove_from_cart` | Sent when a product is removed from the cart. |
+| Start checkout | `begin_checkout` | Sent when the customer proceeds to checkout. |
+| Complete order details | `set_checkout_option` | Sent after the customer completes the order details. |
+| Select payment method | `checkout_progress` | Sent when the customer proceeds to payment method selection. |
+| Complete transaction | `purchase` | Sent server-side after a successful transaction, even if the customer does not return to the thank-you page. |
 
+To connect Google Analytics 4, enter the following values in the plugin settings:
 
-The data required to connect the plugin to your Google Analytics account is:
-- **Measurement ID**, which you will find in Google Analytics:
-	1. log into your Google Analytics dashboard and click on ‘Administrator’ in the bottom left corner.
-	2. in the ‘Collecting and modifying data’ section, click ‘Data streams’.
-	   3.Click the name of the data stream.
-	   4.Your Measurement ID is in the top right corner (e.g. G-QCX4K9GSPC).
-- The **Data Stream Identifier** you will find in Google Anlytics:
-	1. log into your Google Analytics dashboard and click ‘Administration’.
-	2. in the ‘Services’ section, click ‘Data streams’.
-	3. click the name of the data stream.
-	4. Copy the identifier of the data stream from the ‘Stream details’ field.
-- **Text API key**, which you will find in Google Analytics:
-	1. go to ‘Administrator’ in the bottom left corner.
-	2. in the ‘Services’ section, click ‘Data streams’.
-	3. click the name of the data stream.
-	4. then click ‘Create’ in the ‘Measurement Protocol’ section.
-
+- **Measurement ID** - in Google Analytics, open **Admin → Data streams**, select the web data stream, and copy the ID displayed in its details, for example `G-QCX4K9GSPC`.
+- **Data stream ID** - available in the details of the selected data stream.
+- **API secret** - in the selected data stream, open the **Measurement Protocol API secrets** section and create a secret for this integration.
 
 ### Advanced settings
-This section of the plugin is for troubleshooting problems with the plugin configuration. If your plugin is working properly, there is no need for you to use this section.
 
-**Debug mode** - Enables debug mode on your shop. Only enable it after consulting with Autopay support. This mode allows you to collect detailed information about the performance of your plugin on your shop, which is then sent to the Autopay developers working to resolve the issue you reported.
+These settings are intended mainly for diagnostics and compatibility troubleshooting. Leave them unchanged unless a specific integration requires them or Autopay support asks you to enable them.
 
-**Logged Admin Sandbox Mode** - This allows a user logged into your shop as an administrator to use the Autopay plugin in test mode; while other customers will use Autopay payments in production mode at all times.
-
-**Show Autopay payment methods on shop to logged-in administrators only** - Mode allows only users logged in as an administrator to access Autopay payments on your shop. Other customers will not have access to make payments with Autopay methods.
-
-**Display countdown screen before redirection to increase compatibility** - This setting will help to resolve issues caused by installing selected plugins from third-party providers (e.g. analytics plugins, courier ordering plugins, etc.) on your shop.
-
-**Compatibility mode with third-party plug-ins that reload checkout fragments** - Compatibility mode with third-party plug-ins that allow checkout code elements to be reloaded.
-
-**Alternative production transaction start address** - this option allows you to use a different transaction start address if one is agreed with Autopay.
-
-**Alternate default order confirmation address** - this option allows you to use a different transaction confirmation address, if one is agreed with Autopay.
-
-**Add custom CSS styling** - Allows you to upload your own CSS styles for the display of the Autopay method list on your shop. Can be used by an Autopay support staff member to prepare CSS code specifically for your shop. Or, if you are an expert in front-end coding, you can use this feature yourself to change the CSS styles.
+- **Debug mode** - writes additional diagnostic information to WooCommerce logs. Enable it only while investigating a problem. Review logs before sharing them outside your organisation.
+- **Logged-in administrator sandbox mode** - uses the Autopay test environment only for administrators logged in to the store. Other customers continue to use the production environment.
+- **Show Autopay payment methods only to logged-in administrators** - hides Autopay methods from regular customers while keeping them available to administrators for verification.
+- **Display a countdown screen before redirection** - adds an intermediate page before redirecting the customer. It can improve compatibility with analytics, courier, and other plugins that need additional time to process checkout events.
+- **Compatibility mode for plugins that reload checkout fragments** - improves cooperation with extensions that dynamically refresh checkout sections.
+- **Alternative production transaction start URL** - use only when Autopay has provided and approved a different production endpoint.
+- **Alternative default order confirmation URL** - use only when a different return URL has been agreed with Autopay.
+- **Custom CSS** - adds store-specific styles to the Autopay payment method list. Use carefully and verify both classic and block checkout after making changes.
 
 ## Frequently asked questions
 
-### What are ITNs and have they been set up correctly?
-An ITN (Instant Payment Notification) is a message sent to your shop by Autopay whenever the status of a transaction changes. The use of ITN enables the shop to handle the order appropriately (e.g., sending the order only when it has been paid for; blocking a refund to an order that has not yet been paid for; etc.).
-Check the ITN configuration in two ways: directly in the plug-in; and in your Autopay account.
-Configuration in the plugin consists of an automatic test in the ‘Authentication’ tab (requires the Autopay plugin to be installed).
+### What are ITNs and how can I verify their configuration?
 
-If you want to ensure that the ITN configuration has run correctly on the Autopay account side:
-1. Ensure that the following fields in the [production administration portal](https://portal.autopay.eu/panel) and/or [test administration portal](https://testportal.autopay.eu/panel) contain the correct shop addresses.
-2. configure the payment return address `{URL of your store}/?bm_gateway_return`. Example: `https://my-shop.com/?bm_gateway_return`
-4. configuration of the address to which the ITN is sent `{URL of your shop}/?wc-api=wc_gateway_bluemedia`. Example: `https://my-shop.com/?wc-api=wc_gateway_bluemedia`
+An ITN (Instant Transaction Notification) is a message sent by Autopay when a transaction status changes. The plugin uses ITNs to update the corresponding WooCommerce order, for example after the payment succeeds or fails.
+
+The plugin checks communication automatically in the **Authentication** tab. You should also verify the return and ITN URLs in the Autopay administration portal.
+
+In the [production portal](https://portal.autopay.eu/panel) or [test portal](https://testportal.autopay.eu/panel), configure:
+
+1. Payment return URL: `{store URL}/?bm_gateway_return`, for example `https://my-shop.com/?bm_gateway_return`.
+2. ITN URL: `{store URL}/?wc-api=wc_gateway_bluemedia`, for example `https://my-shop.com/?wc-api=wc_gateway_bluemedia`.
 
 ### Can only selected payment methods be switched on and off?
 
-Unfortunately, this is not possible with Payments for WooCommerce. If Autopay methods are enabled on the shop, all those available to the merchant will also appear on the shop.
+No. When Autopay payment methods are enabled, the plugin displays all methods available for the configured service, currency, and current checkout context.
 
 ### How do I enable BLIK 0 (entering the BLIK code directly on the shop page, without redirecting the payer to the BLIK page)?
 
-To enable i.e. BLIK 0 (entering BLIK codes directly on the shop page, without redirecting the payer), go to the plug-in configuration, select the Settings section. Then select the payment mode ‘Display each available method separately’ and under ‘BLIK payment mode’ select ‘enter BLIK code directly on the shop’.
+Open the Autopay payment settings, select **Display each available method separately**, and then choose **Enter the BLIK code directly in the store** under **BLIK payment mode**.
 
 ### Can another currency be added?
 
-Yes, the Autopay plugin as of version `4.1.26` allows you to add a currency other than Polish zloty. However, please note that you must also have this currency configured within your Autopay account. Which usually involves having separate credentials.
-You can check the currency supported in your Autopay account in the service configuration in [Portal](https://portal.autopay.eu/panel).
-To add another currency to your Autopay account, please contact us via [form](https://developers.autopay.pl/kontakt).
+Yes. The plugin supports currencies other than PLN, but every currency must also be enabled for your Autopay service and may require separate credentials. You can verify supported currencies in the service configuration in the [Autopay portal](https://portal.autopay.eu/panel). To enable another currency, contact Autopay using the [contact form](https://developers.autopay.pl/kontakt).
 
 ### How do I order refunds (from the shop or the Autopay portal)?
 
-Currently, refunds must be ordered from within the Autopay portal. Log in to [Portal](https://portal.autopay.eu/panel) and go to the ‘Transactions’ tab, then click on ‘Order a refund’ in the details of the transaction to be refunded.
+Refunds must currently be initiated in the [Autopay portal](https://portal.autopay.eu/panel). Open **Transactions**, select the transaction, and choose **Order a refund**.
 
-### Is it possible to put BLIK itself on the whitelabel (display the BLIK method directly in the list of payment methods available in the shop)?
+### Can whitelabel mode display only BLIK?
 
-Unfortunately, this is not possible. The plug-in only allows you to:
-- display all available payment methods directly in the list of methods (including BLIK)
-  or
-- display a single collective ‘Pay’ button which, after redirection, redirects to a dedicated Autopay page containing a list of all payment methods available to the payer
+No. The plugin supports two presentation modes:
 
-### When configuring the plugin in the payment settings, instead of displaying a list of available payment methods I get a message - no payment methods available for this currency - what should I do?
+- all available methods displayed separately in checkout, including BLIK; or
+- one Autopay option that redirects the customer to the hosted payment page, where all available methods are shown.
 
-There are no payment methods available for the currency you have selected. Please contact us using [this form](https://developers.autopay.pl/kontakt) and ask the Autopay team to check your account configuration.
+### What should I do if no payment methods are available for the selected currency?
+
+No payment method is available for the selected currency and service configuration. Verify the credentials and currency assigned to the service. If the configuration appears correct, contact Autopay using the [contact form](https://developers.autopay.pl/kontakt).
 
 ### Does the plugin support multiple languages and how can they be configured?
 
-Yes. The Autopay plugin automatically adapts to the store language set
-in WordPress/WooCommerce.
-Translations are available in English, German, Italian, and Spanish.
-If the store operates in one of these languages, the plugin interface will
-be displayed in the appropriate translation and requires no additional configuration.
-If a different language is used, the interface will automatically switch
-to English and also requires no additional configuration.
+Yes. The plugin uses the language configured in WordPress/WooCommerce. Translations are available in Polish, English, German, Italian, and Spanish. For other languages, the interface falls back to English. No additional configuration is required.
+
+### How do I change the order of Autopay payment methods in the store?
+
+Open **WooCommerce → Settings → Payments → Autopay** and arrange the methods by drag and drop. This setting applies when payment methods are displayed separately.
+
+### Can I pay by card for several different subscription plans in one cart?
+
+No. If the cart contains more than one distinct Flexible Subscriptions plan or schedule, payment through Autopay is blocked. One billing plan is supported, optionally together with one-off products. The restriction applies to the number of distinct schedules, not simply to the number of products or line items in the cart.
 
 ## Screenshots
 
