@@ -29,6 +29,7 @@ The Autopay payment plugin offers a range of functionalities to support sales on
   DE, IT, ES); for other languages, the interface is displayed in English
 - ability to manually change the order of Autopay payment methods in the
   WooCommerce panel using drag & drop
+- native integration with the [Flexible Subscriptions](https://wordpress.org/plugins/flexible-subscriptions/) WooCommerce extension – card payments for subscription products, with automatic renewals, manual renewal/repayment, and subscription cancellation kept in sync with Autopay
 
 [Register your shop!](https://autopay.pl/oferta/platnosci-online?utm_campaign=woocommerce&utm_source=woocommerce_description&utm_medium=offer_cta#kalkulator)
 
@@ -36,8 +37,8 @@ The Autopay payment plugin offers a range of functionalities to support sales on
 
 ### Requirements for installing the plug-in
 
-- WordPress - tested on versions `6.0` to `7.0`
-- WooCommerce plugin - tested on versions `7.9.0` to `10.8.1`
+- WordPress - tested on versions `6.0` to `7.1.3`
+- WooCommerce plugin - tested on versions `7.9.0` to `11.2.1`
 - PHP version min. `7.4`
 
 ### Download from wordpress.org
@@ -199,7 +200,7 @@ to English and also requires no additional configuration.
 
 <figure>
   <img
-  src="assets/img/screenshot-1-en.jpg"
+  src="assets/img/screenshot-1-en.png"
   alt="View of the fields to be completed">
   <figcaption>View of the fields to be completed</figcaption>
 </figure>
