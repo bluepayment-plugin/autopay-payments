@@ -20,11 +20,15 @@ use WC_Order;
 class Transaction_Request_Builder {
 
 	/**
+	 * Autopay service ID for the currency this builder was created for.
+	 *
 	 * @var string
 	 */
 	private $service_id;
 
 	/**
+	 * Autopay private key matching {@see self::$service_id}.
+	 *
 	 * @var string
 	 */
 	private $private_key;
@@ -76,7 +80,15 @@ class Transaction_Request_Builder {
 			'OrderID'       => $order_id_override ?? $order->get_id(),
 			'Amount'        => $amount_override ?? $this->get_price( $order ),
 			'GatewayID'     => $gateway_id,
-			'Currency'      => blue_media()->resolve_blue_media_currency_symbol(),
+			// Currency MUST come from the order, never from the ambient request-global
+			// currency context. Currency::$shop_currency is a static latched on the
+			// first read of the PHP request -- Plugin::init() does that on `init`:10,
+			// before a multi-currency plugin has resolved the customer's currency for
+			// a Store API/REST checkout. Reading it here produced requests carrying the
+			// order's Amount with the shop's base Currency (order in EUR sent as PLN),
+			// which Autopay accepted and the ITN then rejected with
+			// `order_currency_mismatch` (see Ilabs\BM_Woocommerce\Gateway\ITN_Webhook_Handler).
+			'Currency'      => $order->get_currency(),
 			'CustomerEmail' => $order->get_billing_email(),
 		];
 

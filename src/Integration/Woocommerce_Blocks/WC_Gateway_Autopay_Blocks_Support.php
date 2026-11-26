@@ -9,10 +9,13 @@ use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 use Exception;
 use Ilabs\BM_Woocommerce\Controller\Payment_Status_Controller;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway_List_Response_Factory;
+use Ilabs\BM_Woocommerce\Domain\Service\Gateway_List\Gateway_List_Channels;
 use Ilabs\BM_Woocommerce\Domain\Service\Gateway_List\Gateway_List_Mapper_Block_Checkout;
 use Ilabs\BM_Woocommerce\Domain\Service\Gateway_List\Gateway_List_Recurring_Filter;
 use Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Manager;
 use Ilabs\BM_Woocommerce\Gateway\Blue_Media_Gateway;
+use Ilabs\BM_Woocommerce\Gateway\Currency\Payment_Currency_Context;
+use Ilabs\BM_Woocommerce\Gateway\Google_Pay\Google_Pay_Assets;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Recurring_Context;
 use Ilabs\BM_Woocommerce\Helpers\Autopay_Urls;
 
@@ -98,26 +101,22 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 		$script_url          = blue_media()->get_plugin_url() . $script_path;
 		$script_url_css      = blue_media()->get_plugin_url() . $script_path_css;
 		$script_dependencies = $script_asset['dependencies'];
-		$offer_gpay          = $this->should_offer_google_pay_for_blocks();
+		// WooCommerce attaches payment method script handles to both the Cart and the Checkout
+		// block bundles, so the Google Pay scripts must be gated on the checkout context as well --
+		// otherwise `pay.js` (and its Google cookies) would also load on the cart page. Those two
+		// answers are block-specific; every other condition lives in the shared policy.
+		$offer_gpay = $this->gateway instanceof Blue_Media_Gateway
+			&& $this->gateway->get_google_pay_script_policy()->can_load(
+				$this->is_checkout_context(),
+				$this->should_offer_google_pay_for_blocks()
+			);
 
 		if ( $offer_gpay ) {
-			wp_register_script(
-				'autopay-google-pay',
-				'https://pay.google.com/gp/p/js/pay.js',
-				[],
-				null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- External Google Pay CDN script; version is managed by Google and must not be pinned.
-				true,
-			);
-
-			wp_register_script(
-				'autopay-google-pay-atp',
-				blue_media()->get_plugin_js_url() . '/google-pay-atp.js',
-				[ 'autopay-google-pay' ],
-				blue_media()->get_plugin_version(),
-				true,
-			);
-
-			$script_dependencies[] = 'autopay-google-pay-atp';
+			// Only the local loader becomes a dependency. `pay.js` itself is injected from
+			// PaymentChannelItem.tsx, in the branch that keeps the Google Pay channel in the
+			// DOM -- so a channel the frontend ends up hiding never costs a request to
+			// pay.google.com, and never a Google cookie (AP-183).
+			$script_dependencies[] = Google_Pay_Assets::register_loader();
 		}
 
 		if ( $this->gateway instanceof Blue_Media_Gateway
@@ -204,10 +203,13 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 			'icon_src'                     => $this->gateway->get_checkout_logo_banner_url(),
 			'whitelabel'                   => $is_whitelabel,
 			'offer_google_pay_on_checkout' => $this->should_offer_google_pay_for_blocks(),
+			// The payment's own currency, not get_woocommerce_currency(): on order-pay that
+			// is the order's currency, which WooCommerce's shop-level currency never follows.
 			'gpay_type'                    => blue_media()
 				->get_blue_media_gateway()
 				->get_option(
-					Settings_Manager::get_currency_option_key( 'gpay_type', get_woocommerce_currency() ),
+					Settings_Manager::get_currency_option_key( 'gpay_type',
+						( new Payment_Currency_Context() )->resolve_code() ),
 					'with_redirect'
 				),
 			'place_order_button_label'     => __( 'Pay with Autopay',
@@ -465,6 +467,21 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 		return $this->is_terms_checkbox_enabled_in_checkout_block();
 	}
 
+	/**
+	 * Whether the page currently being rendered is the checkout (and not the cart).
+	 *
+	 * Safe to call here: WooCommerce registers block assets from
+	 * `AbstractBlock::render_callback()`, i.e. while rendering a concrete page, so the
+	 * conditional tags are already resolved at this point.
+	 *
+	 * @return bool
+	 */
+	private function is_checkout_context(): bool {
+		return function_exists( 'is_checkout' )
+			&& is_checkout()
+			&& ! ( function_exists( 'is_cart' ) && is_cart() );
+	}
+
 	private function is_terms_checkbox_enabled_in_checkout_block(): bool {
 		if ( ! function_exists( 'has_block' ) || ! function_exists( 'parse_blocks' ) ) {
 			return true;
@@ -519,22 +536,7 @@ final class WC_Gateway_Autopay_Blocks_Support extends AbstractPaymentMethodType 
 	 * @param array<string, mixed> $gateway_list_response Raw API-decoded body.
 	 */
 	private function gateway_list_api_response_contains_card_channel( array $gateway_list_response ): bool {
-		if ( empty( $gateway_list_response['gatewayList'] )
-			|| ! is_array( $gateway_list_response['gatewayList'] ) ) {
-			return false;
-		}
-
-		foreach ( $gateway_list_response['gatewayList'] as $row ) {
-			if ( ! is_array( $row ) ) {
-				continue;
-			}
-
-			if ( Blue_Media_Gateway::CARD_CHANNEL === (int) ( $row['gatewayID'] ?? 0 ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return Gateway_List_Channels::contains( $gateway_list_response, Blue_Media_Gateway::CARD_CHANNEL );
 	}
 
 	/**

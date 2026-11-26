@@ -47,8 +47,8 @@ msgid "Check your device."
 msgstr "Prüfe dein Gerät."
 
 #: src/Controller/Model/Payment_Status_Response_Value_Object.php:117
-#: src/Gateway/Blue_Media_Gateway.php:1704
-#: src/Gateway/Blue_Media_Gateway.php:2189
+#: src/Gateway/Blue_Media_Gateway.php:1901
+#: src/Gateway/Blue_Media_Gateway.php:2386
 #: templates/blik_0.php:8
 #: templates/settings_field_status.php:10
 #: templates/settings_status.php:11
@@ -529,33 +529,33 @@ msgstr "Bestellung konnte nicht erstellt werden"
 msgid "Failed to delete test order"
 msgstr "Testbestellung konnte nicht gelöscht werden"
 
-#: src/Gateway/Blue_Media_Gateway.php:214
+#: src/Gateway/Blue_Media_Gateway.php:222
 msgid "Autopay Instant payment"
 msgstr "Autopay-Sofortzahlung"
 
-#: src/Gateway/Blue_Media_Gateway.php:217
-#: src/Gateway/Blue_Media_Gateway.php:2337
+#: src/Gateway/Blue_Media_Gateway.php:225
+#: src/Gateway/Blue_Media_Gateway.php:2534
 msgid "Instant payment, BLIK, credit card, Google Pay, Apple Pay"
 msgstr "Sofortzahlung, BLIK, Kreditkarte, Google Pay, Apple Pay"
 
-#: src/Gateway/Blue_Media_Gateway.php:2336
+#: src/Gateway/Blue_Media_Gateway.php:2533
 msgid "Autopay gateway"
 msgstr "Autopay-Zahlungsgateway"
 
-#: src/Gateway/Blue_Media_Gateway.php:1114
+#: src/Gateway/Blue_Media_Gateway.php:1311
 msgid "Autopay payments: Cannot redirect to payment because no payment channel selected."
 msgstr "Autopay-Zahlungen: Weiterleitung zur Zahlung nicht möglich, da kein Zahlungskanal ausgewählt wurde."
 
-#: src/Gateway/Blue_Media_Gateway.php:1153
+#: src/Gateway/Blue_Media_Gateway.php:1350
 #: src/Integration/Woocommerce_Blocks/WC_Gateway_Autopay_Blocks_Support.php:443
 msgid "The code you provided is invalid. Code should be 6 digits."
 msgstr "Ungültiger BLIK-Code. Er muss 6 Ziffern haben."
 
-#: src/Gateway/Blue_Media_Gateway.php:1482
+#: src/Gateway/Blue_Media_Gateway.php:1679
 msgid "Autopay: Payment process started for order ID:"
 msgstr "Autopay: Zahlungsvorgang gestartet für Bestell-ID:"
 
-#: src/Gateway/Blue_Media_Gateway.php:2179
+#: src/Gateway/Blue_Media_Gateway.php:2376
 msgid "Autopay: BLIK-0 payment process started for order ID:"
 msgstr "Autopay: BLIK-0-Zahlungsvorgang gestartet für Bestell-ID:"
 
@@ -563,11 +563,11 @@ msgstr "Autopay: BLIK-0-Zahlungsvorgang gestartet für Bestell-ID:"
 msgid "validate_itn_hash - not valid"
 msgstr "validate_itn_hash – ungültig"
 
-#: src/Gateway/Blue_Media_Gateway.php:2311
+#: src/Gateway/Blue_Media_Gateway.php:2508
 msgid "Payment method title has been truncated to 80 characters."
 msgstr "Titel der Zahlungsmethode wurde auf 80 Zeichen gekürzt."
 
-#: src/Gateway/Blue_Media_Gateway.php:2322
+#: src/Gateway/Blue_Media_Gateway.php:2519
 msgid "Payment method description has been truncated to 500 characters."
 msgstr "Beschreibung der Zahlungsmethode wurde auf 500 Zeichen gekürzt."
 
@@ -603,25 +603,25 @@ msgstr "Füllen Sie das Kartenformular aus, bevor Sie die Bestellung aufgeben."
 msgid "Card payment form"
 msgstr "Karten-Zahlungsformular"
 
-#: src/Gateway/Blue_Media_Gateway.php:1167
-#: src/Gateway/Blue_Media_Gateway.php:1249
-#: src/Gateway/Blue_Media_Gateway.php:1993
+#: src/Gateway/Blue_Media_Gateway.php:1364
+#: src/Gateway/Blue_Media_Gateway.php:1446
+#: src/Gateway/Blue_Media_Gateway.php:2190
 msgid "Card payment data is missing. Please complete the card form and try again."
 msgstr "Kartenzahlungsdaten fehlen. Bitte füllen Sie das Kartenformular aus und versuchen Sie es erneut."
 
-#: src/Plugin.php:288
+#: src/Plugin.php:289
 msgid "Unpaid order cancelled - time limit reached."
 msgstr "Unbezahlte Bestellung storniert – Zeitlimit erreicht."
 
-#: src/Plugin.php:643
+#: src/Plugin.php:648
 msgid "The selected currency is not supported by the Autopay payment gateway. The gateway has been disabled"
 msgstr "Die ausgewählte Währung wird vom Autopay-Zahlungsgateway nicht unterstützt. Das Gateway wurde deaktiviert."
 
-#: src/Plugin.php:838
+#: src/Plugin.php:845
 msgid "Autopay BLIK-0: Timed out while waiting for confirmation."
 msgstr "Autopay BLIK-0: Zeitüberschreitung beim Warten auf Bestätigung."
 
-#: src/Plugin.php:967
+#: src/Plugin.php:974
 msgid "The block-based payment module will not work with the installed version of Woocommerce. Install at least 8.1.0 version."
 msgstr "Das blockbasierte Zahlungsmodul funktioniert mit der installierten WooCommerce-Version nicht. Bitte mindestens 8.1.0 installieren."
 
@@ -870,7 +870,7 @@ msgstr "Details anzeigen"
 msgid "Set the order at checkout"
 msgstr "Legen Sie die Reihenfolge an der Kasse fest"
 
-#: src/Gateway/Blue_Media_Gateway.php:2380
+#: src/Gateway/Blue_Media_Gateway.php:2577
 msgid "Reset to default"
 msgstr "Auf Standard zurücksetzen"
 
@@ -1107,7 +1107,7 @@ msgstr "Aussehen"
 msgid "Advanced"
 msgstr "Erweiterte"
 
-#: src/Gateway/Blue_Media_Gateway.php:2348
+#: src/Gateway/Blue_Media_Gateway.php:2545
 msgid "Title and description have been reset to defaults."
 msgstr "Titel und Beschreibung wurden auf die Standardwerte zurückgesetzt."
 
@@ -1193,48 +1193,48 @@ msgstr "https://developers.autopay.pl/en/online/plugins/woocomerce#692d97171d07c
 msgid "https://developers.autopay.pl/en/online/portal-autopay-en"
 msgstr "https://developers.autopay.pl/en/online/portal-autopay-en"
 
-#: src/Gateway/Blue_Media_Gateway.php:847
+#: src/Gateway/Blue_Media_Gateway.php:1035
 msgid "Payment methods are currently unavailable. Please try again later."
 msgstr "Zahlungsmethoden sind derzeit nicht verfügbar. Bitte versuchen Sie es später erneut."
 
-#: src/Gateway/Blue_Media_Gateway.php:1225
-#: src/Gateway/Blue_Media_Gateway.php:1306
-#: src/Gateway/Blue_Media_Gateway.php:1794
-#: src/Gateway/Blue_Media_Gateway.php:1846
-#: src/Gateway/Blue_Media_Gateway.php:1881
-#: src/Gateway/Blue_Media_Gateway.php:1887
-#: src/Gateway/Blue_Media_Gateway.php:1899
-#: src/Gateway/Blue_Media_Gateway.php:2050
-#: src/Gateway/Blue_Media_Gateway.php:2069
+#: src/Gateway/Blue_Media_Gateway.php:1422
+#: src/Gateway/Blue_Media_Gateway.php:1503
+#: src/Gateway/Blue_Media_Gateway.php:1991
+#: src/Gateway/Blue_Media_Gateway.php:2043
+#: src/Gateway/Blue_Media_Gateway.php:2078
+#: src/Gateway/Blue_Media_Gateway.php:2084
+#: src/Gateway/Blue_Media_Gateway.php:2096
+#: src/Gateway/Blue_Media_Gateway.php:2247
+#: src/Gateway/Blue_Media_Gateway.php:2266
 msgid "Card payment could not be started. Please try again."
 msgstr "Die Kartenzahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
 
-#: src/Gateway/Blue_Media_Gateway.php:1320
+#: src/Gateway/Blue_Media_Gateway.php:1517
 msgid "Google Pay is unavailable because the store checkout does not require acceptance of the terms and conditions."
 msgstr "Google Pay ist nicht verfügbar, da der Checkout des Shops keine Zustimmung zu den Allgemeinen Geschäftsbedingungen erfordert."
 
-#: src/Gateway/Blue_Media_Gateway.php:1692
+#: src/Gateway/Blue_Media_Gateway.php:1889
 msgid "Autopay: Google Pay payment process started for order ID:"
 msgstr "Autopay: Google Pay-Zahlungsvorgang gestartet für Bestell-ID:"
 
 #. translators: %s: remote error message.
-#: src/Gateway/Blue_Media_Gateway.php:2019
+#: src/Gateway/Blue_Media_Gateway.php:2216
 #, php-format
 msgid "Card pretransaction request failed: %s"
 msgstr "Anfrage zur Kartenvortransaktion fehlgeschlagen: %s"
 
 #. translators: %s: rejection reason from payment gateway.
-#: src/Gateway/Blue_Media_Gateway.php:2034
+#: src/Gateway/Blue_Media_Gateway.php:2231
 #, php-format
 msgid "Card payment was rejected: %s"
 msgstr "Die Kartenzahlung wurde abgelehnt: %s"
 
-#: src/Gateway/Blue_Media_Gateway.php:1876
-#: src/Gateway/Blue_Media_Gateway.php:2041
+#: src/Gateway/Blue_Media_Gateway.php:2073
+#: src/Gateway/Blue_Media_Gateway.php:2238
 msgid "Card payment was rejected. Please try again."
 msgstr "Die Kartenzahlung wurde abgelehnt. Bitte versuchen Sie es erneut."
 
-#: src/Gateway/Blue_Media_Gateway.php:2082
+#: src/Gateway/Blue_Media_Gateway.php:2279
 msgid "Autopay: Card payment process started for order ID:"
 msgstr "Autopay: Kartenzahlungsvorgang gestartet für Bestell-ID:"
 
@@ -1308,29 +1308,29 @@ msgstr "Automatische Kartenzahlungen für neue Abonnementkäufe anbieten"
 msgid "Controls only whether automatic card payments are offered for NEW subscription purchases. Already-active subscriptions keep renewing, being checked, and can be deactivated regardless of this setting."
 msgstr "Steuert nur, ob automatische Kartenzahlungen für NEUE Abonnementkäufe angeboten werden. Bereits aktive Abonnements werden weiterhin verlängert und überprüft und können unabhängig von dieser Einstellung deaktiviert werden."
 
-#: src/Gateway/Blue_Media_Gateway.php:784
+#: src/Gateway/Blue_Media_Gateway.php:972
 msgid "This payment will be made with your saved payment method — clicking \"Pay\" will charge it."
 msgstr "Diese Zahlung wird mit Ihrer gespeicherten Zahlungsmethode durchgeführt - durch Klicken auf \"Bezahlen\" wird diese belastet."
 
-#: src/Gateway/Blue_Media_Gateway.php:997
+#: src/Gateway/Blue_Media_Gateway.php:1194
 msgid "This subscription can only be paid with the recurring card payment method."
 msgstr "Dieses Abonnement kann nur mit der Zahlungsmethode für wiederkehrende Kartenzahlungen bezahlt werden."
 
-#: src/Gateway/Blue_Media_Gateway.php:1021
+#: src/Gateway/Blue_Media_Gateway.php:1218
 msgid "The selected payment channel is not available for this order."
 msgstr "Der ausgewählte Zahlungskanal ist für diese Bestellung nicht verfügbar."
 
-#: src/Gateway/Blue_Media_Gateway.php:1055
+#: src/Gateway/Blue_Media_Gateway.php:1252
 msgid "Payment conditions for this order have changed. Please refresh the page and try again."
 msgstr "Die Zahlungsbedingungen für diese Bestellung haben sich geändert. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut."
 
-#: src/Gateway/Blue_Media_Gateway.php:1074
-#: src/Gateway/Blue_Media_Gateway.php:2229
+#: src/Gateway/Blue_Media_Gateway.php:1271
+#: src/Gateway/Blue_Media_Gateway.php:2426
 #: src/Gateway/Recurring/Manual_Renewal_Payment_Handler.php:246
 msgid "Payment could not be started. Please try again."
 msgstr "Die Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
 
-#: src/Gateway/Blue_Media_Gateway.php:1096
+#: src/Gateway/Blue_Media_Gateway.php:1293
 #: src/Gateway/Recurring/Manual_Renewal_Payment_Handler.php:224
 msgid "Payment for this order is already being processed. Please try again shortly."
 msgstr "Die Zahlung für diese Bestellung wird bereits verarbeitet. Bitte versuchen Sie es in Kürze erneut."
@@ -1491,11 +1491,11 @@ msgstr "Autopay: Externe Deaktivierung des Instruments für wiederkehrende Zahlu
 msgid "Inactive: the Flexible Subscriptions plugin is not active. This setting has no effect until it is installed and active."
 msgstr "Inaktiv: Das Plugin Flexible Subscriptions ist nicht aktiv. Diese Einstellung hat keine Wirkung, bis das Plugin installiert und aktiviert wurde."
 
-#: src/Gateway/Blue_Media_Gateway.php:985
+#: src/Gateway/Blue_Media_Gateway.php:1182
 msgid "This order cannot be paid yet: this subscription is not eligible for automatic card payments in this store (e.g. more than one subscription in the order, a zero-amount first payment, or the recurring card channel not being configured for this currency). Please contact the store."
 msgstr "Diese Bestellung kann derzeit nicht bezahlt werden: Dieses Abonnement ist in diesem Shop nicht für automatische Kartenzahlungen geeignet (z. B. weil die Bestellung mehr als ein Abonnement enthält, die erste Zahlung einen Betrag von null hat oder der Kanal für wiederkehrende Kartenzahlungen für diese Währung nicht eingerichtet ist). Bitte kontaktieren Sie den Shop."
 
-#: src/Gateway/Blue_Media_Gateway.php:1917
+#: src/Gateway/Blue_Media_Gateway.php:2114
 msgid "Autopay: recurring card (1503) pretransaction started for order ID:"
 msgstr "Autopay: Vortransaktion für wiederkehrende Kartenzahlungen (1503) gestartet für Bestellung mit ID:"
 
@@ -1513,4 +1513,12 @@ msgstr "Diese Verlängerung jetzt bezahlen"
 
 #: src/Gateway/ITN_Webhook_Handler.php:128
 msgid "Internal error"
-msgstr ""
+msgstr "Ein interner Fehler ist aufgetreten"
+
+#: src/Gateway/Blue_Media_Gateway.php:620
+msgid "This payment cannot be completed: its currency is not supported by the Autopay payment gateway. Please contact the store."
+msgstr "Diese Zahlung kann nicht abgeschlossen werden: Die Währung dieser Zahlung wird vom Autopay-Zahlungsgateway nicht unterstützt. Bitte den Shop kontaktieren."
+
+#: src/Gateway/Blue_Media_Gateway.php:641
+msgid "This payment cannot be completed: the Autopay payment gateway is not configured for this currency. Please contact the store."
+msgstr "Diese Zahlung kann nicht abgeschlossen werden: Das Autopay-Zahlungsgateway ist für diese Währung nicht konfiguriert. Bitte den Shop kontaktieren."

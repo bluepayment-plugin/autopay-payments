@@ -15,6 +15,7 @@ use Ilabs\BM_Woocommerce\Utilities\File_System\Log_Downloader;
 use Ilabs\BM_Woocommerce\Utilities\Test_Connection\Async_Request as Connection_Testing_Controller;
 use Ilabs\BM_Woocommerce\Data\Remote\Ga4_Service_Client;
 use Ilabs\BM_Woocommerce\Domain\Service\Currency\Currency;
+use Ilabs\BM_Woocommerce\Gateway\Currency\Payment_Currency_Context;
 use Ilabs\BM_Woocommerce\Domain\Service\Custom_Styles\Css_Editor;
 use Ilabs\BM_Woocommerce\Domain\Service\Custom_Styles\Css_Frontend;
 use Ilabs\BM_Woocommerce\Domain\Service\Ga4\Add_Product_To_Cart_Use_Case;
@@ -42,6 +43,7 @@ use Ilabs\BM_Woocommerce\Integration\Funnel_Builder\Funnel_Builder_Integration;
 use Ilabs\BM_Woocommerce\Integration\Woocommerce_Blocks\WC_Gateway_Autopay_Blocks_Support;
 use Ilabs\BM_Woocommerce\Utilities\Test_Connection\Strings;
 use Ilabs\BM_Woocommerce\Helpers\Autopay_Urls;
+use Ilabs\BM_Woocommerce\Gateway\Google_Pay\Google_Pay_Assets;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Abstract_Ilabs_Plugin;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Alerts;
 use Isolated\BlueMedia\Ilabs\Ilabs_Plugin\Event_Chain\Event\Wc_Add_To_Cart;
@@ -428,12 +430,31 @@ class Plugin extends Abstract_Ilabs_Plugin {
 				$is_block_checkout_page = has_block( 'woocommerce/checkout', $post );
 			}
 		}
+
+		// WooCommerce renders order-pay with the CLASSIC checkout form even when the checkout
+		// page itself is built from the Checkout block, so that request needs everything the
+		// classic branch below provides: `autopayGpay` (front.js reads it to keep the
+		// place-order button suppressed while Google Pay is selected) and the Google Pay
+		// loader, which templates/google_pay.php reads while rendering the channel list.
+		// Without this, on a Checkout-block shop -- the WooCommerce default -- the loader only
+		// reaches order-pay in the footer, as a dependency of the Blocks bundle, long after
+		// that template has already run, and the Google Pay button never renders (AP-183).
+		if ( $is_block_checkout_page
+			&& function_exists( 'is_checkout_pay_page' )
+			&& is_checkout_pay_page()
+		) {
+			$is_block_checkout_page = false;
+		}
+
 		if ( $is_checkout_page && ! $is_block_checkout_page ) {
 			$gateway = blue_media()->get_blue_media_gateway();
 			if ( $gateway instanceof \Ilabs\BM_Woocommerce\Gateway\Blue_Media_Gateway ) {
-				$offer_google_pay = $gateway->should_offer_google_pay_on_checkout();
-				$gpay_type        = $gateway->get_option(
-					Settings_Manager::get_currency_option_key( 'gpay_type', get_woocommerce_currency() ),
+				// is_checkout() is also true on order-pay, where the payment's currency is
+				// the order's, not the shop's -- so the per-currency setting has to be keyed
+				// by Payment_Currency_Context, exactly like Payment_Channel_Renderer does.
+				$gpay_type = $gateway->get_option(
+					Settings_Manager::get_currency_option_key( 'gpay_type',
+						( new Payment_Currency_Context() )->resolve_code() ),
 					'with_redirect'
 				);
 
@@ -445,24 +466,17 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					]
 				);
 
-				// For classic checkout we still load Google Pay scripts globally.
-				// Block checkout receives them from the Blocks integration only when GPAY is eligible.
-				if ( $offer_google_pay && 'without_redirect' === $gpay_type ) {
-					// Google Pay helper (must load before pay.js).
-					wp_enqueue_script( $this->get_plugin_prefix() . '_google_pay_js',
-						$this->get_plugin_js_url() . '/google-pay-atp.js',
-						[ 'jquery' ],
-						blue_media()->get_plugin_version(),
-						true );
-
-					// Google Pay API should be in header for classic checkout.
-					wp_enqueue_script(
-						'autopay_google_pay',
-						'https://pay.google.com/gp/p/js/pay.js',
-						[],
-						null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- External Google Pay CDN; version pinning is not possible.
-						false
-					);
+				// Only the small local loader is enqueued, and only when the policy already
+				// allows Google Pay. It issues no external request by itself: `pay.js` (and
+				// with it any Google cookie) is injected from templates/google_pay.php, which
+				// WooCommerce renders exactly when the Google Pay channel reaches the DOM.
+				// This branch established the page context (classic checkout, not the cart);
+				// the terms checkbox is read from the WooCommerce API here.
+				if ( $gateway->get_google_pay_script_policy()->can_load(
+					true,
+					$gateway->should_offer_google_pay_on_checkout()
+				) ) {
+					Google_Pay_Assets::enqueue_loader();
 				}
 			}
 		}
@@ -511,15 +525,6 @@ class Plugin extends Abstract_Ilabs_Plugin {
 					$is_block_checkout_page = has_block( 'woocommerce/checkout', $post );
 				}
 			}
-
-			// Google Pay API should be loaded in the header to initialize PaymentsClient.
-			wp_enqueue_script(
-				'autopay_google_pay',
-				'https://pay.google.com/gp/p/js/pay.js',
-				[],
-				null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- External Google Pay CDN; version pinning is not possible.
-				false
-			);
 
 			$is_test      = 'yes' === $this->get_autopay_option( 'testmode', 'no' );
 			$cards_domain = Autopay_Urls::get_cards_domain( $is_test );
@@ -680,11 +685,13 @@ class Plugin extends Abstract_Ilabs_Plugin {
 	private function init_payment_gateway() {
 		add_filter( 'woocommerce_payment_gateways',
 			function ( $gateways ) {
-				$shop_currency = $this->get_currency_manager()
-				                      ->get_shop_currency();
+				// Same rule as Blue_Media_Gateway::is_available(), applied one level up so the
+				// gateway is not even registered for a store whose currency Autopay cannot
+				// take. Kept in one place: Payment_Currency_Context owns the rule.
+				$currency_context = new Payment_Currency_Context();
 
-				if ( false === is_admin() && ( null === $shop_currency || false === $this->get_currency_manager()
-				                                                                         ->is_currency_selected( $shop_currency->get_code() ) ) ) {
+				if ( false === is_admin()
+				     && false === $currency_context->is_configured( $currency_context->resolve_code() ) ) {
 
 					self::$inactive_on_frontend = true;
 

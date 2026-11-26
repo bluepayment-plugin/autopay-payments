@@ -6,7 +6,7 @@ Requires PHP: 7.4
 Tested up to: 7.1
 WC requires at least: 7.9
 WC tested up to: 11.2.1
-Stable tag: 5.1.0
+Stable tag: 5.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -87,6 +87,12 @@ The values of the Service ID and Configuration Key are different for the test an
 
 
 == Changelog ==
+
+### 5.1.1 (26.11.2026) ###
+* Fixed: multi-currency support — a payment is now always made in the currency of the order, with the payment methods and their settings (including the Google Pay mode) matched to that currency. Previously the store's base currency was used, so a customer could be charged the wrong amount or have the payment rejected.
+* Fixed: for a currency the store has not enabled in Autopay, the payment method is no longer offered, and a payment already started stops with a clear message.
+* Fixed: the Google Pay script is now loaded only where the Google Pay button actually appears, so stores without Google Pay no longer create any Google cookies. The script can also be switched off with the `autopay_filter_can_load_google_pay_scripts` filter.
+* Fixed: on the "Pay for order" page Google Pay now shows the amount and currency of the order being paid (previously 0).
 
 ### 5.1.0 (26.10.2026) ###
 * Security: improved payment notification handling and order status processing. Immediate update is recommended.

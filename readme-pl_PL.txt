@@ -4,7 +4,7 @@ Tags: woocommerce, bluemedia, autopay
 Requires at least: 6.0
 Requires PHP: 7.4
 Tested up to: 7.1
-Stable tag: 5.1.0
+Stable tag: 5.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,6 +85,12 @@ Wartości Identyfikatora serwisu oraz Klucza konfiguracyjnego są różne dla ś
 
 
 == Changelog ==
+
+### 5.1.1 (26.11.2026) ###
+* Naprawiono: obsługę sklepów wielowalutowych — płatność jest teraz zawsze realizowana w walucie zamówienia, a metody płatności i ich ustawienia (w tym tryb Google Pay) dobierane do tej waluty. Wcześniej brana była waluta bazowa sklepu, przez co klient mógł zapłacić niewłaściwą kwotę albo jego płatność była odrzucana.
+* Naprawiono: dla waluty, której sklep nie ma włączonej w Autopay, metoda płatności nie jest już oferowana, a rozpoczęta płatność zatrzymuje się z czytelnym komunikatem.
+* Naprawiono: skrypt Google Pay wczytuje się tylko tam, gdzie przycisk Google Pay faktycznie się pojawia — sklepy bez Google Pay nie zakładają już żadnych plików cookie Google. Skrypt można również wyłączyć filtrem `autopay_filter_can_load_google_pay_scripts`.
+* Naprawiono: na stronie „Zapłać za zamówienie" Google Pay pokazuje teraz kwotę i walutę opłacanego zamówienia (wcześniej kwotę 0).
 
 ### 5.1.0 (26.10.2026) ###
 * Bezpieczeństwo: usprawniono obsługę powiadomień o płatnościach oraz przetwarzanie statusów zamówień. Zalecana niezwłoczna aktualizacja.

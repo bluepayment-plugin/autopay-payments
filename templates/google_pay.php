@@ -13,14 +13,12 @@ defined( 'ABSPATH' ) || exit;
 <input
 	name="atp_gpay_amount"
 	type="hidden"
-	value="<?php
-	echo esc_attr( $response_data['cart_total'] ?? '' ); ?>"
+	value="<?php echo esc_attr( $response_data['cart_total'] ?? '' ); ?>"
 />
 <input
 	name="atp_gpay_currency"
 	type="hidden"
-	value="<?php
-	echo esc_attr( $response_data['currency'] ?? '' ); ?>"
+	value="<?php echo esc_attr( $response_data['currency'] ?? '' ); ?>"
 /><input
 	id="atp_gpay_payment_token"
 	name="atp_gpay_payment_token"
@@ -32,18 +30,22 @@ defined( 'ABSPATH' ) || exit;
 	<p class="atp-gpay-subtitle">
 		<?php
 		echo esc_html__( 'Pay with Google Pay',
-			'platnosci-online-blue-media' ); ?>
+			'platnosci-online-blue-media' );
+		?>
 	</p>
 	<div id="js-pay-button-wrapper"></div>
 	<p id="atp-gpay-terms-error" class="atp-gpay-terms-error"
-	   style="display: none;">
+		style="display: none;">
 
 		<?php
 		echo esc_html__( 'Please read and accept the',
-			'platnosci-online-blue-media' ); ?>
-		<span class="atp-gpay-terms-error__strong"><?php
+			'platnosci-online-blue-media' );
+		?>
+		<span class="atp-gpay-terms-error__strong">
+        <?php
 			echo esc_html__( 'Terms & Conditions',
-				'platnosci-online-blue-media' ); ?>
+				'platnosci-online-blue-media' );
+			?>
 		</span>
 	</p>
 </div>
@@ -82,6 +84,16 @@ defined( 'ABSPATH' ) || exit;
 
 		let environment = "<?php echo esc_attr( $environment ); ?>";
 		const shopBaseCountryCode = "<?php echo esc_attr( $shopBaseCountryCode ); ?>";
+		// Resolved by waitForLoader() at the bottom of this script. The loader is enqueued for
+		// this request, but an optimiser plugin, a deferred script or an unusual render order
+		// can still leave it in flight while this inline script runs -- so it is polled for
+		// rather than read once, the same way waitForDeps() polls for the Google Pay API.
+		let loader = null;
+
+		// How long to wait for the loader itself. It is a local file enqueued for this very
+		// request, so this only has to cover ordering, not network distance -- the generous
+		// budget for fetching pay.js over a slow link lives in the loader's own whenReady().
+		const LOADER_WAIT_MS = 5000;
 
 			function logError(message, meta) {
 				if (!window.console) {
@@ -93,26 +105,6 @@ defined( 'ABSPATH' ) || exit;
 				console.error('Google Pay:', message, meta || {});
 			};
 
-		function waitForDeps(attempt) {
-			const tries = typeof attempt === 'number' ? attempt : 0;
-			if (tries > 50) {
-				logError('API not loaded');
-				return;
-			}
-
-			if (
-				typeof GooglePay === 'undefined' ||
-				!window.google ||
-				!window.google.payments ||
-				!window.google.payments.api
-			) {
-				return setTimeout(function () {
-					waitForDeps(tries + 1);
-				}, 100);
-			}
-
-			initGpay();
-		}
 
 		function initGpay() {
 			const requiredKeys = ['authJwt', 'merchantId', 'merchantOrigin', 'merchantName', 'acceptorId'];
@@ -169,25 +161,12 @@ defined( 'ABSPATH' ) || exit;
 		function enforceTermsBeforeGpay() {
 			const wrapper = document.getElementById('js-pay-button-wrapper');
 			const errorBox = document.getElementById('atp-gpay-terms-error');
-			const termsSelectors = [
-				'#terms',
-				'#terms-and-conditions',
-				'input[name="terms"]',
-				'.wc-block-components-checkbox input[name="terms"]'
-			];
-
-			function findTermsCheckbox() {
-				for (let i = 0; i < termsSelectors.length; i++) {
-					const checkbox = document.querySelector(termsSelectors[i]);
-					if (checkbox) {
-						return checkbox;
-					}
-				}
-				return null;
-			}
+			// Selectors and lookup live in the shared loader, so the classic checkout and the
+			// Checkout Block always agree on what "the terms checkbox" is.
+			const termsSelectors = loader.TERMS_SELECTORS;
 
 			function areTermsAccepted() {
-				const checkbox = findTermsCheckbox();
+				const checkbox = loader.findTermsCheckbox();
 				if (!checkbox) {
 					return true;
 				}
@@ -273,6 +252,31 @@ defined( 'ABSPATH' ) || exit;
 			bindGpayClickHandler();
 		}
 
-		waitForDeps(0);
+		function waitForLoader(onReady) {
+			const deadline = Date.now() + LOADER_WAIT_MS;
+
+			(function poll() {
+				if (window.AutopayGooglePayLoader) {
+					loader = window.AutopayGooglePayLoader;
+					onReady();
+					return;
+				}
+
+				if (Date.now() > deadline) {
+					logError('loader script not available');
+					return;
+				}
+
+				window.setTimeout(poll, 100);
+			})();
+		}
+
+		// Injecting pay.js here -- rather than enqueueing it with the page -- is the whole
+		// point: this template is rendered only when the Google Pay channel actually reaches
+		// the DOM, so a checkout that never shows the button never touches pay.google.com
+		// and never gets a Google cookie (AP-183).
+		waitForLoader(function () {
+			loader.whenReady(initGpay);
+		});
 	})();
 </script>

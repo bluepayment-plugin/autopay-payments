@@ -20,6 +20,7 @@ use Ilabs\BM_Woocommerce\Helpers\Helper;
 use Ilabs\BM_Woocommerce\Plugin;
 use WC_Order;
 use WC_Payment_Gateway;
+use Ilabs\BM_Woocommerce\Gateway\Currency\Payment_Currency_Context;
 use Ilabs\BM_Woocommerce\Gateway\Hooks\Payment_On_Account_Page;
 use Ilabs\BM_Woocommerce\Gateway\Card_Widget\Blue_Media_Hash_Generator;
 use Ilabs\BM_Woocommerce\Gateway\Card_Widget\Card_Widget_Payment_Service;
@@ -31,6 +32,7 @@ use Ilabs\BM_Woocommerce\Gateway\Recurring\Attempt_State_Store;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Manual_Renewal_Eligibility;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Manual_Renewal_Payment_Handler;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Recurring_Context;
+use Ilabs\BM_Woocommerce\Gateway\Google_Pay\Google_Pay_Script_Policy;
 use Ilabs\BM_Woocommerce\Domain\Service\Gateway_List\Gateway_List_Recurring_Filter;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Recurring_Logger;
 use Ilabs\BM_Woocommerce\Gateway\Recurring\Recurring_Result_Applier;
@@ -100,6 +102,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	private $gateway_url_not_modified_by_user;
 
 	/**
+	 * Lazily created by {@see get_google_pay_script_policy()}.
+	 *
+	 * @var Google_Pay_Script_Policy
+	 */
+	private Google_Pay_Script_Policy $google_pay_script_policy;
+
+	/**
 	 * @var string
 	 */
 	private $express_payment_redirect_url;
@@ -150,6 +159,13 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	 * @var Recurring_Context
 	 */
 	private Recurring_Context $recurring_context;
+
+	/**
+	 * Resolves which currency the current payment is in and whether Autopay can take it.
+	 *
+	 * @var Payment_Currency_Context
+	 */
+	private Payment_Currency_Context $currency_context;
 
 	/**
 	 * @var ITN_Webhook_Handler|null
@@ -242,6 +258,7 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 			'subscription_payment_method_change_customer',
 		];
 
+		$this->currency_context  = new Payment_Currency_Context();
 		$this->recurring_context = new Recurring_Context( $this );
 
 		$this->init_form_fields();
@@ -566,6 +583,132 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Switch the request-global currency context to the order's currency and reload
+	 * the matching Autopay credentials.
+	 *
+	 * The outbound payment path used to inherit whatever currency happened to be
+	 * latched into the Currency service earlier in the request, while Amount and
+	 * OrderID came from the order -- two sources that could disagree. The inbound
+	 * paths (ITN, RPAN) have always reconfigured from the transaction's own
+	 * currency; this gives the outbound path the same guarantee.
+	 *
+	 * A missing per-currency configuration is a hard failure on purpose: silently
+	 * falling back to the PLN credentials (which Settings_Manager maps to the
+	 * non-postfixed legacy option keys, so they are practically always populated)
+	 * is what let a wrong-currency request be signed and accepted in the first place.
+	 *
+	 * The outbound payment request, the channel list and everything rendered for a
+	 * checkout or order-pay page go through here, so a customer is never offered channels
+	 * from one service and then charged through another.
+	 *
+	 * @param string        $currency Currency the request must follow.
+	 * @param WC_Order|null $order    Order being paid, when there is one; for logging only.
+	 * @param string        $context  Calling path; used as the log prefix.
+	 *
+	 * @return string|null Null once the context is bound; a customer-facing error
+	 *                     message when the gateway is not configured for that currency.
+	 */
+	private function apply_currency_context( string $currency, ?WC_Order $order, string $context ): ?string {
+		if ( '' === $currency ) {
+			return null;
+		}
+
+		$resolved = $this->currency_context->bind( $currency );
+
+		if ( null === $resolved ) {
+			blue_media()->get_woocommerce_logger()->log_warning(
+				sprintf(
+					'[%s] [currency context: payment currency not supported] [Order id: %s] [currency: %s]',
+					$context,
+					null !== $order ? $order->get_id() : 'n/a',
+					$currency
+				)
+			);
+
+			return __( 'This payment cannot be completed: its currency is not supported by the Autopay payment gateway. Please contact the store.',
+				'platnosci-online-blue-media' );
+		}
+
+		// Re-read ServiceID/private key for the now-active currency and rebuild the
+		// transaction builder, so everything downstream -- the gateway list request,
+		// the per-currency whitelabel/channel settings and the signed payment request
+		// itself -- comes from that currency's service.
+		$this->setup_variables( $resolved );
+
+		if ( '' === trim( (string) $this->service_id ) || '' === trim( (string) $this->private_key ) ) {
+			blue_media()->get_woocommerce_logger()->log_error(
+				sprintf(
+					'[%s] [currency context: credentials missing for payment currency] [Order id: %s] [currency: %s] [testmode: %s]',
+					$context,
+					null !== $order ? $order->get_id() : 'n/a',
+					$currency,
+					$this->testmode ? 'yes' : 'no'
+				)
+			);
+
+			return __( 'This payment cannot be completed: the Autopay payment gateway is not configured for this currency. Please contact the store.',
+				'platnosci-online-blue-media' );
+		}
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf(
+				'[%s] [currency context bound] [Order id: %s] [currency: %s] [service_id: %s]',
+				$context,
+				null !== $order ? $order->get_id() : 'n/a',
+				$currency,
+				$this->service_id
+			)
+		);
+
+		return null;
+	}
+
+	/**
+	 * Bind the gateway to the currency of the payment the current request is about.
+	 *
+	 * On order-pay that is the order's currency; on an ordinary checkout it is the live
+	 * WooCommerce currency, which a multi-currency plugin resolves AFTER this plugin has
+	 * memoised its own. Without this the channel list is fetched from -- and signed for --
+	 * the memoised currency's service, so a customer shopping in another currency is offered
+	 * channels that service does not have and the gateway rejects the payment.
+	 *
+	 * @param string $context Calling path; used as the log prefix.
+	 *
+	 * @return string|null Null once bound; a customer-facing message when the store is not
+	 *                     configured for that currency.
+	 */
+	public function ensure_payment_currency_context( string $context ): ?string {
+		return $this->apply_currency_context(
+			$this->currency_context->resolve_code(),
+			$this->currency_context->order_pay_order(),
+			$context
+		);
+	}
+
+	/**
+	 * `process_payment()` wrapper around {@see self::apply_currency_context()}.
+	 *
+	 * @param mixed $order Order being paid (WC_Order when the lookup succeeded).
+	 *
+	 * @return bool True when the gateway is configured for the order's currency.
+	 */
+	private function bind_currency_context_to_order( $order ): bool {
+		if ( ! $order instanceof WC_Order ) {
+			return true;
+		}
+
+		$error = $this->apply_currency_context( (string) $order->get_currency(), $order, 'process_payment' );
+
+		if ( null !== $error ) {
+			wc_add_notice( $error, 'error' );
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Read a setting honouring the active multi-currency context.
 	 *
 	 * The currency-postfixed option key (e.g. {@see Settings_Manager::get_currency_option_key()})
@@ -716,6 +859,59 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		return $this->recurring_context;
 	}
 
+	/**
+	 * Exposes the Google Pay script-loading policy — the single place deciding whether
+	 * `pay.js` may be requested at all (AP-183). Created lazily: only the two enqueue
+	 * paths (classic `Plugin::enqueue_frontend_scripts()` and the Checkout Block
+	 * integration) ever ask for it.
+	 *
+	 * @return Google_Pay_Script_Policy
+	 */
+	public function get_google_pay_script_policy(): Google_Pay_Script_Policy {
+		if ( ! isset( $this->google_pay_script_policy ) ) {
+			$this->google_pay_script_policy = new Google_Pay_Script_Policy( $this );
+		}
+
+		return $this->google_pay_script_policy;
+	}
+
+	/**
+	 * Amount and currency of what the customer is actually about to pay for in this
+	 * request: the order on order-pay, the session cart on a fresh checkout.
+	 *
+	 * `WC()->cart` is the wrong source on order-pay -- payment is for an order that
+	 * already exists, so the cart is empty there and reading it yields 0 (AP-183). The
+	 * order wins even when a session cart happens to be non-empty: order-pay pays the
+	 * order, never whatever sits in the basket in another tab. Same resolution
+	 * {@see payment_fields()} already applies to $recurring_currency/$recurring_amount.
+	 *
+	 * Amount and currency are returned together on purpose -- they describe one
+	 * transaction and must never be taken from two different sources.
+	 *
+	 * @return array{total: string, currency: string} Total in the same shape
+	 *                                                `WC_Cart::get_total( 'edit' )` returns.
+	 */
+	private function resolve_payable_total(): array {
+		$order_pay_id    = absint( get_query_var( 'order-pay' ) );
+		$order_pay_order = $order_pay_id > 0 ? wc_get_order( $order_pay_id ) : false;
+
+		if ( $order_pay_order instanceof WC_Order ) {
+			return [
+				'total'    => (string) wc_format_decimal(
+					$order_pay_order->get_total(),
+					wc_get_price_decimals()
+				),
+				'currency' => $order_pay_order->get_currency(),
+			];
+		}
+
+		$cart = function_exists( 'WC' ) ? WC()->cart : null;
+
+		return [
+			'total'    => $cart ? (string) $cart->get_total( 'edit' ) : '',
+			'currency' => get_woocommerce_currency(),
+		];
+	}
 
 	public function configure_google_pay(): ?array {
 		$urlparts = wp_parse_url( home_url() );
@@ -739,8 +935,9 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 				$this->gateway_url ),
 				true );
 			if ( is_array( $result ) ) {
-				$result['cart_total'] = WC()->cart->get_total( 'edit' );
-				$result['currency']   = get_woocommerce_currency();
+				$payable              = $this->resolve_payable_total();
+				$result['cart_total'] = $payable['total'];
+				$result['currency']   = $payable['currency'];
 			}
 		} catch ( Exception $e ) {
 			$error  = $e->getMessage();
@@ -762,13 +959,66 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Hide the gateway when this store cannot take an Autopay payment in the payment's currency.
+	 *
+	 * {@see \Ilabs\BM_Woocommerce\Plugin::init_payment_gateway()} applies the same rule at
+	 * registration time, but only to the shop's base currency -- and it reads the latched
+	 * currency context, which on a multi-currency store is resolved before the customer's own
+	 * currency is known. This check runs per request against
+	 * {@see Payment_Currency_Context::resolve_code()}: the order's currency on order-pay, the
+	 * live WooCommerce currency everywhere else. It therefore covers the ordinary checkout of
+	 * a multi-currency store (customer in EUR, shop base PLN) as well as order-pay.
+	 *
+	 * Blocks go through the same path --
+	 * `WC_Gateway_Autopay_Blocks_Support::is_active()` delegates here -- so classic and block
+	 * checkout cannot disagree about availability.
+	 *
+	 * Offering a payment method that then has to refuse the money is worse than not offering
+	 * it; the messages in {@see self::apply_currency_context()} remain as a backstop for
+	 * when availability is forced by a third-party filter.
+	 *
+	 * @return bool
+	 */
+	public function is_available() {
+		if ( ! parent::is_available() ) {
+			return false;
+		}
+
+		$code = $this->currency_context->resolve_code();
+
+		if ( $this->currency_context->is_configured( $code ) ) {
+			return true;
+		}
+
+		blue_media()->get_woocommerce_logger()->log_debug(
+			sprintf(
+				'[is_available] [gateway hidden: store not configured for payment currency] [currency: %s]',
+				'' === $code ? 'unknown' : $code
+			)
+		);
+
+		return false;
+	}
+
+	/**
 	 * @return void
 	 * @throws Exception
 	 */
 	public function payment_fields() {
-		$order_pay_id     = absint( get_query_var( 'order-pay' ) );
-		$order_pay_order  = $order_pay_id > 0 ? wc_get_order( $order_pay_id ) : false;
+		$order_pay_order  = $this->currency_context->order_pay_order();
 		$is_renewal_order = false;
+
+		// Bind the whole render to the currency of THIS payment before anything reads a
+		// per-currency setting or calls the Autopay API -- on order-pay the order's, on an
+		// ordinary checkout the customer's live currency.
+		$currency_error = $this->ensure_payment_currency_context( 'payment_fields' );
+
+		if ( null !== $currency_error ) {
+			echo '<p>' . esc_html( $currency_error ) . '</p>';
+			do_action( 'autopay_after_payment_field' );
+
+			return;
+		}
 
 		if ( $order_pay_order instanceof WC_Order ) {
 			$is_renewal_order = Recurring_Context::RENEWAL_ORDER === $this->recurring_context->classify( $order_pay_order );
@@ -890,6 +1140,15 @@ class Blue_Media_Gateway extends WC_Payment_Gateway {
 		$order = wc_get_order( $order_id );
 		Versioning::update_autopay_version_in_order( $order );
 
+		// Bind the whole payment request to THIS order's currency before any channel
+		// routing, credential read or parameter build happens below. Without it the
+		// gateway keeps whatever currency was latched into Currency::$shop_currency
+		// earlier in the request, which is the shop's base currency on a Store
+		// API/REST checkout -- producing a request signed with the wrong service's
+		// key and carrying the wrong Currency.
+		if ( ! $this->bind_currency_context_to_order( $order ) ) {
+			return [ 'result' => 'failure' ];
+		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- WC verifies woocommerce-process_checkout nonce before calling process_payment().
 		$is_classic_checkout = false;

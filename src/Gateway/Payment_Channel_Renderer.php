@@ -16,6 +16,7 @@ use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\View_Model\View_Model_Group
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\View_Model\View_Model_Group_Factory;
 use Ilabs\BM_Woocommerce\Domain\Model\White_Label\v3\Gateway as View_Model_Gateway;
 use Ilabs\BM_Woocommerce\Domain\Service\Settings\Settings_Manager;
+use Ilabs\BM_Woocommerce\Gateway\Currency\Payment_Currency_Context;
 use Ilabs\BM_Woocommerce\Helpers\Autopay_Urls;
 
 /**
@@ -590,8 +591,11 @@ class Payment_Channel_Renderer {
 	 * @return bool
 	 */
 	private function is_inline_gpay_enabled(): bool {
+		// The payment's own currency, not get_woocommerce_currency(): on order-pay that
+		// is the order's currency, which WooCommerce's shop-level currency never follows.
 		return 'without_redirect' === $this->gateway->get_option(
-			Settings_Manager::get_currency_option_key( 'gpay_type', get_woocommerce_currency() ),
+			Settings_Manager::get_currency_option_key( 'gpay_type',
+				( new Payment_Currency_Context() )->resolve_code() ),
 			'with_redirect'
 		);
 	}

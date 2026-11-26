@@ -10,6 +10,7 @@ namespace Ilabs\BM_Woocommerce\Gateway;
 defined( 'ABSPATH' ) || exit;
 
 use Exception;
+use Ilabs\BM_Woocommerce\Gateway\Currency\Payment_Currency_Context;
 
 /**
  * Fetches and caches the Autopay payment channel list (gatewayList/v3 API).
@@ -22,6 +23,18 @@ class Gateway_List_Service {
 	 * @var Blue_Media_Gateway
 	 */
 	private Blue_Media_Gateway $gateway;
+
+	/**
+	 * Per-request memoization of successful lookups, keyed by currency+language cache key.
+	 *
+	 * The option cache below only lives for 10 minutes and is not written at all in test
+	 * mode, so without this a single page render could hit gatewayList/v3 several times
+	 * (channel rendering, script policy, Store API refresh). Bypassed by
+	 * `$force_rebuild_cache`, which must always reach the API.
+	 *
+	 * @var array<string, array>
+	 */
+	private array $request_cache = [];
 
 	/**
 	 * Constructor.
@@ -45,10 +58,27 @@ class Gateway_List_Service {
 		$force_rebuild_cache = false,
 		?string $currency_code = null
 	): array {
-		$currency_code     = esc_attr( $currency_code ? $currency_code : blue_media()->resolve_blue_media_currency_symbol() );
+		if ( ! $currency_code ) {
+			// No explicit currency means a customer-facing fetch, so the list must follow
+			// the currency THIS payment is in and be signed with that currency's ServiceID.
+			// Reading the memoised currency here is what offered a customer shopping in EUR
+			// the PLN service's channels, which that payment's service does not have.
+			// Callers that pass a currency (admin settings, Auditor, recurring) are
+			// deliberately untouched -- they ask about a currency, not about a payment.
+			$this->gateway->ensure_payment_currency_context( 'gateway_list' );
+			$currency_code = ( new Payment_Currency_Context() )->resolve_code();
+		}
+
+		$currency_code     = esc_attr( $currency_code );
 		$currency_code_opt = strtolower( $currency_code );
 		$language          = $this->get_wordpress_language();
 		$cache_key         = "{$currency_code_opt}_{$language}";
+
+		if ( ! $force_rebuild_cache
+			&& ! defined( 'BLUE_MEDIA_DISABLE_CACHE' )
+			&& isset( $this->request_cache[ $cache_key ] ) ) {
+			return $this->request_cache[ $cache_key ];
+		}
 
 		if ( defined( 'BLUE_MEDIA_DISABLE_CACHE' ) || $force_rebuild_cache || time()
 																				- (int) get_option( "bm_gateway_list_cache_time_{$cache_key}" )
@@ -81,6 +111,10 @@ class Gateway_List_Service {
 			}
 		}
 
+		if ( is_array( $gateway_list_cache ) ) {
+			$this->request_cache[ $cache_key ] = $gateway_list_cache;
+		}
+
 		return $gateway_list_cache;
 	}
 
@@ -97,7 +131,7 @@ class Gateway_List_Service {
 	): ?array {
 		$service_id = $this->gateway->get_service_id();
 		$message_id = substr( bin2hex( random_bytes( 32 ) ), 32 );
-		$currencies = $currency_code ? $currency_code : blue_media()->resolve_blue_media_currency_symbol();
+		$currencies = $currency_code ? $currency_code : ( new Payment_Currency_Context() )->resolve_code();
 		$language   = $this->get_wordpress_language();
 
 		$params = array(
@@ -266,6 +300,8 @@ class Gateway_List_Service {
 	 */
 	public function clear_gateway_list_cache(): void {
 		global $wpdb;
+
+		$this->request_cache = [];
 
 		// Delete all gateway list cache options.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query required; WC CRUD does not expose bulk-delete-by-pattern for options. DELETE query is write-only; caching is not applicable.
